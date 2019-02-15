@@ -93,7 +93,5 @@ uniq_split_points.to_file('data/Koskela/split_points.shp')
 
 #%% SPLIT LINE AT SPLIT POINTS
 
-walk_noises = gpd.sjoin(walk_proj, koskela_noises_proj, op='intersects')
 
-walk_noises.to_file('data/Koskela/walk_noises.shp')
 
