@@ -3,7 +3,7 @@ import geopandas as gpd
 import requests
 import json
 from urllib.parse import urlparse, urlencode
-from shapely.geometry import Point
+from shapely.geometry import Point, MultiPolygon
 from shapely.ops import split, snap
 from fiona.crs import from_epsg
 import glob
@@ -76,11 +76,11 @@ def split_line_at_points(line_geom, points_gdf):
 
 def get_select_line_for_noise_polygon(lines, polygon):
     lines_under_poly = []
-    points_under_polys = []
+    # points_under_polys = []
     for line in lines:
         # get center point in the middle of the line
         point_on_line = line.interpolate(0.5, normalized = True)
-        points_under_polys.append(point_on_line)
+        # points_under_polys.append(point_on_line)
         if (point_on_line.within(polygon) or polygon.contains(point_on_line)):
             print('POINT IN POLYGON')
             lines_under_poly.append(line)
@@ -103,14 +103,32 @@ def split_line_with_polygons(line_geom, polygons):
     split_lines_gdf = gpd.GeoDataFrame(geometry=all_split_lines, crs=from_epsg(3879))
     return split_lines_gdf
 
+def better_split_line_with_polygons(line_geom, polygons):
+    polygons_under_line = get_polygons_under_line(line_geom, polygons)
+    multi_polygon = MultiPolygon(list(polygons_under_line['geometry']))
+    split_line_geom = split(line_geom, multi_polygon)
+    print(split_line_geom)
+    lines = list(split_line_geom.geoms)
+    all_split_lines_gdf = gpd.GeoDataFrame(geometry=lines, crs=from_epsg(3879))
+    return all_split_lines_gdf
+
 def explode_multipolygons_to_polygons(polygons_gdf):
     all_polygons = []
+    db_lows = []
+    db_highs = []
     for idx, row in polygons_gdf.iterrows():
         geom = row['geometry'] 
+        db_low = row['DB_LO'] 
+        db_high = row['DB_HI'] 
         if (geom.geom_type == 'MultiPolygon'):
             polygons = list(geom.geoms)
             all_polygons += polygons
+            db_lows += [db_low] * len(polygons)
+            db_highs += [db_high] * len(polygons)
         else:
             all_polygons.append(geom)
-    all_polygons_gdf = gpd.GeoDataFrame(geometry=all_polygons, crs=from_epsg(3879))
+            db_lows.append(db_low)
+            db_highs.append(db_high)
+    data = {'DB_LO': db_lows, 'DB_HI': db_highs}
+    all_polygons_gdf = gpd.GeoDataFrame(data=data, geometry=all_polygons, crs=from_epsg(3879))
     return all_polygons_gdf

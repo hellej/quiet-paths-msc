@@ -5,7 +5,7 @@ import osmnx as ox
 import networkx as nx
 import json
 from fiona.crs import from_epsg
-from shapely.geometry import Point
+from shapely.geometry import Point, MultiPolygon
 from shapely.ops import split, snap
 import utils.geometry as geom
 from matplotlib import pyplot as plt
@@ -53,8 +53,31 @@ uniq_split_points.plot(ax=ax, color='red')
 
 #%%
 split_lines_gdf = geom.split_line_with_polygons(walk_geom, koskela_noise_polys)
-print(split_lines_gdf)
+split_lines_gdf.to_file('data/Koskela_output/noise_walks.shp')
+
+#%% 
+better_split_lines_gdf = geom.better_split_line_with_polygons(walk_geom, koskela_noise_polys)
+better_split_lines_gdf.to_file('data/Koskela_output/better_split_lines_gdf.shp')
 
 #%%
-split_lines_gdf.to_file('data/Koskela_output/noise_walks.shp')
+def get_line_middle_point(line_geom):
+    print(line_geom)
+    return line_geom.interpolate(0.5, normalized = True)
+
+def add_noises_to_split_lines(noise_polygons, split_lines):
+    split_lines['geom_line'] = split_lines['geometry']
+    split_lines['geom_point'] = [get_line_middle_point(geom) for geom in split_lines['geometry']]
+    split_lines['geometry'] = split_lines['geom_point']
+    line_noises = gpd.sjoin(split_lines, noise_polygons, how='left', op='within')
+    line_noises['geometry'] = line_noises['geom_line']
+    print(line_noises)
+    return line_noises[['geometry', 'DB_LO', 'DB_HI', 'index_right']]
+
+line_noises = add_noises_to_split_lines(koskela_noise_polys, better_split_lines_gdf)
+
+#%%
+print(line_noises.head(5))
+line_noises.to_file('data/Koskela_output/line_noises.shp')
+
+
 #%%
