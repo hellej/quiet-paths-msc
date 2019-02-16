@@ -7,8 +7,9 @@ import json
 from fiona.crs import from_epsg
 from shapely.geometry import Point, MultiPolygon
 from shapely.ops import split, snap
-import utils.geometry as geom
 from matplotlib import pyplot as plt
+import utils.geometry as geom
+import utils.noises as nois
 
 #%% read traffic noise polygon layer
 noise_polys = gpd.read_file('data/pks_liikennemelu/pks_tieliikenne_LAeq_paiva.shp')
@@ -23,17 +24,12 @@ koskela_noises = geom.clip_polygons_with_polygon(noise_polys, koskela_poly_proj)
 #%% 
 koskela_noises_proj = koskela_noises.to_crs(epsg=3879)
 koskela_noise_polys = geom.explode_multipolygons_to_polygons(koskela_noises_proj)
-print('polygons count', len(koskela_noises_proj.index))
-print('polygons exploded count', len(koskela_noise_polys.index))
-# koskela_noises_proj.to_file('data/Koskela_output/koskela_noises.shp')
+koskela_noises_proj.to_file('data/Koskela_output/koskela_noises.shp')
 
 #%%  read walk line
 walk = gpd.read_file('data/Koskela_input/test_walk_line.shp')
 walk_proj = walk.to_crs(epsg=3879)
 walk_geom = walk_proj.loc[0, 'geometry']
-#%% plot noise polygons and walk
-ax = koskela_noises_proj.plot()
-walk_proj.plot(ax=ax)
 
 #%% get noise polygons under the walk line
 polygons_under_line = geom.get_polygons_under_line(walk_geom, koskela_noise_polys)
@@ -42,8 +38,6 @@ polygons_under_line.to_file('data/Koskela_output/walk_noises.shp')
 #%% get line split points at polygon boundaries
 split_points = geom.get_line_polygons_inters_points(walk_geom, koskela_noise_polys)
 uniq_split_points = geom.filter_duplicate_split_points(split_points)
-print('split_points count', len(split_points.index))
-print('uniq_split_points count', len(uniq_split_points.index))
 uniq_split_points.to_file('data/Koskela_output/split_points.shp')
 
 #%% plot line, split points and noise polygons
@@ -52,32 +46,18 @@ walk_proj.plot(ax=ax)
 uniq_split_points.plot(ax=ax, color='red')
 
 #%%
-split_lines_gdf = geom.split_line_with_polygons(walk_geom, koskela_noise_polys)
-split_lines_gdf.to_file('data/Koskela_output/noise_walks.shp')
+# split_lines_gdf = geom.split_line_with_polygons(walk_geom, koskela_noise_polys)
+# split_lines_gdf.to_file('data/Koskela_output/noise_walks.shp')
 
 #%% 
 better_split_lines_gdf = geom.better_split_line_with_polygons(walk_geom, koskela_noise_polys)
 better_split_lines_gdf.to_file('data/Koskela_output/better_split_lines_gdf.shp')
 
 #%%
-def get_line_middle_point(line_geom):
-    print(line_geom)
-    return line_geom.interpolate(0.5, normalized = True)
-
-def add_noises_to_split_lines(noise_polygons, split_lines):
-    split_lines['geom_line'] = split_lines['geometry']
-    split_lines['geom_point'] = [get_line_middle_point(geom) for geom in split_lines['geometry']]
-    split_lines['geometry'] = split_lines['geom_point']
-    line_noises = gpd.sjoin(split_lines, noise_polygons, how='left', op='within')
-    line_noises['geometry'] = line_noises['geom_line']
-    print(line_noises)
-    return line_noises[['geometry', 'DB_LO', 'DB_HI', 'index_right']]
-
-line_noises = add_noises_to_split_lines(koskela_noise_polys, better_split_lines_gdf)
+line_noises = nois.add_noises_to_split_lines(koskela_noise_polys, better_split_lines_gdf)
 
 #%%
 print(line_noises.head(5))
 line_noises.to_file('data/Koskela_output/line_noises.shp')
-
 
 #%%

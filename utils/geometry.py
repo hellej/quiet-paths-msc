@@ -107,7 +107,6 @@ def better_split_line_with_polygons(line_geom, polygons):
     polygons_under_line = get_polygons_under_line(line_geom, polygons)
     multi_polygon = MultiPolygon(list(polygons_under_line['geometry']))
     split_line_geom = split(line_geom, multi_polygon)
-    print(split_line_geom)
     lines = list(split_line_geom.geoms)
     all_split_lines_gdf = gpd.GeoDataFrame(geometry=lines, crs=from_epsg(3879))
     return all_split_lines_gdf
@@ -132,3 +131,6 @@ def explode_multipolygons_to_polygons(polygons_gdf):
     data = {'DB_LO': db_lows, 'DB_HI': db_highs}
     all_polygons_gdf = gpd.GeoDataFrame(data=data, geometry=all_polygons, crs=from_epsg(3879))
     return all_polygons_gdf
+
+def get_line_middle_point(line_geom):
+    return line_geom.interpolate(0.5, normalized = True)
