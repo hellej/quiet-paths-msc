@@ -74,6 +74,18 @@ def split_line_at_points(line_geom, points_gdf):
         split_lines += split_geoms
     return split_lines
 
+def get_select_line_for_noise_polygon(lines, polygon):
+    lines_under_poly = []
+    points_under_polys = []
+    for line in lines:
+        # get center point in the middle of the line
+        point_on_line = line.interpolate(0.5, normalized = True)
+        points_under_polys.append(point_on_line)
+        if (point_on_line.within(polygon) or polygon.contains(point_on_line)):
+            print('POINT IN POLYGON')
+            lines_under_poly.append(line)
+    return lines_under_poly
+
 def split_line_with_polygons(line_geom, polygons):
     polygons_under_line = get_polygons_under_line(line_geom, polygons)
     print(polygons_under_line)
@@ -90,18 +102,6 @@ def split_line_with_polygons(line_geom, polygons):
         all_split_lines += lines_on_poly
     split_lines_gdf = gpd.GeoDataFrame(geometry=all_split_lines, crs=from_epsg(3879))
     return split_lines_gdf
-
-def get_select_line_for_noise_polygon(lines, polygon):
-    lines_under_poly = []
-    points_under_polys = []
-    for line in lines:
-        # get center point in the middle of the line
-        point_on_line = line.interpolate(0.5, normalized = True)
-        points_under_polys.append(point_on_line)
-        if (point_on_line.within(polygon) or polygon.contains(point_on_line)):
-            print('POINT IN POLYGON')
-            lines_under_poly.append(line)
-    return lines_under_poly
 
 def explode_multipolygons_to_polygons(polygons_gdf):
     all_polygons = []
