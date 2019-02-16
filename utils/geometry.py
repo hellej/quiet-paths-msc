@@ -4,11 +4,11 @@ import requests
 import json
 from urllib.parse import urlparse, urlencode
 from shapely.geometry import Point
+from shapely.ops import split, snap
 from fiona.crs import from_epsg
 import glob
 
-def clip_polygon_with_polygon(clippee, clipper):
-
+def clip_polygons_with_polygon(clippee, clipper):
     poly = clipper.geometry.unary_union
     poly_bbox = poly.bounds
 
@@ -21,3 +21,96 @@ def clip_polygon_with_polygon(clippee, clipper):
     clipped_final = clipped[clipped.geometry.notnull()]
 
     return clipped_final
+
+def get_polygons_under_line(line_geom, polygons):
+    intersects_mask = polygons.intersects(line_geom)
+    polygons_under_line = polygons.loc[intersects_mask]
+    return polygons_under_line
+
+def get_inters_points(inters_line):
+    inters_coords = inters_line.coords
+    intersection_line = list(inters_coords)
+    point_geoms = []
+    for coords in intersection_line:
+        point_geom = Point(coords)
+        point_geoms.append(point_geom)
+    return point_geoms
+
+def get_line_polygons_inters_points(line_geom, polygons):
+    polygons_under_line = get_polygons_under_line(line_geom, polygons)
+    point_geoms = []
+    for idx, row in polygons_under_line.iterrows():
+        poly_geom = row['geometry']
+        inters_geom = poly_geom.intersection(line_geom)
+        if (inters_geom.geom_type == 'MultiLineString'):
+            for inters_line in inters_geom:
+                point_geoms += get_inters_points(inters_line)
+        else:
+            inters_line = inters_geom
+            point_geoms += get_inters_points(inters_line)
+    return gpd.GeoDataFrame(geometry=point_geoms, crs=from_epsg(3879))
+
+def filter_duplicate_split_points(split_points):
+    split_points['geom_str'] = [str(geom) for geom in split_points['geometry']]
+    grouped = split_points.groupby('geom_str')
+    point_geoms = []
+    for key, values in grouped:
+        point_geom = list(values['geometry'])[0]
+        point_geoms.append(point_geom)
+    return gpd.GeoDataFrame(geometry=point_geoms, crs=from_epsg(3879))
+
+# THIS DOESN'T WORK
+def split_line_at_points(line_geom, points_gdf):
+    split_lines = []
+    for idx, split_point in points_gdf.iterrows():
+        point_geom = split_point['geometry']    
+        # point_line_distance = line_geom.distance(point_geom)
+        # print(point_line_distance < 1e-8)   
+        snap_point_geom = line_geom.interpolate(line_geom.project(point_geom))
+        print(snap_point_geom.wkt)
+        # print('snap_point', list(snap_line.coords))
+        split_geoms = split(line_geom, snap_point_geom)
+        print(split_geoms)
+        split_lines += split_geoms
+    return split_lines
+
+def split_line_with_polygons(line_geom, polygons):
+    polygons_under_line = get_polygons_under_line(line_geom, polygons)
+    print(polygons_under_line)
+    all_split_lines = []
+    for idx, row in polygons.iterrows():
+        # print('idx', idx)
+        poly_geom = row['geometry']
+        split_line_geom = split(line_geom, poly_geom)
+        # explode geometry collection to list of geoms
+        split_lines = list(split_line_geom.geoms)
+        # print('split_lines', split_lines)
+        lines_on_poly = get_select_line_for_noise_polygon(split_lines, poly_geom)
+        # print('line_on_poly', line_on_poly)
+        all_split_lines += lines_on_poly
+    split_lines_gdf = gpd.GeoDataFrame(geometry=all_split_lines, crs=from_epsg(3879))
+    return split_lines_gdf
+
+def get_select_line_for_noise_polygon(lines, polygon):
+    lines_under_poly = []
+    points_under_polys = []
+    for line in lines:
+        # get center point in the middle of the line
+        point_on_line = line.interpolate(0.5, normalized = True)
+        points_under_polys.append(point_on_line)
+        if (point_on_line.within(polygon) or polygon.contains(point_on_line)):
+            print('POINT IN POLYGON')
+            lines_under_poly.append(line)
+    return lines_under_poly
+
+def explode_multipolygons_to_polygons(polygons_gdf):
+    all_polygons = []
+    for idx, row in polygons_gdf.iterrows():
+        geom = row['geometry'] 
+        if (geom.geom_type == 'MultiPolygon'):
+            polygons = list(geom.geoms)
+            all_polygons += polygons
+        else:
+            all_polygons.append(geom)
+    all_polygons_gdf = gpd.GeoDataFrame(geometry=all_polygons, crs=from_epsg(3879))
+    return all_polygons_gdf
