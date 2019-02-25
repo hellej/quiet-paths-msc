@@ -1,0 +1,42 @@
+{
+  plan(from: {lat: 60.168992, lon: 24.932366}, to: {lat: 60.175294, lon: 24.684855}, numItineraries: 1) {
+    itineraries {
+      legs {
+        mode
+        duration
+        distance
+        transitLeg
+        to {
+          stop {
+            name
+            desc
+            locationType
+            lat
+            lon
+            parentStation {
+              name
+              desc
+              lat
+              lon
+              stops {
+                name
+                desc
+              }
+            }
+            cluster {
+              name
+              gtfsId
+              lat
+              lon
+              stops {
+                name
+                desc
+              }
+            }
+            platformCode
+          }
+        }
+      }
+    }
+  }
+}
