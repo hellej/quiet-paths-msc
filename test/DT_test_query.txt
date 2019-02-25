@@ -8,13 +8,12 @@
         transitLeg
         to {
           stop {
-            name
+            gtfsId
             desc
-            locationType
             lat
             lon
             parentStation {
-              name
+              gtfsId
               desc
               lat
               lon
@@ -24,8 +23,8 @@
               }
             }
             cluster {
-              name
               gtfsId
+              name
               lat
               lon
               stops {

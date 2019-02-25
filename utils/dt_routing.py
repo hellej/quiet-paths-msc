@@ -1,6 +1,9 @@
 import requests
 import json
 import polyline
+import pandas as pd
+import geopandas as gpd
+from fiona.crs import from_epsg
 from shapely.geometry import Point, LineString
 
 def build_plan_query(latlon_from, latlon_to, walkSpeed, maxWalkDistance, itins_count, datetime):
@@ -41,10 +44,29 @@ def build_full_route_query(latlon_from, latlon_to, walkSpeed, maxWalkDistance, i
                     mode
                     duration
                     distance
-                    transitLeg
                     legGeometry {{
                         length
                         points
+                    }}
+                    to {{
+                        stop {{
+                            gtfsId
+                            desc
+                            lat
+                            lon
+                            parentStation {{
+                                gtfsId
+                                name
+                                lat
+                                lon
+                            }}
+                            cluster {{
+                                gtfsId
+                                name
+                                lat
+                                lon
+                            }}
+                        }}
                     }}
                 }}
             }}
@@ -94,7 +116,7 @@ def create_line_geom(point_coords):
     except:
         return
 
-def parse_itin_geom(itins):
+def parse_walk_geoms(itins, from_id, to_id):
     '''
     Function for parsing route geometries got from Digitransit Routing API. 
     Coordinates are decoded from Google Encoded Polyline Algorithm Format.
@@ -103,20 +125,36 @@ def parse_itin_geom(itins):
     <list of dictionaries>
         List of itineraries as dictionaries
     '''
+    walk_gdfs = []
     for itin in itins:
-        itin_coords = []
-        legs = itin['legs']
-        for leg in legs:
-            geom = leg['legGeometry']['points']
-            # parse coordinates from Google Encoded Polyline Algorithm Format
-            decoded = polyline.decode(geom)
-            # swap coordinates (y, x) -> (x, y)
-            coords = [point[::-1] for point in decoded]
-            leg['line_geom'] = create_line_geom(coords)
-            leg['first_point'] = Point(coords[0])
-            leg['last_point'] = Point(coords[len(coords)-1])
-            itin_coords += coords
-            del leg['legGeometry']
-        itin['line_geom'] = create_line_geom(itin_coords)
-    return itins
+        walk_leg = itin['legs'][0]
+        pt_leg = itin['legs'][1]
+        geom = walk_leg['legGeometry']['points']
+        # parse coordinates from Google Encoded Polyline Algorithm Format
+        decoded = polyline.decode(geom)
+        # swap coordinates (y, x) -> (x, y)
+        coords = [point[::-1] for point in decoded]
+        walk = {}
+        walk['from_id'] = [from_id]
+        walk['to_id'] = [to_id]
+        walk['to_pt_mode'] = [pt_leg['mode']]
+        walk['line_geom'] = [create_line_geom(coords)]
+        walk['first_point'] = [Point(coords[0])]
+        walk['last_point'] = [Point(coords[len(coords)-1])]
+        to_stop = walk_leg['to']['stop']
+        walk['stop_id'] = [to_stop['gtfsId']]
+        walk['stop_desc'] = [to_stop['desc']]
+        walk['stop_point'] = [Point(to_stop['lon'], to_stop['lat'])]
+        parent_station = to_stop['parentStation']
+        walk['stop_p_id'] = [parent_station['gtfsId']] if parent_station != None else ['']
+        walk['stop_p_name'] = [parent_station['name']] if parent_station != None else ['']
+        walk['stop_p_point'] = [Point(parent_station['lon'], parent_station['lat'])] if parent_station != None else ['']
+        cluster = to_stop['cluster']
+        walk['stop_c_id'] = [cluster['gtfsId']] if cluster != None else ['']
+        walk['stop_c_name'] = [cluster['name']] if cluster != None else ['']
+        walk['stop_c_point'] = [Point(cluster['lon'], cluster['lat'])] if cluster != None else ['']
+        walk_gdf = gpd.GeoDataFrame(data=walk, geometry=walk['line_geom'], crs=from_epsg(4326))
+        walk_gdfs.append(walk_gdf)
+    walk_gdf = pd.concat(walk_gdfs).reset_index(drop=True)
+    return walk_gdf
 
