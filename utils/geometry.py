@@ -8,6 +8,9 @@ from shapely.ops import split, snap
 from fiona.crs import from_epsg
 import glob
 
+def get_lat_lon_from_geom(row):
+    return {'lat': row['geometry'].y, 'lon': row['geometry'].x }
+
 def clip_polygons_with_polygon(clippee, clipper):
     poly = clipper.geometry.unary_union
     poly_bbox = poly.bounds

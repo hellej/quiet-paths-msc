@@ -8,13 +8,14 @@ from fiona.crs import from_epsg
 from shapely.geometry import Point, MultiPolygon
 from shapely.ops import split, snap
 from matplotlib import pyplot as plt
-import utils.geometry as geom
+import utils.geometry as geom_utils
 import utils.times as times
-import utils.noises as nois
 import utils.utils as utils
+import utils.noises as nois
 import utils.dt_routing as routing
-import utils.ykr as ykr
+import utils.pt_hub_routing as pt_hub_routing
 import sys
+
 # route params for testing
 latlon_from = {'lat': 60.168992, 'lon': 24.932366 }
 latLon_to = {'lat': 60.175294, 'lon': 24.684855 }
@@ -22,6 +23,7 @@ latLon_steissi = { 'lat': 60.170435, 'lon': 24.940673 }
 walkSpeed = '1.33'
 maxWalkDistance = 6000
 datetime = times.get_next_weekday_datetime(8, 30)
+target_locations = pt_hub_routing.get_target_locations()
 
 #%% build and run routing query for one test plan
 itins = routing.get_route_itineraries(latlon_from, latLon_to, walkSpeed, maxWalkDistance, 3, datetime)
@@ -37,20 +39,18 @@ walks_file = walks[['geometry'] + walk_cols]
 walks_file.to_file('data/walk_test_output/walks_test.gpkg', layer='asdf', driver="GPKG")
 
 #%% import test origin points & iterate over them
-koskela_centers = ykr.get_koskela_centers()
-row_count = len(list(koskela_centers.index))
+origins = pt_hub_routing.get_koskela_centers()
+origins_count = len(list(origins.index))
+#%%
 from_walks = []
-for idx, row in koskela_centers.iterrows():
+for idx, row in origins.iterrows():
     if (idx == 3):
         break
-    from_latLon = utils.get_lat_lon_from_geom(row)
-    itins = routing.get_route_itineraries(from_latLon, latLon_steissi, walkSpeed, maxWalkDistance, 3, datetime)
-    from_id = row['INDEX']
+    itins = routing.get_route_itineraries(row['from_latLon'], latLon_steissi, walkSpeed, maxWalkDistance, 3, datetime)
     to_id = 'steissi'
-    walks = routing.parse_walk_geoms(itins, from_id, to_id)
+    walks = routing.parse_walk_geoms(itins, row['INDEX'], to_id)
     from_walks.append(walks)
-    sys.stdout.write(str(idx+1)+'/'+str(row_count)+' ')
-    sys.stdout.flush()
+    utils.print_progress(idx, origins_count)
 
 #%%
 walk_cols = ['from_id', 'to_id', 'to_pt_mode', 'stop_id', 'stop_desc', 'stop_p_id', 'stop_p_name', 'stop_c_id', 'stop_c_name']
