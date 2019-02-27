@@ -27,7 +27,7 @@ def get_koskela_centers():
     # reproject to WGS 84
     points_gdf = points_gdf.to_crs(from_epsg(4326))
     # add latLon coordinates as dictionary column
-    points_gdf['from_latLon'] = points_gdf.apply(lambda row: geom_utils.get_lat_lon_from_geom(row), axis=1)
+    points_gdf['from_latLon'] = [geom_utils.get_lat_lon_from_geom(geom) for geom in points_gdf['geometry']]
     # select only points inside AOI (Koskela-polygon)
     point_mask = points_gdf.intersects(koskela_poly.loc[0, 'geometry'])
     points_gdf = points_gdf.loc[point_mask].reset_index(drop=True)
@@ -37,5 +37,5 @@ def get_koskela_centers():
 
 def get_target_locations():
     target_locations = gpd.read_file('data/PT_Hub_analysis/routing_inputs.gpkg', layer='target_locations')
-    target_locations['to_latLon'] = target_locations.apply(lambda row: geom_utils.get_lat_lon_from_geom(row), axis=1)
+    target_locations['to_latLon'] = [geom_utils.get_lat_lon_from_geom(geom) for geom in target_locations['geometry']]
     return target_locations

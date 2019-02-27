@@ -23,39 +23,48 @@ latLon_steissi = { 'lat': 60.170435, 'lon': 24.940673 }
 walkSpeed = '1.33'
 maxWalkDistance = 6000
 datetime = times.get_next_weekday_datetime(8, 30)
-target_locations = pt_hub_routing.get_target_locations()
+targets = pt_hub_routing.get_target_locations()
+targets_count = len(list(targets.index))
 
 #%% build and run routing query for one test plan
 itins = routing.get_route_itineraries(latlon_from, latLon_to, walkSpeed, maxWalkDistance, 3, datetime)
-
-#%% parse geometry from Google Encoded Polyline Algorithm Format
-from_id = 'FROMID'
-to_id = 'TOID'
-walks = routing.parse_walk_geoms(itins, from_id, to_id)
+# parse walk geometries
+walks = routing.parse_walk_geoms(itins, 'FROMID', 'TOID')
 # print route geometry (line) of the first itinerary
-print(walks)
 walk_cols = ['from_id', 'to_id', 'to_pt_mode', 'stop_id', 'stop_desc', 'stop_p_id', 'stop_p_name', 'stop_c_id', 'stop_c_name']
-walks_file = walks[['geometry'] + walk_cols]
-walks_file.to_file('data/walk_test_output/walks_test.gpkg', layer='asdf', driver="GPKG")
+walk_lines = walks[['geometry'] + walk_cols]
+walk_lines.to_file('data/walk_test_output/walks_test.gpkg', layer='paths_test', driver="GPKG")
 
 #%% import test origin points & iterate over them
 origins = pt_hub_routing.get_koskela_centers()
 origins_count = len(list(origins.index))
 #%%
-from_walks = []
-for idx, row in origins.iterrows():
-    if (idx == 3):
+all_walks = []
+for origin_idx, origin in origins.iterrows():
+    if (origin_idx == 3):
         break
-    itins = routing.get_route_itineraries(row['from_latLon'], latLon_steissi, walkSpeed, maxWalkDistance, 3, datetime)
-    to_id = 'steissi'
-    walks = routing.parse_walk_geoms(itins, row['INDEX'], to_id)
-    from_walks.append(walks)
-    utils.print_progress(idx, origins_count)
+    utils.print_progress(origin_idx, origins_count)
+    for target_idx, target in targets.iterrows():
+        utils.print_progress(target_idx, targets_count)
+        itins = routing.get_route_itineraries(origin['from_latLon'], target['to_latLon'], walkSpeed, maxWalkDistance, 3, datetime)
+        walks = routing.parse_walk_geoms(itins, origin['INDEX'], target['name'])
+        all_walks.append(walks)
 
 #%%
 walk_cols = ['from_id', 'to_id', 'to_pt_mode', 'stop_id', 'stop_desc', 'stop_p_id', 'stop_p_name', 'stop_c_id', 'stop_c_name']
-walk_gdf = pd.concat(from_walks).reset_index(drop=True)
-walks_file = walks[['geometry'] + walk_cols]
-walks_file.to_file('data/walk_test_output/walks_test.gpkg', layer='koskela_walks', driver="GPKG")
+walk_gdf = pd.concat(all_walks).reset_index(drop=True)
+
+# save walk lines
+walk_lines = walk_gdf.set_geometry('line_geom')
+walk_lines = walk_lines[['line_geom'] + walk_cols]
+walk_lines.to_file('data/walk_test_output/walks_test.gpkg', layer='paths', driver="GPKG")
+# save walk origins
+walk_origins = walk_gdf.set_geometry('first_point')
+walk_origins = walk_origins[['first_point'] + walk_cols]
+walk_origins.to_file('data/walk_test_output/walks_test.gpkg', layer='origins', driver="GPKG")
+# save walk origins
+walk_targets = walk_gdf.set_geometry('stop_point')
+walk_targets = walk_targets[['stop_point'] + walk_cols]
+walk_targets.to_file('data/walk_test_output/walks_test.gpkg', layer='pt_hubs', driver="GPKG")
 
 #%%

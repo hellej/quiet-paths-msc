@@ -128,7 +128,10 @@ def parse_walk_geoms(itins, from_id, to_id):
     walk_gdfs = []
     for itin in itins:
         walk_leg = itin['legs'][0]
-        pt_leg = itin['legs'][1]
+        try:
+            pt_leg = itin['legs'][1]
+        except IndexError:
+            pt_leg = {'mode': 'none'}
         geom = walk_leg['legGeometry']['points']
         # parse coordinates from Google Encoded Polyline Algorithm Format
         decoded = polyline.decode(geom)
@@ -142,17 +145,18 @@ def parse_walk_geoms(itins, from_id, to_id):
         walk['first_point'] = [Point(coords[0])]
         walk['last_point'] = [Point(coords[len(coords)-1])]
         to_stop = walk_leg['to']['stop']
-        walk['stop_id'] = [to_stop['gtfsId']]
-        walk['stop_desc'] = [to_stop['desc']]
-        walk['stop_point'] = [Point(to_stop['lon'], to_stop['lat'])]
-        parent_station = to_stop['parentStation']
+        walk['stop_id'] = [to_stop['gtfsId']] if to_stop != None else ['']
+        walk['stop_desc'] = [to_stop['desc']] if to_stop != None else ['']
+        walk['stop_point'] = [Point(to_stop['lon'], to_stop['lat'])] if to_stop != None else ['']
+        parent_station = to_stop['parentStation'] if to_stop != None else None
         walk['stop_p_id'] = [parent_station['gtfsId']] if parent_station != None else ['']
         walk['stop_p_name'] = [parent_station['name']] if parent_station != None else ['']
         walk['stop_p_point'] = [Point(parent_station['lon'], parent_station['lat'])] if parent_station != None else ['']
-        cluster = to_stop['cluster']
+        cluster = to_stop['cluster'] if to_stop != None else None
         walk['stop_c_id'] = [cluster['gtfsId']] if cluster != None else ['']
         walk['stop_c_name'] = [cluster['name']] if cluster != None else ['']
         walk['stop_c_point'] = [Point(cluster['lon'], cluster['lat'])] if cluster != None else ['']
+        # convert walk dictionary to GeoDataFrame
         walk_gdf = gpd.GeoDataFrame(data=walk, geometry=walk['line_geom'], crs=from_epsg(4326))
         walk_gdfs.append(walk_gdf)
     walk_gdf = pd.concat(walk_gdfs).reset_index(drop=True)
