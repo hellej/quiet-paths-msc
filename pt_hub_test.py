@@ -51,19 +51,35 @@ for origin_idx, origin in origins.iterrows():
         all_walks.append(walks)
 
 #%%
+walks_gdf = pd.concat(all_walks).reset_index(drop=True)
 walk_cols = ['from_id', 'to_id', 'to_pt_mode', 'stop_id', 'stop_desc', 'stop_p_id', 'stop_p_name', 'stop_c_id', 'stop_c_name']
-walk_gdf = pd.concat(all_walks).reset_index(drop=True)
 
+# select walks to targets (filter out walks to PT stations)
+walks_to_targets = walks_gdf.loc[walks_gdf['to_pt_mode'] == 'none']
+walks_to_targets_g = pt_hub_routing.group_by_origin_stop(walks_to_targets)
+
+# select walks to PT stations (filter out walks to targets)
+walks_to_stops = walks_gdf.loc[walks_gdf['to_pt_mode'] != 'none']
+walks_to_stops_g = pt_hub_routing.group_by_origin_stop(walks_to_stops)
+
+# combine walks to PT stations and walks to targets to one GeoDataFrame
+all_walk_groups = pd.concat([walks_to_stops_g, walks_to_targets_g]).reset_index(drop=True) 
+
+#%% EXPORT TO GEOPACKAGE
+# save grouped walks
+walk_groups = all_walk_groups.set_geometry('line_geom')
+walk_groups = walk_groups[['line_geom', 'count'] + walk_cols]
+walk_groups.to_file('data/walk_test_output/walks_test.gpkg', layer='walk_groups', driver="GPKG")
 # save walk lines
-walk_lines = walk_gdf.set_geometry('line_geom')
+walk_lines = walks_gdf.set_geometry('line_geom')
 walk_lines = walk_lines[['line_geom'] + walk_cols]
 walk_lines.to_file('data/walk_test_output/walks_test.gpkg', layer='paths', driver="GPKG")
 # save walk origins
-walk_origins = walk_gdf.set_geometry('first_point')
+walk_origins = walks_gdf.set_geometry('first_point')
 walk_origins = walk_origins[['first_point'] + walk_cols]
 walk_origins.to_file('data/walk_test_output/walks_test.gpkg', layer='origins', driver="GPKG")
 # save walk origins
-walk_targets = walk_gdf.set_geometry('stop_point')
+walk_targets = walks_gdf.set_geometry('stop_point')
 walk_targets = walk_targets[['stop_point'] + walk_cols]
 walk_targets.to_file('data/walk_test_output/walks_test.gpkg', layer='pt_hubs', driver="GPKG")
 

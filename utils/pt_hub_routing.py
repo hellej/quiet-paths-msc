@@ -39,3 +39,27 @@ def get_target_locations():
     target_locations = gpd.read_file('data/PT_Hub_analysis/routing_inputs.gpkg', layer='target_locations')
     target_locations['to_latLon'] = [geom_utils.get_lat_lon_from_geom(geom) for geom in target_locations['geometry']]
     return target_locations
+
+def group_by_origin_stop(df):
+    grouped_dfs = []
+    grouped = df.groupby(['from_id', 'stop_id'])
+    for key, values in grouped:
+        firstrow = values.iloc[0]
+        count = len(values.index)
+        g_gdf = gpd.GeoDataFrame([firstrow], crs=from_epsg(4326))
+        g_gdf['count'] = count
+        grouped_dfs.append(g_gdf)
+    origin_stop_groups = pd.concat(grouped_dfs).reset_index(drop=True)
+    return origin_stop_groups
+
+def group_by_origin_target(df):
+    grouped_dfs = []
+    grouped = df.groupby(['from_id', 'to_id'])
+    for key, values in grouped:
+        firstrow = values.iloc[0]
+        count = len(values.index)
+        g_gdf = gpd.GeoDataFrame([firstrow], crs=from_epsg(4326))
+        g_gdf['count'] = count
+        grouped_dfs.append(g_gdf)
+    origin_target_groups = pd.concat(grouped_dfs).reset_index(drop=True)
+    return origin_target_groups
