@@ -3,7 +3,7 @@ import geopandas as gpd
 import requests
 import json
 from urllib.parse import urlparse, urlencode
-from shapely.geometry import Point, MultiPolygon
+from shapely.geometry import Point, LineString, MultiPolygon
 from shapely.ops import split, snap
 from fiona.crs import from_epsg
 import glob
@@ -138,5 +138,20 @@ def explode_multipolygons_to_polygons(polygons_gdf):
     all_polygons_gdf = gpd.GeoDataFrame(data=data, geometry=all_polygons, crs=from_epsg(3879))
     return all_polygons_gdf
 
+def create_line_geom(point_coords):
+    '''
+    Function for building line geometries from list of coordinate tuples [(x,y), (x,y)].
+    Returns
+    -------
+    <LineString>
+    '''
+    try:
+        return LineString([point for point in point_coords])
+    except:
+        return
+
 def get_line_middle_point(line_geom):
     return line_geom.interpolate(0.5, normalized = True)
+
+def get_simple_line(row, from_col, to_col):
+    return LineString([row[from_col], row[to_col]])
