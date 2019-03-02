@@ -17,12 +17,10 @@ import utils.pt_hub_routing as pt_hub_routing
 import sys
 
 # routing params for Digitransit API
-# latlon_from = {'lat': 60.168992, 'lon': 24.932366 }
-# latLon_to = {'lat': 60.175294, 'lon': 24.684855 }
-# latLon_steissi = { 'lat': 60.170435, 'lon': 24.940673 }
 walkSpeed = '1.33'
 maxWalkDistance = 6000
 datetime = times.get_next_weekday_datetime(8, 30)
+
 # import test target points
 targets = pt_hub_routing.get_target_locations()
 targets_count = len(list(targets.index))
@@ -30,16 +28,7 @@ targets_count = len(list(targets.index))
 origins = pt_hub_routing.get_koskela_centers()
 origins_count = len(list(origins.index))
 
-# build and run routing query for one test plan
-# itins = routing.get_route_itineraries(latlon_from, latLon_to, walkSpeed, maxWalkDistance, 3, datetime)
-# parse walk geometries
-# walks = routing.parse_walk_geoms(itins, 'FROMID', 'TOID')
-# print route geometry (line) of the first itinerary
-# walk_cols = ['from_id', 'to_id', 'to_pt_mode', 'stop_id', 'stop_desc', 'stop_p_id', 'stop_p_name', 'stop_c_id', 'stop_c_name']
-# walk_paths = walks[['geometry'] + walk_cols]
-# walk_paths.to_file('data/walk_test_output/walks_test.gpkg', layer='paths_test', driver="GPKG")
-
-#%%
+#%% RUN DIGITRANSIT ROUTING QUERIES
 all_walks = []
 for origin_idx, origin in origins.iterrows():
     if (origin_idx == 3):
@@ -53,13 +42,14 @@ for origin_idx, origin in origins.iterrows():
 
 #%% GATHER ALL WALKS AND MERGE COLUMNS OF ORIGINS & TARGETS
 walks_gdf = pd.concat(all_walks).reset_index(drop=True)
+walks_gdf.plot()
 walks_gdf = pt_hub_routing.merge_origin_target_attrs_to_walks(walks_gdf, origins, targets)
 walk_cols = ['from_id', 'to_id', 'path_dist', 'to_pt_mode', 'stop_id', 'stop_desc', 'stop_p_id', 'stop_p_name', 'stop_c_id', 'stop_c_name']
 
 #%% GROUP IDENTICAL WALKS
 # select & group walks to targets (filter out walks to PT stations)
 walks_to_targets = walks_gdf.loc[walks_gdf['to_pt_mode'] == 'none']
-walks_to_targets_g = pt_hub_routing.group_by_origin_stop(walks_to_targets)
+walks_to_targets_g = pt_hub_routing.group_by_origin_target(walks_to_targets)
 # select & group walks to PT stations (filter out walks to targets)
 walks_to_stops = walks_gdf.loc[walks_gdf['to_pt_mode'] != 'none']
 walks_to_stops_g = pt_hub_routing.group_by_origin_stop(walks_to_stops)

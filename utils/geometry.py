@@ -4,7 +4,9 @@ import requests
 import json
 from urllib.parse import urlparse, urlencode
 from shapely.geometry import Point, LineString, MultiPolygon
-from shapely.ops import split, snap
+from shapely.ops import split, snap, transform
+from functools import partial
+import pyproj
 from fiona.crs import from_epsg
 import glob
 
@@ -13,6 +15,25 @@ def get_lat_lon_from_geom(geom):
 
 def get_lat_lon_from_row(row):
     return {'lat': row['geometry'].y, 'lon': row['geometry'].x }
+
+def get_coords_from_lat_lon(latLon):
+    return [latLon['lon'], latLon['lat']]
+
+def get_point_from_lat_lon(latLon):
+    return Point(get_coords_from_lat_lon(latLon))
+
+def project_to_etrs(geom):
+    project = partial(
+        pyproj.transform,
+        pyproj.Proj(init='epsg:4326'), # source coordinate system
+        pyproj.Proj(init='epsg:3879')) # destination coordinate system
+    geom_proj = transform(project, geom)
+    return geom_proj
+
+def get_xy_from_lat_lon(latLon):
+    point = get_point_from_lat_lon(latLon)
+    point_proj = project_to_etrs(point)
+    return { 'x': point_proj.x, 'y': point_proj.y }    
 
 def clip_polygons_with_polygon(clippee, clipper):
     poly = clipper.geometry.unary_union

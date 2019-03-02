@@ -27,6 +27,7 @@ def get_koskela_centers():
     points_gdf = points_gdf.to_crs(from_epsg(4326))
     # add latLon coordinates as dictionary column
     points_gdf['from_latLon'] = [geom_utils.get_lat_lon_from_geom(geom) for geom in points_gdf['geometry']]
+    points_gdf['from_xy'] = [geom_utils.get_xy_from_lat_lon(latLon) for latLon in points_gdf['from_latLon']]
     # select only points inside AOI (Koskela-polygon)
     point_mask = points_gdf.intersects(koskela_poly.loc[0, 'geometry'])
     points_gdf = points_gdf.loc[point_mask].reset_index(drop=True)
@@ -38,6 +39,7 @@ def get_target_locations():
     target_locations = gpd.read_file('data/PT_hub_analysis/routing_inputs.gpkg', layer='target_locations')
     # CRS OF THIS IS WGS 84
     target_locations['to_latLon'] = [geom_utils.get_lat_lon_from_geom(geom) for geom in target_locations['geometry']]
+    target_locations['to_xy'] = [geom_utils.get_xy_from_lat_lon(latLon) for latLon in target_locations['to_latLon']]
     return target_locations
 
 def group_by_origin_stop(df):
@@ -46,7 +48,7 @@ def group_by_origin_stop(df):
     for key, values in grouped:
         firstrow = values.iloc[0]
         count = len(values.index)
-        g_gdf = gpd.GeoDataFrame([firstrow], crs=from_epsg(4326))
+        g_gdf = gpd.GeoDataFrame([firstrow], crs=from_epsg(3879))
         g_gdf['count'] = count
         grouped_dfs.append(g_gdf)
     origin_stop_groups = pd.concat(grouped_dfs).reset_index(drop=True)
@@ -58,9 +60,11 @@ def group_by_origin_target(df):
     for key, values in grouped:
         firstrow = values.iloc[0]
         count = len(values.index)
-        g_gdf = gpd.GeoDataFrame([firstrow], crs=from_epsg(4326))
+        g_gdf = gpd.GeoDataFrame([firstrow], crs=from_epsg(3879))
         g_gdf['count'] = count
         grouped_dfs.append(g_gdf)
+    if (len(grouped_dfs) == 0):
+        return None
     origin_target_groups = pd.concat(grouped_dfs).reset_index(drop=True)
     return origin_target_groups
 
@@ -69,8 +73,8 @@ def merge_origin_target_attrs_to_walks(gdf, origins, targets):
     # print('walks columns', list(gdf))
     origins['from_Point'] = origins['geometry']
     targets['to_Point'] = targets['geometry']
-    origins_join = origins[['INDEX', 'ASUKKAITA', 'from_latLon', 'from_Point']]
-    targets_join = targets[[ 'name', 'name_en', 'to_latLon', 'to_Point']]
+    origins_join = origins[['INDEX', 'ASUKKAITA', 'from_xy', 'from_Point']]
+    targets_join = targets[[ 'name', 'name_en', 'to_xy', 'to_Point']]
     origins_join = origins_join.rename(index=str, columns={'INDEX': 'from_id', 'ASUKKAITA': 'from_pop'})
     targets_join = targets_join.rename(index=str, columns={'name': 'to_id', 'name_en': 'to_name_en'})
     # print('origin columns', list(origins_join))

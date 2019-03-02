@@ -105,6 +105,20 @@ def get_route_itineraries(latlon_from, latlon_to, walkSpeed, maxWalkDistance, it
     itineraries = response['data']['plan']['itineraries']
     return itineraries
 
+def reproject_dict_geoms(dictionary):
+    dict_c = dict(dictionary)
+    for key in dictionary:
+        value = dictionary[key]
+        if (isinstance(value, Point) or isinstance(value, LineString)):
+            dict_c[key] = geom_utils.project_to_etrs(value)
+    return dict_c
+
+def dict_values_as_lists(dictionary):
+    dict_c = {}
+    for key in dictionary:
+        dict_c[key] = [dictionary[key]]
+    return dict_c
+
 def parse_walk_geoms(itins, from_id, to_id):
     '''
     Function for parsing route geometries got from Digitransit Routing API. 
@@ -127,27 +141,29 @@ def parse_walk_geoms(itins, from_id, to_id):
         # swap coordinates (y, x) -> (x, y)
         coords = [point[::-1] for point in decoded]
         walk = {}
-        walk['from_id'] = [from_id]
-        walk['to_id'] = [to_id]
-        walk['to_pt_mode'] = [pt_leg['mode']]
-        walk['path_geom'] = [geom_utils.create_line_geom(coords)]
-        walk['path_dist'] = [int(round(walk_leg['distance']))]
-        walk['first_Point'] = [Point(coords[0])]
-        walk['last_Point'] = [Point(coords[len(coords)-1])]
+        walk['from_id'] = from_id
+        walk['to_id'] = to_id
+        walk['to_pt_mode'] = pt_leg['mode']
+        walk['path_geom'] = geom_utils.create_line_geom(coords)
+        walk['path_dist'] = int(round(walk_leg['distance']))
+        walk['first_Point'] = Point(coords[0])
+        walk['last_Point'] = Point(coords[len(coords)-1])
         to_stop = walk_leg['to']['stop']
-        walk['stop_id'] = [to_stop['gtfsId']] if to_stop != None else ['']
-        walk['stop_desc'] = [to_stop['desc']] if to_stop != None else ['']
-        walk['stop_Point'] = [Point(to_stop['lon'], to_stop['lat'])] if to_stop != None else ['']
+        walk['stop_id'] = to_stop['gtfsId'] if to_stop != None else ''
+        walk['stop_desc'] = to_stop['desc'] if to_stop != None else ''
+        walk['stop_Point'] = geom_utils.get_point_from_lat_lon(to_stop)if to_stop != None else ''
         parent_station = to_stop['parentStation'] if to_stop != None else None
-        walk['stop_p_id'] = [parent_station['gtfsId']] if parent_station != None else ['']
-        walk['stop_p_name'] = [parent_station['name']] if parent_station != None else ['']
-        walk['stop_p_Point'] = [Point(parent_station['lon'], parent_station['lat'])] if parent_station != None else ['']
+        walk['stop_p_id'] = parent_station['gtfsId'] if parent_station != None else ''
+        walk['stop_p_name'] = parent_station['name'] if parent_station != None else ''
+        walk['stop_p_Point'] = geom_utils.get_point_from_lat_lon(parent_station) if parent_station != None else ''
         cluster = to_stop['cluster'] if to_stop != None else None
-        walk['stop_c_id'] = [cluster['gtfsId']] if cluster != None else ['']
-        walk['stop_c_name'] = [cluster['name']] if cluster != None else ['']
-        walk['stop_c_Point'] = [Point(cluster['lon'], cluster['lat'])] if cluster != None else ['']
+        walk['stop_c_id'] = cluster['gtfsId'] if cluster != None else ''
+        walk['stop_c_name'] = cluster['name'] if cluster != None else ''
+        walk['stop_c_Point'] = geom_utils.get_point_from_lat_lon(cluster) if cluster != None else ''
         # convert walk dictionary to GeoDataFrame
-        walk_gdf = gpd.GeoDataFrame(data=walk, geometry=walk['path_geom'], crs=from_epsg(4326))
+        walk_proj = reproject_dict_geoms(walk)
+        walk_data = dict_values_as_lists(walk_proj)
+        walk_gdf = gpd.GeoDataFrame(data=walk_data, geometry=walk_data['path_geom'], crs=from_epsg(3879))
         walk_gdfs.append(walk_gdf)
     walk_gdf = pd.concat(walk_gdfs).reset_index(drop=True)
     return walk_gdf

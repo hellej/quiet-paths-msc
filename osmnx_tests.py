@@ -7,6 +7,7 @@ import json
 from fiona.crs import from_epsg
 import utils.networks as nw
 import ast
+import utils.geometry as geom_utils
 
 #%% GET BOUNDING BOX POLYGONS
 koskela_box = nw.get_koskela_box()
@@ -46,7 +47,9 @@ for idx, row in dt_paths.iterrows():
     if (idx == 0):
         from_latLon = ast.literal_eval(row['from_latLon'])
         to_latLon = ast.literal_eval(row['to_latLon'])
-        print(from_latLon['lat'])
+        from_coords = geom_utils.get_coords_from_lat_lon(from_latLon)
+        to_coords = geom_utils.get_coords_from_lat_lon(to_latLon)
+        print(from_coords)
 
 
 
