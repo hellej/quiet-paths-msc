@@ -23,7 +23,7 @@ def get_koskela_centers():
     # extract center points of population grid
     points_gdf = grid_gdf.copy()
     points_gdf['geometry'] = [geom.centroid for geom in points_gdf['geometry']]
-    # reproject to WGS 84
+    # reproject to WGS
     points_gdf = points_gdf.to_crs(from_epsg(4326))
     # add latLon coordinates as dictionary column
     points_gdf['from_latLon'] = [geom_utils.get_lat_lon_from_geom(geom) for geom in points_gdf['geometry']]
@@ -33,13 +33,16 @@ def get_koskela_centers():
     points_gdf = points_gdf.loc[point_mask].reset_index(drop=True)
     # filter only features with residents
     inhabited_points_gdf = points_gdf.loc[points_gdf['ASUKKAITA'] > 0]
+    # reproject to ETRS
+    inhabited_points_gdf = inhabited_points_gdf.to_crs(from_epsg(3879))
     return inhabited_points_gdf
 
 def get_target_locations():
     target_locations = gpd.read_file('data/PT_hub_analysis/routing_inputs.gpkg', layer='target_locations')
     # CRS OF THIS IS WGS 84
     target_locations['to_latLon'] = [geom_utils.get_lat_lon_from_geom(geom) for geom in target_locations['geometry']]
-    target_locations['to_xy'] = [geom_utils.get_xy_from_lat_lon(latLon) for latLon in target_locations['to_latLon']]
+    # reproject to ETRS
+    target_locations = target_locations.to_crs(from_epsg(3879))
     return target_locations
 
 def group_by_origin_stop(df):
@@ -74,7 +77,7 @@ def merge_origin_target_attrs_to_walks(gdf, origins, targets):
     origins['from_Point'] = origins['geometry']
     targets['to_Point'] = targets['geometry']
     origins_join = origins[['INDEX', 'ASUKKAITA', 'from_xy', 'from_Point']]
-    targets_join = targets[[ 'name', 'name_en', 'to_xy', 'to_Point']]
+    targets_join = targets[[ 'name', 'name_en', 'to_Point']]
     origins_join = origins_join.rename(index=str, columns={'INDEX': 'from_id', 'ASUKKAITA': 'from_pop'})
     targets_join = targets_join.rename(index=str, columns={'name': 'to_id', 'name_en': 'to_name_en'})
     # print('origin columns', list(origins_join))
