@@ -33,6 +33,9 @@ def project_to_etrs(geom):
 def get_xy_from_geom(geom):
     return { 'x': geom.x, 'y': geom.y }    
 
+def get_coords_from_xy(xy):
+    return (xy['x'], xy['y'])
+
 def get_xy_from_lat_lon(latLon):
     point = get_point_from_lat_lon(latLon)
     point_proj = project_to_etrs(point)
