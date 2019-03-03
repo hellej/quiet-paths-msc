@@ -5,7 +5,7 @@ import osmnx as ox
 import networkx as nx
 import json
 from fiona.crs import from_epsg
-from shapely.geometry import LineString, MultiLineString, box
+from shapely.geometry import Point, LineString, MultiLineString, box
 
 extents = gpd.read_file('data/PT_hub_analysis/routing_inputs.gpkg', layer='extents')
 
@@ -37,12 +37,27 @@ def get_walk_network(extent_polygon):
     #fig, ax = ox.plot_graph(graph_proj)
     return graph_proj
 
+def get_node_geom(graph_proj, node):
+    node_d = graph_proj.node[node]
+    return Point(node_d['x'], node_d['y'])
+
+def get_nearest_edges_nearest_node(graph_proj, yx):
+    edge = ox.get_nearest_edge(graph_proj, yx)
+    node1 = get_node_geom(graph_proj, edge[1])
+    node2 = get_node_geom(graph_proj, edge[2])
+    point = Point(yx[1], yx[0])
+    if (point.distance(node1) > point.distance(node2)):
+        return edge[2]
+    else:
+        return edge[1]
+
 def get_shortest_path(graph_proj, from_coords, to_coords):
+    closest_orig_node = get_nearest_edges_nearest_node(graph_proj, from_coords)
+    closest_target_node = get_nearest_edges_nearest_node(graph_proj, to_coords)
     orig_node = ox.get_nearest_node(graph_proj, from_coords, method='euclidean')
     target_node = ox.get_nearest_node(graph_proj, to_coords, method='euclidean')
-    if (orig_node != target_node):
-        s_path = nx.shortest_path(G=graph_proj, source=orig_node, target=target_node, weight='length')
-        print(s_path)
+    if (closest_orig_node != closest_target_node):
+        s_path = nx.shortest_path(G=graph_proj, source=closest_orig_node, target=closest_target_node, weight='length')
         return s_path
     return None
 
@@ -55,7 +70,7 @@ def get_edge_geometries(graph_proj, path, nodes):
         node_1 = path[idx]
         node_2 = path[idx+1]
         edge_d = graph_proj[node_1][node_2][0]
-        print(edge_d)
+        print('path edge', idx, ':', edge_d)
         try:
             path_geoms.append(edge_d['geometry'])
             lengths.append(edge_d['length'])
@@ -69,7 +84,6 @@ def get_edge_geometries(graph_proj, path, nodes):
     multi_line = MultiLineString(path_geoms)
     total_length = round(sum(lengths),2)
     return {'multiline': multi_line, 'total_length': total_length}
-
 
 def join_dt_path_attributes(s_paths_g_gdf, dt_paths):
     dt_paths_join = dt_paths.rename(index=str, columns={'path_dist': 'dt_total_length'})

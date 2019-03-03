@@ -40,7 +40,7 @@ for idx, row in dt_paths.iterrows():
     shortest_path = nw.get_shortest_path(graph_proj, from_coords, to_coords)
     if (shortest_path != None):
         s_path = {'uniq_id': row['uniq_id'], 'from_id': row['from_id'], 'path': shortest_path}
-        print(s_path)
+        print('found path:', s_path)
         shortest_paths.append(s_path)
     else:
         print('Error in calculating shortest path')
@@ -62,12 +62,13 @@ s_paths_g_gdf.head(4)
 
 #%% MERGE DIGITRANSIT PATH ATTRIBUTES TO SHORTEST PATHS
 s_paths_g_gdf = nw.join_dt_path_attributes(s_paths_g_gdf, dt_paths)
+s_paths_g_gdf = nw.add_dt_s_path_dist_differences(s_paths_g_gdf)
 s_paths_g_gdf.head(4)
 
 #%% SAVE SHORTEST PATHS TO FILE NEW
 cols = ['from_id', 'to_id', 'geometry', 'uniq_id', 'total_length', 'dt_total_length', 'count']
 s_paths_g_gdf[cols].to_file('data/PT_hub_analysis/shortest_paths.gpkg', layer='shortest_paths_g', driver="GPKG")
-s_paths_g_gdf
+s_paths_g_gdf.head(4)
 
 #%% SAVE SHORTEST PATHS TO FILE OLD
 # s_paths_gdf = gpd.GeoDataFrame(data={'geometry': path_geoms}, crs=from_epsg(3879))
