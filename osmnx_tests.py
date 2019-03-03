@@ -62,11 +62,11 @@ s_paths_g_gdf.head(4)
 
 #%% MERGE DIGITRANSIT PATH ATTRIBUTES TO SHORTEST PATHS
 s_paths_g_gdf = nw.join_dt_path_attributes(s_paths_g_gdf, dt_paths)
-s_paths_g_gdf = nw.add_dt_s_path_dist_differences(s_paths_g_gdf)
+s_paths_g_gdf['length_diff'] = s_paths_g_gdf.apply(lambda row: row['total_length'] - row['dt_total_length'], axis=1)
 s_paths_g_gdf.head(4)
 
 #%% SAVE SHORTEST PATHS TO FILE NEW
-cols = ['from_id', 'to_id', 'geometry', 'uniq_id', 'total_length', 'dt_total_length', 'count']
+cols = ['from_id', 'to_id', 'geometry', 'uniq_id', 'total_length', 'dt_total_length', 'length_diff', 'count']
 s_paths_g_gdf[cols].to_file('data/PT_hub_analysis/shortest_paths.gpkg', layer='shortest_paths_g', driver="GPKG")
 s_paths_g_gdf.head(4)
 

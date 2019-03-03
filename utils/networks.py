@@ -54,8 +54,8 @@ def get_nearest_edges_nearest_node(graph_proj, yx):
 def get_shortest_path(graph_proj, from_coords, to_coords):
     closest_orig_node = get_nearest_edges_nearest_node(graph_proj, from_coords)
     closest_target_node = get_nearest_edges_nearest_node(graph_proj, to_coords)
-    orig_node = ox.get_nearest_node(graph_proj, from_coords, method='euclidean')
-    target_node = ox.get_nearest_node(graph_proj, to_coords, method='euclidean')
+    # orig_node = ox.get_nearest_node(graph_proj, from_coords, method='euclidean')
+    # target_node = ox.get_nearest_node(graph_proj, to_coords, method='euclidean')
     if (closest_orig_node != closest_target_node):
         s_path = nx.shortest_path(G=graph_proj, source=closest_orig_node, target=closest_target_node, weight='length')
         return s_path
