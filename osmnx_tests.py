@@ -57,7 +57,7 @@ def get_shortest_path(from_coords, to_coords):
 
 shortest_paths = []
 for idx, row in dt_paths.iterrows():
-    if (idx==6):
+    if (idx==600):
         break
     from_xy = ast.literal_eval(row['from_xy'])
     to_xy = ast.literal_eval(row['to_xy'])
@@ -76,14 +76,19 @@ def get_edge_geometries(path):
         # print(idx)
         # print(path[idx])
         # print(path[idx+1])
-        edge_d = graph_proj[path[idx]][path[idx+1]]
-        print(edge_d)
+        node_1 = path[idx]
+        node_2 = path[idx+1]
+        edge_d = graph_proj[node_1][node_2]
         try:
             geom = edge_d[0]['geometry']
             path_geoms.append(geom)
             print(edge_d)
         except KeyError:
             print('geom missing')
+            nodes_1_2 = nodes.loc[[node_1, node_2]]
+            route_line = LineString(list(nodes_1_2.geometry.values))
+            path_geoms.append(route_line)
+
     print(path_geoms)
     return path_geoms
 
