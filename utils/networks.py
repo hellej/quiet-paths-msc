@@ -5,7 +5,7 @@ import osmnx as ox
 import networkx as nx
 import json
 from fiona.crs import from_epsg
-from shapely.geometry import LineString, box
+from shapely.geometry import LineString, MultiLineString, box
 
 extents = gpd.read_file('data/PT_hub_analysis/routing_inputs.gpkg', layer='extents')
 
@@ -48,24 +48,31 @@ def get_shortest_path(graph_proj, from_coords, to_coords):
 
 def get_edge_geometries(graph_proj, path, nodes):
     path_geoms = []
+    lengths = []
     for idx, node_id in enumerate(path):
         if (idx == len(path)-1):
             break
-        # print(idx)
-        # print(path[idx])
-        # print(path[idx+1])
         node_1 = path[idx]
         node_2 = path[idx+1]
-        edge_d = graph_proj[node_1][node_2]
+        edge_d = graph_proj[node_1][node_2][0]
+        print(edge_d)
         try:
-            geom = edge_d[0]['geometry']
-            path_geoms.append(geom)
-            print(edge_d)
+            path_geoms.append(edge_d['geometry'])
+            lengths.append(edge_d['length'])
         except KeyError:
             print('geom missing')
             nodes_1_2 = nodes.loc[[node_1, node_2]]
             route_line = LineString(list(nodes_1_2.geometry.values))
             path_geoms.append(route_line)
+            lengths.append(route_line.length)
 
-    print(path_geoms)
-    return path_geoms
+    multi_line = MultiLineString(path_geoms)
+    total_length = round(sum(lengths),2)
+    return {'multiline': multi_line, 'total_length': total_length}
+
+
+def join_dt_path_attributes(s_paths_g_gdf, dt_paths):
+    dt_paths_join = dt_paths.rename(index=str, columns={'path_dist': 'dt_total_length'})
+    dt_paths_join = dt_paths_join[['dt_total_length', 'uniq_id', 'to_id', 'count']]
+    merged = pd.merge(s_paths_g_gdf, dt_paths_join, how='inner', on='uniq_id')
+    return merged

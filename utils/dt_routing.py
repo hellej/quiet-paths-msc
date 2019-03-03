@@ -145,7 +145,7 @@ def parse_walk_geoms(itins, from_id, to_id):
         walk['to_id'] = to_id
         walk['to_pt_mode'] = pt_leg['mode']
         walk['path_geom'] = geom_utils.create_line_geom(coords)
-        walk['path_dist'] = int(round(walk_leg['distance']))
+        walk['path_dist'] = round(walk_leg['distance'],2)
         walk['first_Point'] = Point(coords[0])
         walk['last_Point'] = Point(coords[len(coords)-1])
         to_stop = walk_leg['to']['stop']

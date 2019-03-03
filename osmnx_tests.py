@@ -31,7 +31,7 @@ dt_paths = gpd.read_file('data/PT_hub_analysis/walks_test.gpkg', layer='paths_g'
 
 shortest_paths = []
 for idx, row in dt_paths.iterrows():
-    if (idx==600):
+    if (idx==2000):
         break
     from_xy = ast.literal_eval(row['from_xy'])
     to_xy = ast.literal_eval(row['to_xy'])
@@ -39,24 +39,40 @@ for idx, row in dt_paths.iterrows():
     to_coords = geom_utils.get_coords_from_xy(to_xy)[::-1]
     shortest_path = nw.get_shortest_path(graph_proj, from_coords, to_coords)
     if (shortest_path != None):
-        shortest_paths.append(shortest_path)
+        s_path = {'uniq_id': row['uniq_id'], 'from_id': row['from_id'], 'path': shortest_path}
+        print(s_path)
+        shortest_paths.append(s_path)
     else:
         print('Error in calculating shortest path')
 
 #%% ADD EDGE GEOMETRIES TO SHORTEST PATHS
 lines = []
 path_geoms = []
-for path in shortest_paths:
+for s_path in shortest_paths:
     # route as lines between nodes
-    route_line = LineString(list(nodes.loc[path].geometry.values))
+    route_line = LineString(list(nodes.loc[s_path['path']].geometry.values))
     lines.append(route_line)
     # route as edge geometries
-    path_geoms += nw.get_edge_geometries(graph_proj, path, nodes)
+    path_geom = nw.get_edge_geometries(graph_proj, s_path['path'], nodes)
+    s_path['geometry'] = path_geom['multiline']
+    s_path['total_length'] = path_geom['total_length']
 
-#%% SAVE SHORTEST PATHS TO FILE
-s_paths_gdf = gpd.GeoDataFrame(data={'geometry': path_geoms}, crs=from_epsg(3879))
-s_paths_gdf['route_dist'] = [geom.length for geom in s_paths_gdf['geometry']]
-s_paths_gdf.to_file('data/PT_hub_analysis/shortest_paths.gpkg', layer='shortest_paths', driver="GPKG")
+s_paths_g_gdf = gpd.GeoDataFrame(shortest_paths, crs=from_epsg(3879))
+s_paths_g_gdf.head(4)
+
+#%% MERGE DIGITRANSIT PATH ATTRIBUTES TO SHORTEST PATHS
+s_paths_g_gdf = nw.join_dt_path_attributes(s_paths_g_gdf, dt_paths)
+s_paths_g_gdf.head(4)
+
+#%% SAVE SHORTEST PATHS TO FILE NEW
+cols = ['from_id', 'to_id', 'geometry', 'uniq_id', 'total_length', 'dt_total_length', 'count']
+s_paths_g_gdf[cols].to_file('data/PT_hub_analysis/shortest_paths.gpkg', layer='shortest_paths_g', driver="GPKG")
+s_paths_g_gdf
+
+#%% SAVE SHORTEST PATHS TO FILE OLD
+# s_paths_gdf = gpd.GeoDataFrame(data={'geometry': path_geoms}, crs=from_epsg(3879))
+# s_paths_gdf['route_dist'] = [geom.length for geom in s_paths_gdf['geometry']]
+# s_paths_gdf.to_file('data/PT_hub_analysis/shortest_paths.gpkg', layer='shortest_paths', driver="GPKG")
 #%% SAVE SHOTRETST PATH LINES TO FILE
 s_lines_gdf = gpd.GeoDataFrame(data={'geometry': lines}, crs=from_epsg(3879))
 s_lines_gdf['route_dist'] = [geom.length for geom in s_lines_gdf['geometry']]

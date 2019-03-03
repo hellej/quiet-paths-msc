@@ -57,9 +57,10 @@ walks_to_stops_g = pt_hub_routing.group_by_origin_stop(walks_to_stops)
 all_walk_groups = pd.concat([walks_to_stops_g, walks_to_targets_g]).reset_index(drop=True)
 # select either target Point or stop Point as last walk Point
 all_walk_groups['walk_target_Point'] = all_walk_groups.apply(lambda row: pt_hub_routing.get_walk_target_point(row), axis=1)
+all_walk_groups['uniq_id'] = all_walk_groups.apply(lambda row: pt_hub_routing.get_walk_uniq_id(row), axis=1)
 all_walk_groups['line_geom'] = all_walk_groups.apply(lambda row: geom_utils.get_simple_line(row, 'from_Point', 'walk_target_Point'), axis=1)
 all_walk_groups['to_xy'] = [geom_utils.get_xy_from_geom(geom) for geom in all_walk_groups['walk_target_Point']]
-walk_group_cols = ['count', 'from_pop', 'from_xy', 'to_xy', 'to_name_en']
+walk_group_cols = ['uniq_id', 'count', 'from_pop', 'from_xy', 'to_xy', 'to_name_en']
 
 #%% EXPORT TO GEOPACKAGE
 # save all walk paths
