@@ -19,7 +19,7 @@ graph_proj = nw.get_walk_network(koskela_kumpula_box)
 
 #%% GET NODES & EDGES (GDFS) FROM GRAPH
 nodes, edges = ox.graph_to_gdfs(graph_proj, nodes=True, edges=True, node_geometry=True, fill_edge_geometry=True)
-edges.head(4)
+edges.head(3)
 
 #%% EXPORT NODES & EDGES TO FILES
 edges = edges[['geometry', 'u', 'v', 'length']]
@@ -28,7 +28,7 @@ nodes.to_file('data/PT_hub_analysis/networks.gpkg', layer='koskela_nodes')
 
 #%% CALCULATE SHORTEST PATHS
 dt_paths = gpd.read_file('data/PT_hub_analysis/walks_test.gpkg', layer='paths_g')
-
+# list for shortest paths as dictionaries
 shortest_paths = []
 for idx, row in dt_paths.iterrows():
     if (idx==2000):
@@ -40,18 +40,13 @@ for idx, row in dt_paths.iterrows():
     shortest_path = nw.get_shortest_path(graph_proj, from_coords, to_coords)
     if (shortest_path != None):
         s_path = {'uniq_id': row['uniq_id'], 'from_id': row['from_id'], 'path': shortest_path}
-        print('found path:', s_path)
+        print('Found path:', idx, ':', s_path)
         shortest_paths.append(s_path)
     else:
-        print('Error in calculating shortest path')
+        print('Error in calculating shortest path for: ', row['uniq_id'])
 
 #%% ADD EDGE GEOMETRIES TO SHORTEST PATHS
-lines = []
-path_geoms = []
 for s_path in shortest_paths:
-    # route as lines between nodes
-    route_line = LineString(list(nodes.loc[s_path['path']].geometry.values))
-    lines.append(route_line)
     # route as edge geometries
     path_geom = nw.get_edge_geometries(graph_proj, s_path['path'], nodes)
     s_path['geometry'] = path_geom['multiline']
@@ -70,20 +65,8 @@ cols = ['from_id', 'to_id', 'geometry', 'uniq_id', 'total_length', 'dt_total_len
 s_paths_g_gdf[cols].to_file('data/PT_hub_analysis/shortest_paths.gpkg', layer='shortest_paths_g', driver="GPKG")
 s_paths_g_gdf.head(4)
 
-#%% SAVE SHORTEST PATHS TO FILE OLD
-# s_paths_gdf = gpd.GeoDataFrame(data={'geometry': path_geoms}, crs=from_epsg(3879))
-# s_paths_gdf['route_dist'] = [geom.length for geom in s_paths_gdf['geometry']]
-# s_paths_gdf.to_file('data/PT_hub_analysis/shortest_paths.gpkg', layer='shortest_paths', driver="GPKG")
-#%% SAVE SHOTRETST PATH LINES TO FILE
-s_lines_gdf = gpd.GeoDataFrame(data={'geometry': lines}, crs=from_epsg(3879))
-s_lines_gdf['route_dist'] = [geom.length for geom in s_lines_gdf['geometry']]
-s_lines_gdf.to_file('data/PT_hub_analysis/shortest_paths.gpkg', layer='shortest_lines', driver="GPKG")
-
 
 #%%
-
-
-
 
 
 
@@ -97,10 +80,11 @@ s_lines_gdf.to_file('data/PT_hub_analysis/shortest_paths.gpkg', layer='shortest_
 print(graph_proj[34815882][3005727061])
 
 #%%
-s_paths_gdf.to_file('data/PT_hub_analysis/shortest_paths.gpkg', layer='shortest_paths', driver="GPKG")
-
 #%%
 
+box_gdf = gpd.GeoDataFrame([{'name': 'koskela'}, {'name': 'koskela_kumpula'}], geometry=[koskela_box, koskela_kumpula_box], crs=from_epsg(4326))
+box_gdf = box_gdf.to_crs(from_epsg(3879))
+box_gdf.to_file('data/PT_hub_analysis/routing_inputs.gpkg', layer='bboxes')
 
 
 #%%
