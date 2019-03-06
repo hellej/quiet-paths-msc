@@ -83,7 +83,7 @@ def get_edge_geometries(graph_proj, path, nodes):
 
     multi_line = MultiLineString(path_geoms)
     total_length = round(sum(lengths),2)
-    return {'multiline': multi_line, 'total_length': total_length}
+    return { 'multiline': multi_line, 'total_length': total_length }
 
 def join_dt_path_attributes(s_paths_g_gdf, dt_paths):
     dt_paths_join = dt_paths.rename(index=str, columns={'path_dist': 'dt_total_length'})
