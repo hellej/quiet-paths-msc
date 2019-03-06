@@ -47,9 +47,16 @@ split_lines.to_file('outputs/noises.gpkg', layer='split_lines', driver='GPKG')
 
 #%% JOIN NOISE LEVELS TO SPLIT LINES
 line_noises = nois.add_noises_to_split_lines(koskela_noise_polys, split_lines)
+line_noises = line_noises.fillna(39)
 
 #%% EXPORT NOISE LINES TO FILE
 line_noises.to_file('outputs/noises.gpkg', layer='noise_lines', driver='GPKG')
 
+#%% AGGREGATE CUMULATIVE EXPOSURES
+cum_noises = nois.get_cumulative_esposures(line_noises, [50, 55, 60])
+cum_noises
+
+#%% PLOT CUMULATIVE EXPOSURES
+nois.plot_cumulative_exposures(cum_noises)
+
 #%%
-    
