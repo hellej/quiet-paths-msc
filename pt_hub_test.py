@@ -1,4 +1,4 @@
-#%%
+#%% IMPORT MODULES FOR PT STATION/HUB ANALYSIS
 import pandas as pd
 import geopandas as gpd
 import osmnx as ox
@@ -66,22 +66,22 @@ walk_group_cols = ['uniq_id', 'count', 'from_pop', 'from_xy', 'to_xy', 'to_name_
 # save all walk paths
 walk_paths = walks_gdf.set_geometry('path_geom')
 walk_paths = walk_paths[['path_geom'] + walk_cols]
-walk_paths.to_file('data/PT_hub_analysis/walks_test.gpkg', layer='paths_all', driver="GPKG")
+walk_paths.to_file('outputs/DT_output_test.gpkg', layer='paths_all', driver="GPKG")
 # save grouped walk paths
 walk_paths_g = all_walk_groups.set_geometry('path_geom')
 walk_paths_g = walk_paths_g[['path_geom'] + walk_cols + walk_group_cols]
-walk_paths_g.to_file('data/PT_hub_analysis/walks_test.gpkg', layer='paths_g', driver="GPKG")
+walk_paths_g.to_file('outputs/DT_output_test.gpkg', layer='paths_g', driver="GPKG")
 # save grouped walk lines
 walk_lines_g = all_walk_groups.set_geometry('line_geom')
 walk_lines_g = walk_lines_g[['line_geom'] + walk_cols + walk_group_cols]
-walk_lines_g.to_file('data/PT_hub_analysis/walks_test.gpkg', layer='lines_g', driver="GPKG")
+walk_lines_g.to_file('outputs/DT_output_test.gpkg', layer='lines_g', driver="GPKG")
 # save grouped walk origins
 walk_origins_g = all_walk_groups.set_geometry('from_Point')
 walk_origins_g = walk_origins_g[['from_Point'] + walk_cols + walk_group_cols]
-walk_origins_g.to_file('data/PT_hub_analysis/walks_test.gpkg', layer='origins_g', driver="GPKG")
+walk_origins_g.to_file('outputs/DT_output_test.gpkg', layer='origins_g', driver="GPKG")
 # save grouped walk targets
 walk_targets_g = all_walk_groups.set_geometry('walk_target_Point')
 walk_targets_g = walk_targets_g[['walk_target_Point'] + walk_cols + walk_group_cols]
-walk_targets_g.to_file('data/PT_hub_analysis/walks_test.gpkg', layer='targets_g', driver="GPKG")
+walk_targets_g.to_file('outputs/DT_output_test.gpkg', layer='targets_g', driver="GPKG")
 
 #%%

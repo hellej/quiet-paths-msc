@@ -12,8 +12,8 @@ import utils.times as times
 import utils.noises as nois
 import utils.dt_routing as routing
 
-koskela_poly = gpd.read_file('data/Koskela_input/koskela.shp')
-grid_gdf = gpd.read_file('data/hsy_vaesto_2017/Vaestoruudukko_2017.shp')
+koskela_poly = gpd.read_file('data/extents_grids.gpkg', layer='koskela_poly')
+grid_gdf = gpd.read_file('data/extents_grids.gpkg', layer='HSY_vaesto_250m_2017')
 
 def filter_only_inhabitet_features(df):
     filterd_df = df.loc[df['ASUKKAITA'] > 0]
@@ -23,11 +23,13 @@ def get_koskela_centers():
     # extract center points of population grid
     points_gdf = grid_gdf.copy()
     points_gdf['geometry'] = [geom.centroid for geom in points_gdf['geometry']]
-    # reproject to WGS
+    # reproject grid points to WGS
     points_gdf = points_gdf.to_crs(from_epsg(4326))
     # add latLon coordinates as dictionary column
     points_gdf['from_latLon'] = [geom_utils.get_lat_lon_from_geom(geom) for geom in points_gdf['geometry']]
     points_gdf['from_xy'] = [geom_utils.get_xy_from_lat_lon(latLon) for latLon in points_gdf['from_latLon']]
+    # reproject back to GK25
+    points_gdf = points_gdf.to_crs(from_epsg(3879))
     # select only points inside AOI (Koskela-polygon)
     point_mask = points_gdf.intersects(koskela_poly.loc[0, 'geometry'])
     points_gdf = points_gdf.loc[point_mask].reset_index(drop=True)
@@ -38,7 +40,7 @@ def get_koskela_centers():
     return inhabited_points_gdf
 
 def get_target_locations():
-    target_locations = gpd.read_file('data/PT_hub_analysis/routing_inputs.gpkg', layer='target_locations')
+    target_locations = gpd.read_file('data/input/target_locations.geojson')
     # CRS OF THIS IS WGS 84
     target_locations['to_latLon'] = [geom_utils.get_lat_lon_from_geom(geom) for geom in target_locations['geometry']]
     # reproject to ETRS

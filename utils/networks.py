@@ -7,10 +7,10 @@ import json
 from fiona.crs import from_epsg
 from shapely.geometry import Point, LineString, MultiLineString, box
 
-extents = gpd.read_file('data/PT_hub_analysis/routing_inputs.gpkg', layer='extents')
+bboxes = gpd.read_file('data/extents_grids.gpkg', layer='bboxes')
 
 def get_koskela_poly():
-    koskela_rows = extents.loc[extents['info'] == 'Koskela']
+    koskela_rows = bboxes.loc[bboxes['name'] == 'koskela']
     poly = list(koskela_rows['geometry'])[0]
     return poly
 
@@ -20,7 +20,7 @@ def get_koskela_box():
     return box(*bounds)
 
 def get_koskela_kumpula_box():
-    rows = extents.loc[extents['info'] == 'kumpula_koskela_poly']
+    rows = bboxes.loc[bboxes['name'] == 'koskela_kumpula']
     poly = list(rows['geometry'])[0]
     bounds = poly.bounds
     return box(*bounds)
@@ -52,12 +52,12 @@ def get_nearest_edges_nearest_node(graph_proj, yx):
         return edge[1]
 
 def get_shortest_path(graph_proj, from_coords, to_coords):
-    closest_orig_node = get_nearest_edges_nearest_node(graph_proj, from_coords)
-    closest_target_node = get_nearest_edges_nearest_node(graph_proj, to_coords)
-    # orig_node = ox.get_nearest_node(graph_proj, from_coords, method='euclidean')
-    # target_node = ox.get_nearest_node(graph_proj, to_coords, method='euclidean')
-    if (closest_orig_node != closest_target_node):
-        s_path = nx.shortest_path(G=graph_proj, source=closest_orig_node, target=closest_target_node, weight='length')
+    # closest_orig_node = get_nearest_edges_nearest_node(graph_proj, from_coords)
+    # closest_target_node = get_nearest_edges_nearest_node(graph_proj, to_coords)
+    orig_node = ox.get_nearest_node(graph_proj, from_coords, method='euclidean')
+    target_node = ox.get_nearest_node(graph_proj, to_coords, method='euclidean')
+    if (orig_node != target_node):
+        s_path = nx.shortest_path(G=graph_proj, source=orig_node, target=target_node, weight='length')
         return s_path
     return None
 

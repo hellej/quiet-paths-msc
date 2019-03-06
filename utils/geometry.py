@@ -30,6 +30,14 @@ def project_to_etrs(geom):
     geom_proj = transform(project, geom)
     return geom_proj
 
+def project_to_wgs(geom):
+    project = partial(
+        pyproj.transform,
+        pyproj.Proj(init='epsg:3879'), # source coordinate system
+        pyproj.Proj(init='epsg:4326')) # destination coordinate system
+    geom_proj = transform(project, geom)
+    return geom_proj
+
 def get_xy_from_geom(geom):
     return { 'x': geom.x, 'y': geom.y }    
 
@@ -42,7 +50,7 @@ def get_xy_from_lat_lon(latLon):
     return get_xy_from_geom(point_proj)
 
 def clip_polygons_with_polygon(clippee, clipper):
-    poly = clipper.geometry.unary_union
+    poly = clipper
     poly_bbox = poly.bounds
 
     spatial_index = clippee.sindex
@@ -150,8 +158,8 @@ def explode_multipolygons_to_polygons(polygons_gdf):
     db_highs = []
     for idx, row in polygons_gdf.iterrows():
         geom = row['geometry'] 
-        db_low = row['DB_LO'] 
-        db_high = row['DB_HI'] 
+        db_low = row['db_lo'] 
+        db_high = row['db_hi'] 
         if (geom.geom_type == 'MultiPolygon'):
             polygons = list(geom.geoms)
             all_polygons += polygons
@@ -161,7 +169,7 @@ def explode_multipolygons_to_polygons(polygons_gdf):
             all_polygons.append(geom)
             db_lows.append(db_low)
             db_highs.append(db_high)
-    data = {'DB_LO': db_lows, 'DB_HI': db_highs}
+    data = {'db_lo': db_lows, 'db_hi': db_highs}
     all_polygons_gdf = gpd.GeoDataFrame(data=data, geometry=all_polygons, crs=from_epsg(3879))
     return all_polygons_gdf
 
