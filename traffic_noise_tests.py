@@ -42,13 +42,13 @@ walk_proj.plot(ax=ax)
 uniq_split_points.plot(ax=ax, color='red')
 
 #%% SPLIT LINE WITH NOISE POLYGON BOUNDARIES
-better_split_lines_gdf = geom_utils.better_split_line_with_polygons(walk_geom, koskela_noise_polys)
-better_split_lines_gdf.to_file('outputs/noises.gpkg', layer='split_lines', driver='GPKG')
+split_lines = geom_utils.better_split_line_with_polygons(walk_geom, koskela_noise_polys)
+split_lines.to_file('outputs/noises.gpkg', layer='split_lines', driver='GPKG')
 
 #%% JOIN NOISE LEVELS TO SPLIT LINES
-line_noises = nois.add_noises_to_split_lines(koskela_noise_polys, better_split_lines_gdf)
+line_noises = nois.add_noises_to_split_lines(koskela_noise_polys, split_lines)
 
-#%%
+#%% EXPORT NOISE LINES TO FILE
 line_noises.to_file('outputs/noises.gpkg', layer='noise_lines', driver='GPKG')
 
 #%%

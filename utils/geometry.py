@@ -148,8 +148,9 @@ def better_split_line_with_polygons(line_geom, polygons):
     polygons_under_line = get_polygons_under_line(line_geom, polygons)
     multi_polygon = MultiPolygon(list(polygons_under_line['geometry']))
     split_line_geom = split(line_geom, multi_polygon)
-    lines = list(split_line_geom.geoms)
-    all_split_lines_gdf = gpd.GeoDataFrame(geometry=lines, crs=from_epsg(3879))
+    line_geoms = list(split_line_geom.geoms)
+    lengths = [round(line_geom.length, 2) for line_geom in line_geoms]
+    all_split_lines_gdf = gpd.GeoDataFrame(data={'length': lengths}, geometry=line_geoms, crs=from_epsg(3879))
     return all_split_lines_gdf
 
 def explode_multipolygons_to_polygons(polygons_gdf):
