@@ -64,7 +64,8 @@ def get_shortest_path(graph_proj, from_coords, to_coords):
 def get_edge_geometries(graph_proj, path, nodes):
     path_geoms = []
     lengths = []
-    for idx, node_id in enumerate(path):
+    for idx in range(0, len(path)):
+        print(idx)
         if (idx == len(path)-1):
             break
         node_1 = path[idx]
