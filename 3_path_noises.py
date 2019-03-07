@@ -31,11 +31,11 @@ walk_geom = walk_proj.loc[0, 'geometry']
 #%% get line split points at polygon boundaries
 split_points = geom_utils.get_line_polygons_inters_points(walk_geom, koskela_noise_polys)
 uniq_split_points = geom_utils.filter_duplicate_split_points(split_points)
-uniq_split_points.to_file('outputs/noises.gpkg', layer='line_split_points', driver='GPKG')
+# uniq_split_points.to_file('outputs/noises.gpkg', layer='line_split_points', driver='GPKG')
 
 #%% SPLIT LINE WITH NOISE POLYGON BOUNDARIES
 split_lines = geom_utils.better_split_line_with_polygons(walk_geom, koskela_noise_polys)
-split_lines.to_file('outputs/noises.gpkg', layer='split_lines', driver='GPKG')
+# split_lines.to_file('outputs/noises.gpkg', layer='split_lines', driver='GPKG')
 
 #%% JOIN NOISE LEVELS TO SPLIT LINES
 line_noises = noise_utils.add_noises_to_split_lines(koskela_noise_polys, split_lines)

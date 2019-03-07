@@ -9,9 +9,9 @@ from shapely.ops import split, snap
 from matplotlib import pyplot as plt
 import utils.geometry as geom_utils
 import utils.times as times
+import utils.utils as utils
 
 koskela_poly = gpd.read_file('data/extents_grids.gpkg', layer='koskela_poly')
-grid_gdf = gpd.read_file('data/extents_grids.gpkg', layer='HSY_vaesto_250m_2017')
 
 def filter_only_inhabitet_features(df):
     filterd_df = df.loc[df['ASUKKAITA'] > 0]
@@ -19,7 +19,7 @@ def filter_only_inhabitet_features(df):
 
 def get_koskela_centers():
     # extract center points of population grid
-    points_gdf = grid_gdf.copy()
+    points_gdf = utils.get_grid().copy()
     points_gdf['geometry'] = [geom.centroid for geom in points_gdf['geometry']]
     # reproject grid points to WGS
     points_gdf = points_gdf.to_crs(from_epsg(4326))
