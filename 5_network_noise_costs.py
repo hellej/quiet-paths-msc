@@ -16,6 +16,7 @@ import utils.noise_overlays as noise_utils
 #%% GET BOUNDING BOX POLYGONS
 koskela_box = geom_utils.project_to_wgs(nw.get_koskela_box())
 # koskela_kumpula_box = geom_utils.project_to_wgs(nw.get_koskela_kumpula_box())
+noise_polys = noise_utils.get_noise_polygons()
 
 #%% GET NETWORK
 graph_proj = nw.get_walk_network(koskela_box)
@@ -69,8 +70,10 @@ for idx, node_from in enumerate(graph_proj):
             # edge dict contains all edge attributes
             edge_d = edges[edge_k]
             # get cumulative noises dictionary for edge geometry
-            noise_dict = noise_utils.get_cumulative_noises_dict(edge_d['geometry'])
-            nx.set_edge_attributes(graph_proj, { edge_uvkey: {'noise_d': noise_dict} })
+            line_noises = noise_utils.get_line_noises(edge_d['geometry'], noise_polys)
+            noise_dict = noise_utils.get_cumulative_noises_dict(line_noises)
+            th_noise_dict = noise_utils.get_th_noises_dict(noise_dict, [55,60,65,70])
+            nx.set_edge_attributes(graph_proj, { edge_uvkey: {'noises': noise_dict, 'th_noises': th_noise_dict} })
             # print all edge attributes
             print('edge', edge_k, ':', graph_proj[node_from][node_to][edge_k])
 

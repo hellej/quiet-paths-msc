@@ -127,24 +127,7 @@ def get_select_line_for_noise_polygon(lines, polygon):
             lines_under_poly.append(line)
     return lines_under_poly
 
-def split_line_with_polygons(line_geom, polygons):
-    polygons_under_line = get_polygons_under_line(line_geom, polygons)
-    print(polygons_under_line)
-    all_split_lines = []
-    for idx, row in polygons.iterrows():
-        # print('idx', idx)
-        poly_geom = row['geometry']
-        split_line_geom = split(line_geom, poly_geom)
-        # explode geometry collection to list of geoms
-        split_lines = list(split_line_geom.geoms)
-        # print('split_lines', split_lines)
-        lines_on_poly = get_select_line_for_noise_polygon(split_lines, poly_geom)
-        # print('line_on_poly', line_on_poly)
-        all_split_lines += lines_on_poly
-    split_lines_gdf = gpd.GeoDataFrame(geometry=all_split_lines, crs=from_epsg(3879))
-    return split_lines_gdf
-
-def better_split_line_with_polygons(line_geom, polygons):
+def split_line_with_polys(line_geom, polygons):
     polygons_under_line = get_polygons_under_line(line_geom, polygons)
     multi_polygon = MultiPolygon(list(polygons_under_line['geometry']))
     split_line_geom = split(line_geom, multi_polygon)

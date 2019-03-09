@@ -5,6 +5,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 import utils.geometry as geom_utils
 
+def get_noise_polygons():
+    noise_data = gpd.read_file('data/data.gpkg', layer='2017_alue_01_tieliikenne_L_Aeq_paiva')
+    # explode multipolygons to polygons (noises)
+    noise_polys = geom_utils.explode_multipolygons_to_polygons(noise_data)
+    return noise_polys
+
 def add_noises_to_split_lines(noise_polygons, split_lines):
     split_lines['geom_line'] = split_lines['geometry']
     split_lines['geom_point'] = [geo.get_line_middle_point(geom) for geom in split_lines['geometry']]
@@ -13,49 +19,13 @@ def add_noises_to_split_lines(noise_polygons, split_lines):
     line_noises['geometry'] = line_noises['geom_line']
     return line_noises[['geometry', 'length', 'db_lo', 'db_hi', 'index_right']]
 
-def aggregate_cumulative_esposures(line_noises, thresholds, line_id):
-    grouped = line_noises.groupby('db_lo')
-    noise_dict = {}
-    th1 = thresholds[0]
-    th2 = thresholds[1]
-    th3 = thresholds[2]
-    th1_tot_len = 0
-    th2_tot_len = 0
-    th3_tot_len = 0
-
-    for key, values in grouped:
-        db_lo = int(key)
-        tot_len = round(values['length'].sum(),2)
-        noise_dict[db_lo] = tot_len
-        if(db_lo >= th1):
-            th1_tot_len += tot_len
-        if(db_lo >= th2):
-            th2_tot_len += tot_len
-        if(db_lo >= th3):
-            th3_tot_len += tot_len
-    
-    th1_key = 'th_' + str(th1) + '_len'
-    th2_key = 'th_' + str(th2) + '_len'
-    th3_key = 'th_' + str(th3) + '_len'
-
-    d = { 'id': [line_id], 'noise_dict': [noise_dict], th1_key: [th1_tot_len], th2_key: [th2_tot_len], th3_key: [th3_tot_len] }
-    line_cum_noises = pd.DataFrame(data=d)
-    return line_cum_noises
-
-def get_cumulative_noise_exposures(line, noise_polygons, line_id):
-    # SPLIT LINE WITH NOISE POLYGON BOUNDARIES
-    split_lines = geom_utils.better_split_line_with_polygons(line, noise_polygons)
-    # JOIN NOISE LEVELS TO SPLIT LINES
-    line_noises = add_noises_to_split_lines(noise_polygons, split_lines)
-    line_noises = line_noises.fillna(39)
-    # AGGREGATE CUMULATIVE EXPOSURES
-    cum_noises = aggregate_cumulative_esposures(line_noises, [60, 65, 70], line_id)
-    return { 'cum_noises' : cum_noises, 'line_noises': line_noises }
-
-def get_cumulative_noises_dict(line_geom):
+def get_line_noises(line_geom, noise_polys):
     split_lines = geom_utils.split_line_with_polys(line_geom, noise_polys)
     line_noises = add_noises_to_split_lines(noise_polys, split_lines)
     line_noises = line_noises.fillna(35)
+    return line_noises
+
+def get_cumulative_noises_dict(line_noises):
     noise_groups = line_noises.groupby('db_lo')
     noise_dict = {}
     for key, values in noise_groups:
@@ -63,24 +33,44 @@ def get_cumulative_noises_dict(line_geom):
         noise_dict[int(key)] = tot_len
     return noise_dict
 
-def plot_cumulative_exposures(cum_noises):
-    firstrow = cum_noises.iloc[0]
-    noise_dict = firstrow['noise_dict']
-    print(noise_dict)
+def get_th_cols(ths):
+    return ['th_'+str(th)+'_len' for th in ths]
+
+def get_th_noises_dict(cum_noises_dict, ths):
+    th_count = len(ths)
+    th_lens = [0] * len(ths)
+    for th in cum_noises_dict.keys():
+        th_len = cum_noises_dict[th]
+        for idx in range(th_count):
+            if (th >= ths[idx]):
+                th_lens[idx] = th_lens[idx] + th_len
+    th_noises_dict = {}
+    for idx in range(th_count):
+        th_noises_dict[ths[idx]] = round(th_lens[idx],3)
+    return th_noises_dict
+
+def plot_cumulative_exposures(noises_dict):
+    print(noises_dict)
 
     fig, ax = plt.subplots(figsize=(7,7))
-    dbs = list(noise_dict.keys())
-    lengths = list(noise_dict.values())
+    dbs = list(noises_dict.keys())
+    lengths = list(noises_dict.values())
 
     ax.bar(dbs, lengths, width=3)
-    yticks = np.arange(0, max(lengths)+10, 50)
+    # ax.set_xlim([30, 80])
+
+    yticks = list(range(0, int(max(lengths)+10), 50))
     yticks = [int(tick) for tick in yticks]
-    ax.st_yticks = yticks
+    ax.set_yticks(yticks)
     ax.set_yticklabels(yticks, fontsize=15)
     
-    ax.set_xticklabels(np.arange(35, 85, 5), fontsize=15)
+    xticks = np.arange(35, max(dbs)+5, step=5)
+    ax.set_xticks(xticks)
+    ax.set_xticklabels(xticks, fontsize=15)
+
     ax.set_ylabel('Distance (m)')
     ax.set_xlabel('Traffic noise (dB)')
+
 
     ax.xaxis.label.set_size(16)
     ax.yaxis.label.set_size(16)
