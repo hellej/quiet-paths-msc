@@ -41,6 +41,10 @@ def get_node_geom(graph_proj, node):
     node_d = graph_proj.node[node]
     return Point(node_d['x'], node_d['y'])
 
+def get_edge_geom_from_node_pair(nodes, node_from, node_to):
+    nodes_from_to = nodes.loc[[node_from, node_to]]
+    return LineString(list(nodes_from_to.geometry.values))
+
 def get_nearest_edges_nearest_node(graph_proj, yx):
     edge = ox.get_nearest_edge(graph_proj, yx)
     node1 = get_node_geom(graph_proj, edge[1])

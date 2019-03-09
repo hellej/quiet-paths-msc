@@ -52,6 +52,17 @@ def get_cumulative_noise_exposures(line, noise_polygons, line_id):
     cum_noises = aggregate_cumulative_esposures(line_noises, [60, 65, 70], line_id)
     return { 'cum_noises' : cum_noises, 'line_noises': line_noises }
 
+def get_cumulative_noises_dict(line_geom):
+    split_lines = geom_utils.split_line_with_polys(line_geom, noise_polys)
+    line_noises = add_noises_to_split_lines(noise_polys, split_lines)
+    line_noises = line_noises.fillna(35)
+    noise_groups = line_noises.groupby('db_lo')
+    noise_dict = {}
+    for key, values in noise_groups:
+        tot_len = round(values['length'].sum(),3)
+        noise_dict[int(key)] = tot_len
+    return noise_dict
+
 def plot_cumulative_exposures(cum_noises):
     firstrow = cum_noises.iloc[0]
     noise_dict = firstrow['noise_dict']
