@@ -1,19 +1,11 @@
 #%% IMPORT MODULES FOR PT STATION/HUB ANALYSIS
 import pandas as pd
 import geopandas as gpd
-import osmnx as ox
-import networkx as nx
-import json
-from fiona.crs import from_epsg
-from shapely.geometry import Point, MultiPolygon
-from shapely.ops import split, snap
-from matplotlib import pyplot as plt
+import utils.DT_API as routing
+import utils.DT_utils as DT_utils
 import utils.geometry as geom_utils
 import utils.times as times
 import utils.utils as utils
-import utils.DT_API as routing
-import utils.DT_utils as DT_utils
-import sys
 
 # routing params for Digitransit API
 walkSpeed = '1.33'

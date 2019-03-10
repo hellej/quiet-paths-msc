@@ -3,12 +3,7 @@ import pandas as pd
 import geopandas as gpd
 import osmnx as ox
 import networkx as nx
-import json
-from fiona.crs import from_epsg
-import utils.networks as nw
-import ast
 import utils.geometry as geom_utils
-from shapely.geometry import Point, LineString, MultiPolygon
 import utils.networks as nw
 import utils.noise_overlays as noise_utils
 

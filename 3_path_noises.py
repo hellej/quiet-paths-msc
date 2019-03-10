@@ -1,16 +1,8 @@
 #%% IMPORT MODULES FOR NOISE EXTRACTION
 import pandas as pd
 import geopandas as gpd
-import osmnx as ox
-import networkx as nx
-import json
-from fiona.crs import from_epsg
-from shapely.geometry import Point, MultiPolygon
-from shapely.ops import split, snap
-from matplotlib import pyplot as plt
-import utils.noise_overlays as noise_utils
-import utils.networks as nw
 import utils.geometry as geom_utils
+import utils.noise_overlays as noise_utils
 import utils.utils as utils
 
 #%% read traffic noise polygons
