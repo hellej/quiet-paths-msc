@@ -1,4 +1,5 @@
 import sys
+from time import sleep
 import pandas as pd
 import geopandas as gpd
 
@@ -8,5 +9,7 @@ def get_grid():
     return grid_gdf
 
 def print_progress(idx, count):
+    sys.stdout.write('\r')
     sys.stdout.write(str(idx+1)+'/'+str(count)+' ')
     sys.stdout.flush()
+    sleep(0.01)

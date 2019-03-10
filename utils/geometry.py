@@ -129,7 +129,11 @@ def get_select_line_for_noise_polygon(lines, polygon):
 
 def split_line_with_polys(line_geom, polygons):
     polygons_under_line = get_polygons_under_line(line_geom, polygons)
-    multi_polygon = MultiPolygon(list(polygons_under_line['geometry']))
+    polygons_under_line_geoms = list(polygons_under_line['geometry'])
+    if (len(polygons_under_line_geoms) == 0):
+        print('no line-polygon-intersection')
+        return gpd.GeoDataFrame()
+    multi_polygon = MultiPolygon(polygons_under_line_geoms)
     split_line_geom = split(line_geom, multi_polygon)
     line_geoms = list(split_line_geom.geoms)
     lengths = [round(line_geom.length, 3) for line_geom in line_geoms]

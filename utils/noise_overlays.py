@@ -21,6 +21,8 @@ def add_noises_to_split_lines(noise_polygons, split_lines):
 
 def get_line_noises(line_geom, noise_polys):
     split_lines = geom_utils.split_line_with_polys(line_geom, noise_polys)
+    if (split_lines.empty):
+        return gpd.GeoDataFrame()
     line_noises = add_noises_to_split_lines(noise_polys, split_lines)
     line_noises = line_noises.fillna(35)
     return line_noises

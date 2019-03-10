@@ -6,6 +6,7 @@ import networkx as nx
 import utils.geometry as geom_utils
 import utils.networks as nw
 import utils.noise_overlays as noise_utils
+import utils.utils as utils
 
 
 #%% GET BOUNDING BOX POLYGONS
@@ -21,8 +22,10 @@ graph_proj = nw.get_walk_network(koskela_box)
 nodes, edges = ox.graph_to_gdfs(graph_proj, nodes=True, edges=True, node_geometry=True, fill_edge_geometry=True)
 
 #%% ADD MISSING GEOMETRIES TO EDGES
+graph_size = len(graph_proj)
 for idx, node_from in enumerate(graph_proj):
-    if (idx > 1):
+    utils.print_progress(idx, graph_size)
+    if (idx < 0):
         break
     # list of nodes to which node_from is connected to
     nodes_to = graph_proj[node_from]
@@ -47,11 +50,14 @@ for idx, node_from in enumerate(graph_proj):
             # set length attribute
             nx.set_edge_attributes(graph_proj, { edge_uvkey: {'length': round(edge_d['geometry'].length, 3)} })
             # print all edge attributes
-            print('edge', edge_k, ':', graph_proj[node_from][node_to][edge_k])
+            # print('edge', edge_k, ':', graph_proj[node_from][node_to][edge_k])
 
 #%% ADD CUMULATIVE NOISE EXPOSURES TO EDGES
 for idx, node_from in enumerate(graph_proj):
-    if (idx > 1):
+    utils.print_progress(idx, graph_size)
+    if (idx < 5):
+        continue
+    if (idx > 10):
         break
     # list of nodes to which node_from is connected to
     nodes_to = graph_proj[node_from]
@@ -67,11 +73,14 @@ for idx, node_from in enumerate(graph_proj):
             edge_d = edges[edge_k]
             # get cumulative noises dictionary for edge geometry
             line_noises = noise_utils.get_line_noises(edge_d['geometry'], noise_polys)
-            noise_dict = noise_utils.get_cumulative_noises_dict(line_noises)
+            if (line_noises.empty):
+                noise_dict = {}
+            else:
+                noise_dict = noise_utils.get_cumulative_noises_dict(line_noises)
             th_noise_dict = noise_utils.get_th_noises_dict(noise_dict, [55,60,65,70])
             nx.set_edge_attributes(graph_proj, { edge_uvkey: {'noises': noise_dict, 'th_noises': th_noise_dict} })
             # print all edge attributes
-            print('edge', edge_k, ':', graph_proj[node_from][node_to][edge_k])
+            # print('edge', edge_k, ':', graph_proj[node_from][node_to][edge_k])
 
 #%% EXPORT GRAPH TO FILE
 ox.save_graphml(graph_proj, filename='koskela_test.graphml', folder='graphs', gephi=False)
