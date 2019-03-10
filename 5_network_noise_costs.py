@@ -15,6 +15,7 @@ noise_polys = noise_utils.get_noise_polygons()
 
 #%% GET NETWORK
 graph_proj = nw.get_walk_network(koskela_box)
+# graph_proj = ox.load_graphml('koskela_test.graphml', folder='graphs')
 
 #%% GET NODES & EDGES (AS GDFS) FROM GRAPH
 nodes, edges = ox.graph_to_gdfs(graph_proj, nodes=True, edges=True, node_geometry=True, fill_edge_geometry=True)
@@ -71,5 +72,8 @@ for idx, node_from in enumerate(graph_proj):
             nx.set_edge_attributes(graph_proj, { edge_uvkey: {'noises': noise_dict, 'th_noises': th_noise_dict} })
             # print all edge attributes
             print('edge', edge_k, ':', graph_proj[node_from][node_to][edge_k])
+
+#%% EXPORT GRAPH TO FILE
+ox.save_graphml(graph_proj, filename='koskela_test.graphml', folder='graphs', gephi=False)
 
 #%%
