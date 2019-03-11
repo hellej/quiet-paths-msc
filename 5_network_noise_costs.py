@@ -67,18 +67,18 @@ def add_edge_noise_exposures(node_from):
             # edge dict contains all edge attributes
             edge_d = edges[edge_k]
             # get cumulative noises dictionary for edge geometry
-            # if ('noises' not in edge_d):
-            line_noises = noise_utils.get_line_noises(edge_d['geometry'], noise_polys)
-            if (line_noises.empty):
-                noise_dict = {}
-            else:
-                noise_dict = noise_utils.get_cumulative_noises_dict(line_noises)
-            th_noise_dict = noise_utils.get_th_noises_dict(noise_dict, [55,60,65,70])
-            attr_set_dict = { edge_uvkey: {'noises': noise_dict, 'th_noises': th_noise_dict} }
-            # nx.set_edge_attributes(graph_proj, attr_set_dict)
-            # attr_set_dicts.append(attr_set_dict)
-            # print('attr_set_dict:',attr_set_dict)
-            attr_set_dicts.append(attr_set_dict)
+            if ('noises' not in edge_d):
+                line_noises = noise_utils.get_line_noises(edge_d['geometry'], noise_polys)
+                if (line_noises.empty):
+                    noise_dict = {}
+                else:
+                    noise_dict = noise_utils.get_cumulative_noises_dict(line_noises)
+                th_noise_dict = noise_utils.get_th_noises_dict(noise_dict, [55,60,65,70])
+                attr_set_dict = { edge_uvkey: {'noises': noise_dict, 'th_noises': th_noise_dict} }
+                # nx.set_edge_attributes(graph_proj, attr_set_dict)
+                # attr_set_dicts.append(attr_set_dict)
+                # print('attr_set_dict:',attr_set_dict)
+                attr_set_dicts.append(attr_set_dict)
             # print all edge attributes
             # print('edge', edge_k, ':', graph_proj[node_from][node_to][edge_k])
     return attr_set_dicts
@@ -87,14 +87,13 @@ def add_edge_noise_exposures(node_from):
 nodes_from = []
 for idx, node_from in enumerate(graph_proj):
     nodes_from.append(node_from)
-    if (idx > 3):
+    if (idx > 6):
         break
 print('count nodes from:', len(nodes_from))
 
 #%% EXTRACT NOISE ATTRIBUTES WITHOUT POOL
 start_time = time.time()
-for node_from in nodes_from:
-    add_edge_noise_exposures(node_from)
+attr_set_dicts = [add_edge_noise_exposures(node_from) for node_from in nodes_from]
 print("--- %s seconds ---" % (time.time() - start_time))
 
 #%% EXTRACT NOISE ATTRIBUTES WITH POOL
@@ -116,5 +115,10 @@ for node_from in nodes_from:
 #%% GET NODES & EDGES (AS GDFS) FROM GRAPH
 nodes, edges = ox.graph_to_gdfs(graph_proj, nodes=True, edges=True, node_geometry=True, fill_edge_geometry=True)
 edges.head(5)
+
+#%% EXPORT NODES & EDGES TO FILES
+edges = edges[['geometry', 'u', 'v', 'length', 'noises', 'th_noises']]
+edges.to_file('data/networks.gpkg', layer='koskela_edges_noise', driver="GPKG")
+nodes.to_file('data/networks.gpkg', layer='koskela_nodes_noise', driver="GPKG")
 
 #%%
