@@ -1,7 +1,7 @@
-import sys
-from time import sleep
 import pandas as pd
 import geopandas as gpd
+from time import sleep
+import sys
 
 grid_gdf = gpd.read_file('data/extents_grids.gpkg', layer='HSY_vaesto_250m_2017')
 

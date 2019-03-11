@@ -1,14 +1,8 @@
 import pandas as pd
 import geopandas as gpd
-import osmnx as ox
-import networkx as nx
-import json
 from fiona.crs import from_epsg
-from shapely.geometry import Point, MultiPolygon
-from shapely.ops import split, snap
-from matplotlib import pyplot as plt
+from shapely.geometry import Point
 import utils.geometry as geom_utils
-import utils.times as times
 import utils.utils as utils
 
 koskela_poly = gpd.read_file('data/extents_grids.gpkg', layer='koskela_poly')

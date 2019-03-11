@@ -1,14 +1,10 @@
 import pandas as pd
 import geopandas as gpd
-import requests
-import json
-from urllib.parse import urlparse, urlencode
+import pyproj
 from shapely.geometry import Point, LineString, MultiPolygon
 from shapely.ops import split, snap, transform
 from functools import partial
-import pyproj
 from fiona.crs import from_epsg
-import glob
 
 def get_lat_lon_from_geom(geom):
     return {'lat': geom.y, 'lon': geom.x }
