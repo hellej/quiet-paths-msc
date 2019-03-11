@@ -3,6 +3,8 @@ import pandas as pd
 import geopandas as gpd
 import osmnx as ox
 import networkx as nx
+import multiprocessing
+import time
 import utils.geometry as geom_utils
 import utils.networks as nw
 import utils.noise_overlays as noise_utils
@@ -15,18 +17,14 @@ koskela_box = geom_utils.project_to_wgs(nw.get_koskela_box())
 noise_polys = noise_utils.get_noise_polygons()
 
 #%% GET NETWORK
-graph_proj = nw.get_walk_network(koskela_box)
-# graph_proj = ox.load_graphml('koskela_test.graphml', folder='graphs')
-
-#%% GET NODES & EDGES (AS GDFS) FROM GRAPH
-nodes, edges = ox.graph_to_gdfs(graph_proj, nodes=True, edges=True, node_geometry=True, fill_edge_geometry=True)
+# graph_proj = nw.get_walk_network(koskela_box)
+# ox.save_graphml(graph_proj, filename='koskela_test.graphml', folder='graphs', gephi=False)
+graph_proj = ox.load_graphml('koskela_test.graphml', folder='graphs')
+graph_size = len(graph_proj)
 
 #%% ADD MISSING GEOMETRIES TO EDGES
-graph_size = len(graph_proj)
-for idx, node_from in enumerate(graph_proj):
+def add_missing_edge_geometries(idx, node_from):
     utils.print_progress(idx, graph_size)
-    if (idx < 0):
-        break
     # list of nodes to which node_from is connected to
     nodes_to = graph_proj[node_from]
     for node_to in nodes_to.keys():
@@ -39,10 +37,8 @@ for idx, node_from in enumerate(graph_proj):
             edge_uvkey = (node_from, node_to, edge_k)
             # edge dict contains all edge attributes
             edge_d = edges[edge_k]
-            try:
-                edge_geom = edge_d['geometry']
-            except KeyError:
-                print('add missing geometry...')
+            if ('geometry' not in edge_d):
+                # print('add missing geometry...')
                 # interpolate missing geometry as straigth line between nodes
                 edge_geom = nw.get_edge_geom_from_node_pair(nodes, node_from, node_to)
                 # set geometry attribute of the edge
@@ -52,14 +48,13 @@ for idx, node_from in enumerate(graph_proj):
             # print all edge attributes
             # print('edge', edge_k, ':', graph_proj[node_from][node_to][edge_k])
 
-#%% ADD CUMULATIVE NOISE EXPOSURES TO EDGES
 for idx, node_from in enumerate(graph_proj):
-    utils.print_progress(idx, graph_size)
-    if (idx < 5):
-        continue
-    if (idx > 10):
-        break
+    add_missing_edge_geometries(idx, node_from)
+
+#%% FUNCTION FOR ADDING CUMULATIVE NOISE EXPOSURES TO EDGES
+def add_edge_noise_exposures(node_from):
     # list of nodes to which node_from is connected to
+    attr_set_dicts = []
     nodes_to = graph_proj[node_from]
     for node_to in nodes_to.keys():
         # all edges between node-from and node-to as dict (usually)
@@ -72,17 +67,54 @@ for idx, node_from in enumerate(graph_proj):
             # edge dict contains all edge attributes
             edge_d = edges[edge_k]
             # get cumulative noises dictionary for edge geometry
+            # if ('noises' not in edge_d):
             line_noises = noise_utils.get_line_noises(edge_d['geometry'], noise_polys)
             if (line_noises.empty):
                 noise_dict = {}
             else:
                 noise_dict = noise_utils.get_cumulative_noises_dict(line_noises)
             th_noise_dict = noise_utils.get_th_noises_dict(noise_dict, [55,60,65,70])
-            nx.set_edge_attributes(graph_proj, { edge_uvkey: {'noises': noise_dict, 'th_noises': th_noise_dict} })
+            attr_set_dict = { edge_uvkey: {'noises': noise_dict, 'th_noises': th_noise_dict} }
+            # nx.set_edge_attributes(graph_proj, attr_set_dict)
+            # attr_set_dicts.append(attr_set_dict)
+            # print('attr_set_dict:',attr_set_dict)
+            attr_set_dicts.append(attr_set_dict)
             # print all edge attributes
             # print('edge', edge_k, ':', graph_proj[node_from][node_to][edge_k])
+    return attr_set_dicts
 
-#%% EXPORT GRAPH TO FILE
-ox.save_graphml(graph_proj, filename='koskela_test.graphml', folder='graphs', gephi=False)
+#%% COLLECT LIST OF NODES_FROM FOR TESTING NOISE EXTRACTION
+nodes_from = []
+for idx, node_from in enumerate(graph_proj):
+    nodes_from.append(node_from)
+    if (idx > 3):
+        break
+print('count nodes from:', len(nodes_from))
+
+#%% EXTRACT NOISE ATTRIBUTES WITHOUT POOL
+start_time = time.time()
+for node_from in nodes_from:
+    add_edge_noise_exposures(node_from)
+print("--- %s seconds ---" % (time.time() - start_time))
+
+#%% EXTRACT NOISE ATTRIBUTES WITH POOL
+start_time = time.time()
+pool = multiprocessing.Pool(processes=4)
+attr_set_dicts = pool.map(add_edge_noise_exposures, nodes_from)
+pool.close()
+print("--- %s seconds ---" % (time.time() - start_time))
+
+#%% SET EDGE ATTRIBUTES USING ATTRIBUTE LISTS
+for attr_dict in attr_set_dicts:
+    for attrs_d in attr_dict:
+        nx.set_edge_attributes(graph_proj, attrs_d)
+
+#%% PRINT EDGE ATTRIBUTES
+for node_from in nodes_from:
+    nw.print_edges_from_node_attributes(node_from, graph_proj)
+
+#%% GET NODES & EDGES (AS GDFS) FROM GRAPH
+nodes, edges = ox.graph_to_gdfs(graph_proj, nodes=True, edges=True, node_geometry=True, fill_edge_geometry=True)
+edges.head(5)
 
 #%%

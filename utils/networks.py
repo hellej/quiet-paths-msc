@@ -95,3 +95,14 @@ def join_dt_path_attributes(s_paths_g_gdf, dt_paths):
     dt_paths_join = dt_paths_join[['dt_total_length', 'uniq_id', 'to_id', 'count']]
     merged = pd.merge(s_paths_g_gdf, dt_paths_join, how='inner', on='uniq_id')
     return merged
+
+def print_edges_from_node_attributes(node_from, graph_proj):
+    # list of nodes to which node_from is connected to
+    nodes_to = graph_proj[node_from]
+    for node_to in nodes_to.keys():
+        # all edges between node-from and node-to as dict (usually)
+        edges = graph_proj[node_from][node_to]
+        # usually only one edge is found between each origin-to-target-node -pair 
+        # edge_k is unique identifier for edge between two nodes, integer (etc. 0 or 1) 
+        for edge_k in edges.keys():
+            print('edge', edge_k, ':', graph_proj[node_from][node_to][edge_k])
