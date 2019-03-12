@@ -40,7 +40,7 @@ def add_missing_edge_geometries(idx, node_from):
             if ('geometry' not in edge_d):
                 # print('add missing geometry...')
                 # interpolate missing geometry as straigth line between nodes
-                edge_geom = nw.get_edge_geom_from_node_pair(nodes, node_from, node_to)
+                edge_geom = nw.get_edge_geom_from_node_pair(graph_proj, node_from, node_to)
                 # set geometry attribute of the edge
                 nx.set_edge_attributes(graph_proj, { edge_uvkey: {'geometry': edge_geom} })
             # set length attribute

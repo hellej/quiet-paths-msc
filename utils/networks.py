@@ -42,9 +42,11 @@ def get_node_geom(graph_proj, node):
     node_d = graph_proj.node[node]
     return Point(node_d['x'], node_d['y'])
 
-def get_edge_geom_from_node_pair(nodes, node_from, node_to):
-    nodes_from_to = nodes.loc[[node_from, node_to]]
-    return LineString(list(nodes_from_to.geometry.values))
+def get_edge_geom_from_node_pair(graph_proj, node_1, node_2):
+    node_1_geom = geom_utils.get_point_from_xy(graph_proj.nodes[node_1])
+    node_2_geom = geom_utils.get_point_from_xy(graph_proj.nodes[node_2])
+    edge_line = LineString([node_1_geom, node_2_geom])
+    return edge_line
 
 def get_new_node_id(graph_proj):
     graph_nodes = graph_proj.nodes
@@ -66,22 +68,22 @@ def get_new_edge_attrs(graph_proj, old_edge):
     attrs = graph_proj[old_edge[1]][old_edge[2]][0]
     return attrs
 
-def add_link_edges_for_new_node(graph_proj, new_node, closest_point, edge_o):
-    edge_geom = edge_o[0]
-    node_from = edge_o[1]
-    node_to = edge_o[2]
+def add_linking_edges_for_new_node(graph_proj, new_node, closest_point, edge):
+    edge_geom = edge[0]
+    node_from = edge[1]
+    node_to = edge[2]
     split_lines = geom_utils.split_line_at_point(edge_geom, closest_point)
     print('Edge geom splitted to', len(split_lines), 'lines')
     link1 = split_lines[0]
     link2 = split_lines[1]
-    attrs = get_new_edge_attrs(graph_proj, edge_o)
+    attrs = get_new_edge_attrs(graph_proj, edge)
     print('Add linking edges for new node with attrs:', attrs)
     graph_proj.add_edge(node_from, new_node, geometry=link1, length=link1.length, osmid=attrs['osmid'], highway=attrs['highway'], access='yes', oneway=attrs['oneway'])
     graph_proj.add_edge(new_node, node_from, geometry=link1, length=link1.length, osmid=attrs['osmid'], highway=attrs['highway'], access='yes', oneway=attrs['oneway'])
     graph_proj.add_edge(new_node, node_to, geometry=link2, length=link2.length, osmid=attrs['osmid'], highway=attrs['highway'], access='yes', oneway=attrs['oneway'])
     graph_proj.add_edge(node_to, new_node, geometry=link2, length=link2.length, osmid=attrs['osmid'], highway=attrs['highway'], access='yes', oneway=attrs['oneway'])
 
-def get_or_create_nearest_node(graph_proj, coords):
+def get_nearest_node(graph_proj, coords):
     point = Point(coords)
     edge = ox.get_nearest_edge(graph_proj, coords[::-1])
     edge_geom = edge[0]
@@ -93,15 +95,15 @@ def get_or_create_nearest_node(graph_proj, coords):
         # create a new node on the nearest edge nearest to the origin
         closest_line_point = geom_utils.get_closest_point_on_line(edge_geom, point)
         new_node = add_new_node(graph_proj, closest_line_point)
-        add_link_edges_for_new_node(graph_proj, new_node, closest_line_point, edge)
+        add_linking_edges_for_new_node(graph_proj, new_node, closest_line_point, edge)
         return new_node
     else:
         print('Nearby node exists')
         return nearest_node
 
 def get_shortest_path(graph_proj, from_coords, to_coords):
-    orig_node = get_or_create_nearest_node(graph_proj, from_coords)
-    target_node = get_or_create_nearest_node(graph_proj, to_coords)
+    orig_node = get_nearest_node(graph_proj, from_coords)
+    target_node = get_nearest_node(graph_proj, to_coords)
     print('Nearest origin node for routing:', orig_node)
     print('Nearest target node for routing:', target_node)
     if (orig_node != target_node):
@@ -110,7 +112,7 @@ def get_shortest_path(graph_proj, from_coords, to_coords):
     else:
         return None
 
-def get_edge_geometries(graph_proj, path, nodes):
+def get_edge_geometries(graph_proj, path):
     edge_geoms = []
     edge_lengths = []
     for idx in range(0, len(path)):
@@ -125,10 +127,9 @@ def get_edge_geometries(graph_proj, path, nodes):
             edge_lengths.append(edge_d['length'])
         except KeyError:
             print('Create missing edge geom')
-            nodes_1_2 = nodes.loc[[node_1, node_2]]
-            route_line = LineString(list(nodes_1_2.geometry.values))
-            edge_geoms.append(route_line)
-            edge_lengths.append(route_line.length)
+            edge_line = get_edge_geom_from_node_pair(graph_proj, node_1, node_2)
+            edge_geoms.append(edge_line)
+            edge_lengths.append(edge_line.length)
 
     multi_line = MultiLineString(edge_geoms)
     total_length = round(sum(edge_lengths),2)

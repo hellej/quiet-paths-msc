@@ -47,7 +47,7 @@ for idx, row in dt_paths.iterrows():
 #%% ADD EDGE GEOMETRIES TO SHORTEST PATHS
 for s_path in shortest_paths:
     # route as edge geometries
-    path_geom = nw.get_edge_geometries(graph_proj, s_path['path'], nodes)
+    path_geom = nw.get_edge_geometries(graph_proj, s_path['path'])
     s_path['geometry'] = path_geom['multiline']
     s_path['total_length'] = path_geom['total_length']
 
