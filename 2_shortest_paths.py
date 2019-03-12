@@ -12,7 +12,8 @@ koskela_box = geom_utils.project_to_wgs(nw.get_koskela_box())
 koskela_kumpula_box = geom_utils.project_to_wgs(nw.get_koskela_kumpula_box())
 
 #%% GET NETWORK
-graph_proj = nw.get_walk_network(koskela_kumpula_box)
+# graph_proj = nw.get_walk_network(koskela_kumpula_box)
+graph_proj = ox.load_graphml('koskela_kumpula_test.graphml', folder='graphs')
 
 #%% GET NODES & EDGES (AS GDFS) FROM GRAPH
 nodes, edges = ox.graph_to_gdfs(graph_proj, nodes=True, edges=True, node_geometry=True, fill_edge_geometry=True)
@@ -28,16 +29,16 @@ dt_paths = gpd.read_file('outputs/DT_output_test.gpkg', layer='paths_g', driver=
 # list for shortest paths as dictionaries
 shortest_paths = []
 for idx, row in dt_paths.iterrows():
-    if (idx==2000):
-        break
+    if (row['uniq_id'] != '16932_HSL:1260113'):
+        continue
     from_xy = ast.literal_eval(row['from_xy'])
     to_xy = ast.literal_eval(row['to_xy'])
-    from_coords = geom_utils.get_coords_from_xy(from_xy)[::-1]
-    to_coords = geom_utils.get_coords_from_xy(to_xy)[::-1]
+    from_coords = geom_utils.get_coords_from_xy(from_xy)
+    to_coords = geom_utils.get_coords_from_xy(to_xy)
     shortest_path = nw.get_shortest_path(graph_proj, from_coords, to_coords)
     if (shortest_path != None):
         s_path = {'uniq_id': row['uniq_id'], 'from_id': row['from_id'], 'path': shortest_path}
-        print('Found path:', idx, ':', s_path)
+        # print('Found path:', idx, ':', s_path)
         shortest_paths.append(s_path)
     else:
         print('Error in calculating shortest path for: ', row['uniq_id'])

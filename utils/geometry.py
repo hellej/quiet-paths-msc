@@ -18,6 +18,12 @@ def get_coords_from_lat_lon(latLon):
 def get_point_from_lat_lon(latLon):
     return Point(get_coords_from_lat_lon(latLon))
 
+def get_coords_from_xy(xy):
+    return (xy['x'], xy['y'])
+
+def get_point_from_xy(xy):
+    return Point(get_coords_from_xy(xy))
+
 def project_to_etrs(geom):
     project = partial(
         pyproj.transform,
@@ -35,10 +41,7 @@ def project_to_wgs(geom):
     return geom_proj
 
 def get_xy_from_geom(geom):
-    return { 'x': geom.x, 'y': geom.y }    
-
-def get_coords_from_xy(xy):
-    return (xy['x'], xy['y'])
+    return { 'x': geom.x, 'y': geom.y }
 
 def get_xy_from_lat_lon(latLon):
     point = get_point_from_lat_lon(latLon)
@@ -58,6 +61,16 @@ def clip_polygons_with_polygon(clippee, clipper):
     clipped_final = clipped[clipped.geometry.notnull()]
 
     return clipped_final
+
+def get_closest_point_on_line(line, point):
+    projected = line.project(point)
+    closest_point = line.interpolate(projected)
+    return closest_point
+
+def split_line_at_point(line, point):
+    snap_line = snap(line,point,0.01)
+    result = split(snap_line, point)
+    return result
 
 def get_polygons_under_line(line_geom, polygons):
     intersects_mask = polygons.intersects(line_geom)
