@@ -10,16 +10,16 @@ import utils.networks as nw
 import utils.noise_overlays as noise_utils
 import utils.utils as utils
 
-
 #%% GET BOUNDING BOX POLYGONS
 koskela_box = geom_utils.project_to_wgs(nw.get_koskela_box())
-# koskela_kumpula_box = geom_utils.project_to_wgs(nw.get_koskela_kumpula_box())
+koskela_kumpula_box = geom_utils.project_to_wgs(nw.get_koskela_kumpula_box())
 noise_polys = noise_utils.get_noise_polygons()
 
 #%% GET NETWORK
+graph_proj = nw.get_walk_network(koskela_kumpula_box)
 # graph_proj = nw.get_walk_network(koskela_box)
-# ox.save_graphml(graph_proj, filename='koskela_test.graphml', folder='graphs', gephi=False)
-graph_proj = ox.load_graphml('koskela_test.graphml', folder='graphs')
+ox.save_graphml(graph_proj, filename='koskela_kumpula_test.graphml', folder='graphs', gephi=False)
+# graph_proj = ox.load_graphml('koskela_test.graphml', folder='graphs')
 graph_size = len(graph_proj)
 
 #%% ADD MISSING GEOMETRIES TO EDGES
