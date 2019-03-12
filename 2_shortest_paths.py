@@ -29,7 +29,8 @@ dt_paths = gpd.read_file('outputs/DT_output_test.gpkg', layer='paths_g', driver=
 # list for shortest paths as dictionaries
 shortest_paths = []
 for idx, row in dt_paths.iterrows():
-    if (row['uniq_id'] != '16932_HSL:1260113'):
+    # if (row['uniq_id'] != '16932_HSL:1260113'):
+    if (row['from_id'] != 16932):
         continue
     from_xy = ast.literal_eval(row['from_xy'])
     to_xy = ast.literal_eval(row['to_xy'])
@@ -38,7 +39,7 @@ for idx, row in dt_paths.iterrows():
     shortest_path = nw.get_shortest_path(graph_proj, from_coords, to_coords)
     if (shortest_path != None):
         s_path = {'uniq_id': row['uniq_id'], 'from_id': row['from_id'], 'path': shortest_path}
-        # print('Found path:', idx, ':', s_path)
+        print('Found path no.', idx, ':', s_path)
         shortest_paths.append(s_path)
     else:
         print('Error in calculating shortest path for: ', row['uniq_id'])
@@ -60,7 +61,8 @@ s_paths_g_gdf.head(4)
 
 #%% SAVE SHORTEST PATHS TO FILE NEW
 cols = ['from_id', 'to_id', 'geometry', 'uniq_id', 'total_length', 'dt_total_length', 'length_diff', 'count']
-s_paths_g_gdf[cols].to_file('outputs/shortest_paths.gpkg', layer='shortest_paths_g', driver="GPKG")
+# s_paths_g_gdf[cols].to_file('outputs/shortest_paths.gpkg', layer='shortest_paths_g', driver="GPKG")
+s_paths_g_gdf[cols].to_file('outputs/shortest_paths.gpkg', layer='sp_create_node_edges_test', driver="GPKG")
 s_paths_g_gdf.head(4)
 
 
