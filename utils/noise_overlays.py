@@ -51,7 +51,7 @@ def get_th_noises_dict(cum_noises_dict, ths):
     return th_noises_dict
 
 def plot_cumulative_exposures(noises_dict):
-    print(noises_dict)
+    plt.style.use('default')
 
     fig, ax = plt.subplots(figsize=(7,7))
     dbs = list(noises_dict.keys())
@@ -78,3 +78,5 @@ def plot_cumulative_exposures(noises_dict):
 
     ax.xaxis.labelpad = 10
     ax.yaxis.labelpad = 10
+
+    return fig

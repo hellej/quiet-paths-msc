@@ -13,11 +13,6 @@ walk = gpd.read_file('data/input/test_walk_line.shp')
 walk_proj = walk.to_crs(epsg=3879)
 walk_geom = walk_proj.loc[0, 'geometry']
 
-#%% get line split points at polygon boundaries
-split_points = geom_utils.get_line_polygons_inters_points(walk_geom, noise_polys)
-uniq_split_points = geom_utils.filter_duplicate_split_points(split_points)
-uniq_split_points.to_file('outputs/path_noises.gpkg', layer='path_split_points_test', driver='GPKG')
-
 #%% SPLIT LINE WITH NOISE POLYGON BOUNDARIES
 split_lines = geom_utils.split_line_with_polys(walk_geom, noise_polys)
 
@@ -33,7 +28,8 @@ line_noises.to_file('outputs/path_noises.gpkg', layer='line_noises_test', driver
 noises_dict = noise_utils.get_cumulative_noises_dict(line_noises)
 
 #%% PLOT CUMULATIVE EXPOSURES
-noise_utils.plot_cumulative_exposures(noises_dict)
+fig = noise_utils.plot_cumulative_exposures(noises_dict)
+fig.savefig('outputs/plots/noise_exp.eps', format='eps', dpi=500)
 
 
 #%% READ ALL SHORTEST PATHS
