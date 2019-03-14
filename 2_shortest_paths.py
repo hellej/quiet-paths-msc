@@ -17,7 +17,6 @@ graph_proj = ox.load_graphml('koskela_kumpula_test.graphml', folder='graphs')
 
 #%% GET NODES & EDGES (AS GDFS) FROM GRAPH
 nodes, edges = ox.graph_to_gdfs(graph_proj, nodes=True, edges=True, node_geometry=True, fill_edge_geometry=True)
-edges.head(3)
 
 #%% EXPORT NODES & EDGES TO FILES
 edges = edges[['geometry', 'u', 'v', 'length']]
@@ -29,9 +28,8 @@ dt_paths = gpd.read_file('outputs/DT_output_test.gpkg', layer='paths_g', driver=
 # list for shortest paths as dictionaries
 shortest_paths = []
 for idx, row in dt_paths.iterrows():
-    # if (row['uniq_id'] != '16932_HSL:1260113'):
-    if (row['from_id'] != 16932):
-        continue
+    # if (row['from_id'] != 16932):
+    #     continue
     from_xy = ast.literal_eval(row['from_xy'])
     to_xy = ast.literal_eval(row['to_xy'])
     from_coords = geom_utils.get_coords_from_xy(from_xy)
@@ -61,8 +59,8 @@ s_paths_g_gdf.head(4)
 
 #%% SAVE SHORTEST PATHS TO FILE NEW
 cols = ['from_id', 'to_id', 'geometry', 'uniq_id', 'total_length', 'dt_total_length', 'length_diff', 'count']
-# s_paths_g_gdf[cols].to_file('outputs/shortest_paths.gpkg', layer='shortest_paths_g', driver="GPKG")
-s_paths_g_gdf[cols].to_file('outputs/shortest_paths.gpkg', layer='sp_create_node_edges_test', driver="GPKG")
+s_paths_g_gdf[cols].to_file('outputs/shortest_paths.gpkg', layer='shortest_paths_g', driver="GPKG")
+#s_paths_g_gdf[cols].to_file('outputs/shortest_paths.gpkg', layer='sp_create_node_edges_test', driver="GPKG")
 s_paths_g_gdf.head(4)
 
 

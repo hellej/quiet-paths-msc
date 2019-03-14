@@ -63,6 +63,7 @@ line_noises_gdf.to_file('outputs/path_noises.gpkg', layer='line_noises', driver=
 
 cum_noises_df = pd.concat(cum_noises_dfs).reset_index(drop=True)
 path_noises = pd.merge(shortest_paths, cum_noises_df, how='inner', on='uniq_id')
+path_noises = path_noises.rename(index=str, columns={55: 'th_55', 60: 'th_60', 65: 'th_65', 70: 'th_70'})
 path_noises.to_file('outputs/path_noises.gpkg', layer='path_noises', driver='GPKG')
 
 #%%
