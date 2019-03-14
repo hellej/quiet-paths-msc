@@ -25,11 +25,15 @@ line_noises.head(4)
 line_noises.to_file('outputs/path_noises.gpkg', layer='line_noises_test', driver='GPKG')
 
 #%% AGGREGATE CUMULATIVE EXPOSURES
-noises_dict = noise_utils.get_cumulative_noises_dict(line_noises)
+exp_lens = noise_utils.get_cumulative_noises_dict(line_noises)
+exp_times = noise_utils.get_exposure_times(exp_lens, 1.33, True)
+exp_times
 
 #%% PLOT CUMULATIVE EXPOSURES
-fig = noise_utils.plot_cumulative_exposures(noises_dict)
-fig.savefig('outputs/plots/noise_exp.eps', format='eps', dpi=500)
+fig_len = noise_utils.plot_exposure_lengths(exp_lens)
+fig_time = noise_utils.plot_exposure_times(exp_times)
+fig_len.savefig('outputs/plots/noise_exp_len.eps', format='eps', dpi=500)
+fig_time.savefig('outputs/plots/noise_exp_time.eps', format='eps', dpi=500)
 
 
 #%% READ ALL SHORTEST PATHS

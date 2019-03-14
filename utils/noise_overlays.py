@@ -34,6 +34,12 @@ def get_cumulative_noises_dict(line_noises):
         noise_dict[int(key)] = tot_len
     return noise_dict
 
+def get_exposure_times(d: 'dict of db: length', speed: 'float: m/s', minutes: bool):
+    exp_t_d = {}
+    for key in d.keys():
+        exp_t_d[key] = round((d[key]/speed)/(60 if minutes else 1), (4 if minutes else 1))
+    return exp_t_d
+
 def get_th_cols(ths):
     return ['th_'+str(th)+'_len' for th in ths]
 
@@ -50,12 +56,12 @@ def get_th_noises_dict(cum_noises_dict, ths):
         th_noises_dict[ths[idx]] = round(th_lens[idx],3)
     return th_noises_dict
 
-def plot_cumulative_exposures(noises_dict):
+def plot_exposure_lengths(exp_lens):
     plt.style.use('default')
 
     fig, ax = plt.subplots(figsize=(7,7))
-    dbs = list(noises_dict.keys())
-    lengths = list(noises_dict.values())
+    dbs = list(exp_lens.keys())
+    lengths = list(exp_lens.values())
 
     ax.bar(dbs, lengths, width=3)
     # ax.set_xlim([30, 80])
@@ -72,6 +78,36 @@ def plot_cumulative_exposures(noises_dict):
     ax.set_ylabel('Distance (m)')
     ax.set_xlabel('Traffic noise (dB)')
 
+
+    ax.xaxis.label.set_size(16)
+    ax.yaxis.label.set_size(16)
+
+    ax.xaxis.labelpad = 10
+    ax.yaxis.labelpad = 10
+
+    return fig
+
+def plot_exposure_times(exp_times):
+    plt.style.use('default')
+
+    fig, ax = plt.subplots(figsize=(7,7))
+    dbs = list(exp_times.keys())
+    times = list(exp_times.values())
+
+    ax.bar(dbs, times, width=3)
+    # ax.set_xlim([30, 80])
+
+    yticks = list(range(0, int(max(times)+1), 1))
+    yticks = [int(tick) for tick in yticks]
+    ax.set_yticks(yticks)
+    ax.set_yticklabels(yticks, fontsize=15)
+    
+    xticks = np.arange(35, max(dbs)+5, step=5)
+    ax.set_xticks(xticks)
+    ax.set_xticklabels(xticks, fontsize=15)
+
+    ax.set_ylabel('Duration (min)')
+    ax.set_xlabel('Traffic noise (dB)')
 
     ax.xaxis.label.set_size(16)
     ax.yaxis.label.set_size(16)
