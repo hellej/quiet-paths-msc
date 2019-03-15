@@ -18,7 +18,7 @@ def add_noises_to_split_lines(noise_polygons, split_lines):
     line_noises['geometry'] = line_noises['geom_line']
     return line_noises[['geometry', 'length', 'db_lo', 'db_hi', 'index_right']]
 
-def get_line_noises(line_geom, noise_polys):
+def get_exposure_lines(line_geom, noise_polys):
     split_lines = geom_utils.split_line_with_polys(line_geom, noise_polys)
     if (split_lines.empty):
         return gpd.GeoDataFrame()
@@ -26,7 +26,7 @@ def get_line_noises(line_geom, noise_polys):
     line_noises = line_noises.fillna(35)
     return line_noises
 
-def get_cumulative_noises_dict(line_noises):
+def get_exposures(line_noises):
     noise_groups = line_noises.groupby('db_lo')
     noise_dict = {}
     for key, values in noise_groups:
@@ -43,18 +43,18 @@ def get_exposure_times(d: 'dict of db: length', speed: 'float: m/s', minutes: bo
 def get_th_cols(ths):
     return ['th_'+str(th)+'_len' for th in ths]
 
-def get_th_noises_dict(cum_noises_dict, ths):
+def get_th_exposures(noise_dict, ths):
     th_count = len(ths)
     th_lens = [0] * len(ths)
-    for th in cum_noises_dict.keys():
-        th_len = cum_noises_dict[th]
+    for th in noise_dict.keys():
+        th_len = noise_dict[th]
         for idx in range(th_count):
             if (th >= ths[idx]):
                 th_lens[idx] = th_lens[idx] + th_len
-    th_noises_dict = {}
+    th_noise_dict = {}
     for idx in range(th_count):
-        th_noises_dict[ths[idx]] = round(th_lens[idx],3)
-    return th_noises_dict
+        th_noise_dict[ths[idx]] = round(th_lens[idx],3)
+    return th_noise_dict
 
 def plot_exposure_lengths(exp_lens):
     plt.style.use('default')

@@ -1,4 +1,4 @@
-#%% IMPORT MODULES FOR NETWORK ANALYSIS
+#%% IMPORT MODULES FOR NETWORK CONSTRUCTION
 import pandas as pd
 import geopandas as gpd
 import osmnx as ox
@@ -17,14 +17,13 @@ noise_polys = noise_utils.get_noise_polygons()
 
 #%% GET NETWORK
 # graph_proj = nw.get_walk_network(koskela_kumpula_box)
-# graph_proj = nw.get_walk_network(koskela_box)
 # ox.save_graphml(graph_proj, filename='koskela_kumpula_test.graphml', folder='graphs', gephi=False)
 graph_proj = ox.load_graphml('koskela_test.graphml', folder='graphs')
 graph_size = len(graph_proj)
 
 #%% ADD MISSING GEOMETRIES TO EDGES
 def add_missing_edge_geometries(idx, node_from):
-    utils.print_progress(idx, graph_size)
+    utils.print_progress(idx, graph_size, True)
     # list of nodes to which node_from is connected to
     nodes_to = graph_proj[node_from]
     for node_to in nodes_to.keys():
@@ -68,19 +67,15 @@ def add_edge_noise_exposures(node_from):
             edge_d = edges[edge_k]
             # get cumulative noises dictionary for edge geometry
             if ('noises' not in edge_d):
-                line_noises = noise_utils.get_line_noises(edge_d['geometry'], noise_polys)
-                if (line_noises.empty):
+                noise_lines = noise_utils.get_exposure_lines(edge_d['geometry'], noise_polys)
+                if (noise_lines.empty):
                     noise_dict = {}
                 else:
-                    noise_dict = noise_utils.get_cumulative_noises_dict(line_noises)
-                th_noise_dict = noise_utils.get_th_noises_dict(noise_dict, [55,60,65,70])
+                    noise_dict = noise_utils.get_exposures(noise_lines)
+                th_noise_dict = noise_utils.get_th_exposures(noise_dict, [55,60,65,70])
                 attr_set_dict = { edge_uvkey: {'noises': noise_dict, 'th_noises': th_noise_dict} }
-                # nx.set_edge_attributes(graph_proj, attr_set_dict)
-                # attr_set_dicts.append(attr_set_dict)
                 # print('attr_set_dict:',attr_set_dict)
                 attr_set_dicts.append(attr_set_dict)
-            # print all edge attributes
-            # print('edge', edge_k, ':', graph_proj[node_from][node_to][edge_k])
     return attr_set_dicts
 
 #%% COLLECT LIST OF NODES_FROM FOR TESTING NOISE EXTRACTION
