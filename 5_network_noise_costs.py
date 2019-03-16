@@ -3,7 +3,7 @@ import pandas as pd
 import geopandas as gpd
 import osmnx as ox
 import networkx as nx
-import multiprocessing
+from multiprocessing import current_process, Pool
 import time
 import utils.geometry as geom_utils
 import utils.networks as nw
@@ -20,6 +20,7 @@ noise_polys = noise_utils.get_noise_polygons()
 # ox.save_graphml(graph_proj, filename='koskela_kumpula_test.graphml', folder='graphs', gephi=False)
 graph_proj = ox.load_graphml('koskela_test.graphml', folder='graphs')
 graph_size = len(graph_proj)
+print('Nodes in the graph:', graph_size)
 
 #%% ADD MISSING GEOMETRIES TO EDGES
 def add_missing_edge_geometries(idx, node_from):
@@ -51,7 +52,7 @@ for idx, node_from in enumerate(graph_proj):
     add_missing_edge_geometries(idx, node_from)
 
 #%% FUNCTION FOR ADDING CUMULATIVE NOISE EXPOSURES TO EDGES
-def add_edge_noise_exposures(node_from):
+def collect_edge_noise_exps(node_from):
     # list of nodes to which node_from is connected to
     attr_set_dicts = []
     nodes_to = graph_proj[node_from]
@@ -82,21 +83,41 @@ def add_edge_noise_exposures(node_from):
 nodes_from = []
 for idx, node_from in enumerate(graph_proj):
     nodes_from.append(node_from)
-    if (idx > 6):
+    if (idx > 10):
         break
-print('count nodes from:', len(nodes_from))
+print('Count nodes to process:', len(nodes_from))
+print('Nodes:', nodes_from)
 
-#%% EXTRACT NOISE ATTRIBUTES WITHOUT POOL
+#%% PROCESS EDGES ONE BY ONE
 start_time = time.time()
-attr_set_dicts = [add_edge_noise_exposures(node_from) for node_from in nodes_from]
-print("--- %s seconds ---" % (time.time() - start_time))
+attr_set_dicts = [collect_edge_noise_exps(node_from) for node_from in nodes_from]
+time_elapsed = round(time.time() - start_time,1)
+node_time = round(time_elapsed/len(nodes_from),1)
+print("--- %s seconds ---" % (time_elapsed))
+print("--- %s seconds per node ---" % (node_time))
 
-#%% EXTRACT NOISE ATTRIBUTES WITH POOL
+#%% PROCESS EDGES WITH POOL
 start_time = time.time()
-pool = multiprocessing.Pool(processes=4)
-attr_set_dicts = pool.map(add_edge_noise_exposures, nodes_from)
+pool = Pool(processes=4)
+attr_set_dicts = pool.map(collect_edge_noise_exps, nodes_from)
 pool.close()
-print("--- %s seconds ---" % (time.time() - start_time))
+time_elapsed = round(time.time() - start_time,1)
+node_time = round(time_elapsed/len(nodes_from),1)
+print("--- %s seconds ---" % (time_elapsed))
+print("--- %s seconds per node ---" % (node_time))
+
+#%% PROCESS EDGES IN CHUNKS WITH POOL
+start_time = time.time()
+pool = Pool(processes=4)
+n_chunks = utils.get_list_chunks(nodes_from, 4)
+for n_chunk in n_chunks:
+    print('processing nodes:', n_chunk)
+    attr_set_dicts = pool.map(collect_edge_noise_exps, n_chunk)
+pool.close()
+time_elapsed = round(time.time() - start_time,1)
+node_time = round(time_elapsed/len(nodes_from),1)
+print("--- %s seconds ---" % (time_elapsed))
+print("--- %s seconds per node ---" % (node_time))
 
 #%% SET EDGE ATTRIBUTES USING ATTRIBUTE LISTS
 for attr_dict in attr_set_dicts:
@@ -109,11 +130,6 @@ for node_from in nodes_from:
 
 #%% GET NODES & EDGES (AS GDFS) FROM GRAPH
 nodes, edges = ox.graph_to_gdfs(graph_proj, nodes=True, edges=True, node_geometry=True, fill_edge_geometry=True)
-edges.head(5)
-
-#%% EXPORT NODES & EDGES TO FILES
 edges = edges[['geometry', 'u', 'v', 'length', 'noises', 'th_noises']]
 edges.to_file('data/networks.gpkg', layer='koskela_edges_noise', driver="GPKG")
 nodes.to_file('data/networks.gpkg', layer='koskela_nodes_noise', driver="GPKG")
-
-#%%
