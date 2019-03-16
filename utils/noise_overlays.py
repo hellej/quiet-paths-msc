@@ -23,7 +23,7 @@ def get_exposure_lines(line_geom, noise_polys):
     if (split_lines.empty):
         return gpd.GeoDataFrame()
     line_noises = add_noises_to_split_lines(noise_polys, split_lines)
-    line_noises = line_noises.fillna(35)
+    line_noises = line_noises.fillna(40)
     return line_noises
 
 def get_exposures(line_noises):
@@ -39,9 +39,6 @@ def get_exposure_times(d: 'dict of db: length', speed: 'float: m/s', minutes: bo
     for key in d.keys():
         exp_t_d[key] = round((d[key]/speed)/(60 if minutes else 1), (4 if minutes else 1))
     return exp_t_d
-
-def get_th_cols(ths):
-    return ['th_'+str(th)+'_len' for th in ths]
 
 def get_th_exposures(noise_dict, ths):
     th_count = len(ths)
