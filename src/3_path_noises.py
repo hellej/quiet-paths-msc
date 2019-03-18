@@ -4,15 +4,16 @@ import geopandas as gpd
 import utils.geometry as geom_utils
 import utils.noise_overlays as noise_utils
 import utils.utils as utils
+import utils.files as file_utils
 
 #%% read traffic noise polygons
 noise_polys = noise_utils.get_noise_polygons()
 
 #%%  read walk line
-walk = gpd.read_file('data/input/test_walk_line.shp')
-walk_proj = walk.to_crs(epsg=3879)
+walk_proj = file_utils.get_update_test_walk_line()
 walk_geom = walk_proj.loc[1, 'geometry']
 walk_geom
+walk_proj
 
 #%% SPLIT LINE WITH NOISE POLYGON BOUNDARIES
 split_lines = geom_utils.split_line_with_polys(walk_geom, noise_polys)
