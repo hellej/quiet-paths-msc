@@ -1,0 +1,32 @@
+{
+"type": "FeatureCollection",
+"name": "target_locations",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "fid": 1, "type": "POI", "name": "Rautatieasema", "name_en": "Railway Station" }, "geometry": { "type": "Point", "coordinates": [ 24.94151447278081, 60.170743414902887 ] } },
+{ "type": "Feature", "properties": { "fid": 2, "type": "School", "name": "Kumpulan kampus", "name_en": "Kumpula Campus" }, "geometry": { "type": "Point", "coordinates": [ 24.962792110923136, 60.205456915376402 ] } },
+{ "type": "Feature", "properties": { "fid": 3, "type": "workplace", "name": "Pasila", "name_en": "Pasila" }, "geometry": { "type": "Point", "coordinates": [ 24.936469948839054, 60.198693423916332 ] } },
+{ "type": "Feature", "properties": { "fid": null, "type": "workplace", "name": "Keskusta", "name_en": "City centre" }, "geometry": { "type": "Point", "coordinates": [ 24.94244011814272, 60.166575373627865 ] } },
+{ "type": "Feature", "properties": { "fid": null, "type": "workplace", "name": "Meilahti", "name_en": "Meilahti" }, "geometry": { "type": "Point", "coordinates": [ 24.907662395977258, 60.189608288317039 ] } },
+{ "type": "Feature", "properties": { "fid": null, "type": "workplace", "name": "Käpylä", "name_en": "Käpylä" }, "geometry": { "type": "Point", "coordinates": [ 24.945625365975179, 60.219828067408578 ] } },
+{ "type": "Feature", "properties": { "fid": null, "type": "workplace", "name": "Vallila", "name_en": "Vallila" }, "geometry": { "type": "Point", "coordinates": [ 24.957106417979173, 60.194441666135511 ] } },
+{ "type": "Feature", "properties": { "fid": null, "type": "workplace", "name": "Malmi", "name_en": "Malmi" }, "geometry": { "type": "Point", "coordinates": [ 25.011280738186493, 60.251176740709802 ] } },
+{ "type": "Feature", "properties": { "fid": null, "type": "workplace", "name": "Viikki", "name_en": "Viikki" }, "geometry": { "type": "Point", "coordinates": [ 25.030309826744539, 60.227821933260316 ] } },
+{ "type": "Feature", "properties": { "fid": null, "type": "workplace", "name": "Herttoniemi", "name_en": "Herttoniemi" }, "geometry": { "type": "Point", "coordinates": [ 25.039321604556907, 60.193041868119323 ] } },
+{ "type": "Feature", "properties": { "fid": null, "type": "workplace", "name": "Itäkeskus", "name_en": "Itäkeskus" }, "geometry": { "type": "Point", "coordinates": [ 25.08721243129088, 60.211289787066654 ] } },
+{ "type": "Feature", "properties": { "fid": null, "type": "workplace", "name": "Vuosaari", "name_en": "Vuosaari" }, "geometry": { "type": "Point", "coordinates": [ 25.144282888170618, 60.207505535925016 ] } },
+{ "type": "Feature", "properties": { "fid": null, "type": "workplace", "name": "Ruoholahti", "name_en": "Ruoholahti" }, "geometry": { "type": "Point", "coordinates": [ 24.912064485974412, 60.163210290043786 ] } },
+{ "type": "Feature", "properties": { "fid": null, "type": "workplace", "name": "Kruunuhaka", "name_en": "Kruunuhaka" }, "geometry": { "type": "Point", "coordinates": [ 24.955991768311076, 60.172793484650157 ] } },
+{ "type": "Feature", "properties": { "fid": null, "type": "workplace", "name": "Vattuniemi", "name_en": "Vattuniemi" }, "geometry": { "type": "Point", "coordinates": [ 24.883160213019107, 60.151865786814859 ] } },
+{ "type": "Feature", "properties": { "fid": null, "type": "workplace", "name": "Keilaniemi", "name_en": "Keilaniemi" }, "geometry": { "type": "Point", "coordinates": [ 24.82945276769226, 60.175516353465362 ] } },
+{ "type": "Feature", "properties": { "fid": null, "type": "workplace", "name": "Tapiola", "name_en": "Tapiola" }, "geometry": { "type": "Point", "coordinates": [ 24.803434960955389, 60.175950906704237 ] } },
+{ "type": "Feature", "properties": { "fid": null, "type": "workplace", "name": "Leppävaara", "name_en": "Leppävaara" }, "geometry": { "type": "Point", "coordinates": [ 24.816155209259939, 60.219707351643635 ] } },
+{ "type": "Feature", "properties": { "fid": null, "type": "workplace", "name": "Pitäjänmäki", "name_en": "Pitäjänmäki" }, "geometry": { "type": "Point", "coordinates": [ 24.876426054089176, 60.218075387841282 ] } },
+{ "type": "Feature", "properties": { "fid": null, "type": "workplace", "name": "Töölö", "name_en": "Töölö" }, "geometry": { "type": "Point", "coordinates": [ 24.92498105952404, 60.175656087464219 ] } },
+{ "type": "Feature", "properties": { "fid": null, "type": "workplace", "name": "Myyrmäki", "name_en": "Myyrmäki" }, "geometry": { "type": "Point", "coordinates": [ 24.854215941531812, 60.261207732377123 ] } },
+{ "type": "Feature", "properties": { "fid": null, "type": "workplace", "name": "Vantaankoski", "name_en": "Vantaankoski" }, "geometry": { "type": "Point", "coordinates": [ 24.848502278504093, 60.285481607769732 ] } },
+{ "type": "Feature", "properties": { "fid": null, "type": "workplace", "name": "Lentokenttä", "name_en": "Helsinki Vantaa Airport" }, "geometry": { "type": "Point", "coordinates": [ 24.968994630924129, 60.315857856432658 ] } },
+{ "type": "Feature", "properties": { "fid": null, "type": "workplace", "name": "Veromies", "name_en": "Veromies" }, "geometry": { "type": "Point", "coordinates": [ 24.962842209359149, 60.295654952329528 ] } },
+{ "type": "Feature", "properties": { "fid": null, "type": "workplace", "name": "Tikkurila", "name_en": "Tikkurila" }, "geometry": { "type": "Point", "coordinates": [ 25.04343679472704, 60.293914639355251 ] } }
+]
+}
