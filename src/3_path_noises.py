@@ -12,8 +12,8 @@ noise_polys = noise_utils.get_noise_polygons()
 #%%  read walk line
 walk_proj = file_utils.get_update_test_walk_line()
 walk_geom = walk_proj.loc[1, 'geometry']
-walk_geom
 walk_proj
+walk_geom
 
 #%% SPLIT LINE WITH NOISE POLYGON BOUNDARIES
 split_lines = geom_utils.split_line_with_polys(walk_geom, noise_polys)
