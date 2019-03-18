@@ -11,7 +11,8 @@ noise_polys = noise_utils.get_noise_polygons()
 #%%  read walk line
 walk = gpd.read_file('data/input/test_walk_line.shp')
 walk_proj = walk.to_crs(epsg=3879)
-walk_geom = walk_proj.loc[0, 'geometry']
+walk_geom = walk_proj.loc[1, 'geometry']
+walk_geom
 
 #%% SPLIT LINE WITH NOISE POLYGON BOUNDARIES
 split_lines = geom_utils.split_line_with_polys(walk_geom, noise_polys)
@@ -27,7 +28,7 @@ noise_lines.to_file('outputs/path_noises.gpkg', layer='noise_lines_test', driver
 #%% AGGREGATE CUMULATIVE EXPOSURES
 exp_lens = noise_utils.get_exposures(noise_lines)
 exp_times = noise_utils.get_exposure_times(exp_lens, 1.33, True)
-exp_times
+exp_lens
 
 #%% PLOT CUMULATIVE EXPOSURES
 fig_len = noise_utils.plot_exposure_lengths(exp_lens)
