@@ -67,8 +67,10 @@ def plot_exposure_lengths(exp_lens):
     yticks = [int(tick) for tick in yticks]
     ax.set_yticks(yticks)
     ax.set_yticklabels(yticks, fontsize=15)
-    
-    xticks = np.arange(40, max(dbs)+5, step=5)
+
+    if (max(dbs)>85):
+        print('Adjust xticks to show high dB exposures!!')
+    xticks = np.arange(40, 90, step=5)
     ax.set_xticks(xticks)
     ax.set_xticklabels(xticks, fontsize=15)
 
@@ -94,12 +96,16 @@ def plot_exposure_times(exp_times):
     ax.bar(dbs, times, width=3)
     # ax.set_xlim([30, 80])
 
-    yticks = list(range(0, int(max(times)+2), 1))
+    if (max(times)>5):
+        print('Adjust yticks to show long exposures!!')
+    yticks = list(range(0, 6, 1))
     yticks = [int(tick) for tick in yticks]
     ax.set_yticks(yticks)
     ax.set_yticklabels(yticks, fontsize=15)
-    
-    xticks = np.arange(40, max(dbs)+5, step=5)
+
+    if (max(dbs)>85):
+        print('Adjust xticks to show high dB exposures!!')
+    xticks = np.arange(40, 90, step=5)
     ax.set_xticks(xticks)
     ax.set_xticklabels(xticks, fontsize=15)
 
