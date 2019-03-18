@@ -1,5 +1,6 @@
 
 src/__pycache__/
+src/utils/__pycache__/
 src/.pytest_cache/
 src/.vscode
 .DS_Store
