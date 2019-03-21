@@ -18,9 +18,13 @@ noise_polys = noise_utils.get_noise_polygons()
 #%% GET NETWORK
 # graph_proj = nw.get_walk_network(koskela_kumpula_box)
 # ox.save_graphml(graph_proj, filename='koskela_kumpula_test.graphml', folder='graphs', gephi=False)
-graph_proj = ox.load_graphml('koskela_test.graphml', folder='graphs')
+# graph_proj = ox.load_graphml('koskela_test.graphml', folder='graphs')
+graph_proj = ox.load_graphml('koskela_kumpula_test.graphml', folder='graphs')
 node_count = len(graph_proj)
 print('Nodes in the graph:', node_count)
+
+#%% SAVE NETWORK
+# ox.save_graphml(graph_proj, filename='koskela_kumpula_geom.graphml', folder='graphs', gephi=False)
 
 #%% GATHER ALL EDGE DICTS
 edge_dicts = nw.get_all_edge_dicts(graph_proj)
