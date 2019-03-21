@@ -191,7 +191,7 @@ def add_missing_edge_geometries(edge_dicts, graph_proj):
 
 def get_edge_noise_exps(edge_dict, noise_polys, graph_proj):
     edge_d = {}
-    if ('noisesee' not in edge_d):
+    if ('noises' not in edge_d):
         noise_lines = noise_utils.get_exposure_lines(edge_dict['geometry'], noise_polys)
         if (noise_lines.empty):
             noise_dict = {}

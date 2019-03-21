@@ -10,16 +10,12 @@ import utils.networks as nw
 import utils.noise_overlays as noise_utils
 import utils.utils as utils
 
-#%% GET BOUNDING BOX POLYGONS
-koskela_box = geom_utils.project_to_wgs(nw.get_koskela_box())
-koskela_kumpula_box = geom_utils.project_to_wgs(nw.get_koskela_kumpula_box())
+#%% READ NOISE DATA
 noise_polys = noise_utils.get_noise_polygons()
 
-#%% GET NETWORK
+#%% READ NETWORK
 # graph_proj = nw.get_walk_network(koskela_kumpula_box)
-# ox.save_graphml(graph_proj, filename='koskela_kumpula_test.graphml', folder='graphs', gephi=False)
 graph_proj = ox.load_graphml('koskela_kumpula_geom.graphml', folder='graphs')
-# graph_proj = ox.load_graphml('koskela_test.graphml', folder='graphs')
 node_count = len(graph_proj)
 print('Nodes in the graph:', node_count)
 
@@ -51,14 +47,14 @@ print("--- %s seconds ---" % (time_elapsed))
 print("--- %s seconds per edge ---" % (edge_time))
 
 #%% GET SUBSET OF EDGES FOR NOISE EXTRACTION TESTS
-edge_set = edge_dicts[:30]
+edge_set = edge_dicts[:15]
 
 #%% EXPOSURES ONE BY ONE (TEST)
 start_time = time.time()
 edge_noise_dicts = []
 for idx, edge_dict in enumerate(edge_set):
     edge_noise_dicts.append(nw.get_edge_noise_exps(edge_dict, noise_polys, graph_proj))
-    utils.print_progress(idx+1, 7, True)
+    utils.print_progress(idx+1, len(edge_set), True)
 time_elapsed = round(time.time() - start_time,1)
 edge_time = round(time_elapsed/len(edge_set),1)
 print('\n--- %s minutes ---' % (round(time_elapsed/60, 1)))
@@ -77,6 +73,8 @@ edge_time = round(time_elapsed/len(edge_set),1)
 print('\n--- %s minutes ---' % (round(time_elapsed/60, 1)))
 print('--- %s seconds per node ---' % (edge_time))
 edge_noise_dicts[:3]
+
+#%% update edge attributes with noise dicts
 for edge_d in edge_noise_dicts:
     nx.set_edge_attributes(graph_proj, { edge_d['uvkey']: {'noises': edge_d['noises'], 'th_noises': edge_d['th_noises']}})
 
@@ -97,7 +95,7 @@ edge_time = round(time_elapsed/len(edge_set), 1)
 print('\n--- %s minutes ---' % (round(time_elapsed/60, 1)))
 print('--- %s seconds per node ---' % (edge_time))
 
-#%% SET EDGE ATTRIBUTES USING ATTRIBUTE LISTS
+#%% update edge attributes with lists of noise dicts
 for edge_noise_dicts in edge_noise_dict_chunks:
     for edge_d in edge_noise_dicts:
         nx.set_edge_attributes(graph_proj, { edge_d['uvkey']: {'noises': edge_d['noises'], 'th_noises': edge_d['th_noises']}})
