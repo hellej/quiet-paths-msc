@@ -18,7 +18,7 @@ noise_polys = noise_utils.get_noise_polygons()
 #%% GET NETWORK
 # graph_proj = nw.get_walk_network(koskela_kumpula_box)
 # ox.save_graphml(graph_proj, filename='koskela_kumpula_test.graphml', folder='graphs', gephi=False)
-graph_proj = ox.load_graphml('koskela_kumpula_test.graphml', folder='graphs')
+graph_proj = ox.load_graphml('koskela_kumpula_geom.graphml', folder='graphs')
 # graph_proj = ox.load_graphml('koskela_test.graphml', folder='graphs')
 node_count = len(graph_proj)
 print('Nodes in the graph:', node_count)
@@ -61,8 +61,8 @@ for idx, edge_dict in enumerate(edge_set):
     utils.print_progress(idx+1, 7, True)
 time_elapsed = round(time.time() - start_time,1)
 edge_time = round(time_elapsed/len(edge_set),1)
-print("--- %s seconds ---" % (time_elapsed))
-print("--- %s seconds per edge ---" % (edge_time))
+print('\n--- %s minutes ---' % (round(time_elapsed/60, 1)))
+print('--- %s seconds per node ---' % (edge_time))
 edge_noise_dicts[:3]
 
 #%% EXPOSURES WITH POOL (TEST)
@@ -74,9 +74,11 @@ edge_noise_dicts = pool.map(get_edge_noise_exps, edge_set)
 pool.close()
 time_elapsed = round(time.time() - start_time,1)
 edge_time = round(time_elapsed/len(edge_set),1)
-print("--- %s seconds ---" % (time_elapsed))
-print("--- %s seconds per edge ---" % (edge_time))
+print('\n--- %s minutes ---' % (round(time_elapsed/60, 1)))
+print('--- %s seconds per node ---' % (edge_time))
 edge_noise_dicts[:3]
+for edge_d in edge_noise_dicts:
+    nx.set_edge_attributes(graph_proj, { edge_d['uvkey']: {'noises': edge_d['noises'], 'th_noises': edge_d['th_noises']}})
 
 #%% PROCESS EDGES WITH POOL IN CHUNKS
 start_time = time.time()
@@ -92,7 +94,7 @@ for idx, edge_chunk in enumerate(edge_chunks):
 pool.close()
 time_elapsed = round(time.time() - start_time, 1)
 edge_time = round(time_elapsed/len(edge_set), 1)
-print('\n--- %s minute ---' % (round(time_elapsed/60)))
+print('\n--- %s minutes ---' % (round(time_elapsed/60, 1)))
 print('--- %s seconds per node ---' % (edge_time))
 
 #%% SET EDGE ATTRIBUTES USING ATTRIBUTE LISTS
