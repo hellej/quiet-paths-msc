@@ -1,0 +1,17 @@
+# LOGGING IN TO TAITO
+ssh taito.csc.fi -l hellejoo
+
+# LOG OUT / EXIT:
+exit
+
+# SUBMIT A JOB
+sbatch -options batch_job_file
+# e.g. 
+sbatch graph_noise_test_job.sh
+-> "Submitted batch job 42017569"
+
+# CHECK STATUS OF THE JOB(S)
+squeue -l -u hellejoo
+
+# CANCEL
+scancel 6594

@@ -5,4 +5,6 @@ src/.pytest_cache/
 src/.vscode
 .vscode/
 .DS_Store
-batch_jobs/
+batch_jobs/csc_examples
+batch_jobs/network_noises_test/graph_noise_test_job.sh
+batch_jobs/network_noises_test/templates.txt
