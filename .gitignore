@@ -3,4 +3,6 @@ src/__pycache__/
 src/utils/__pycache__/
 src/.pytest_cache/
 src/.vscode
+.vscode/
 .DS_Store
+batch_jobs/
