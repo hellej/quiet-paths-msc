@@ -161,6 +161,20 @@ def get_all_edge_dicts(graph_proj):
                 edge_dicts.append(edge_d)
     return edge_dicts
 
+def get_missing_edge_geometries(edge_dict, graph_proj):
+    edge_d = {}
+    edge_d['uvkey'] = edge_dict['uvkey']
+    if ('geometry' not in edge_dict):
+        node_from = edge_dict['uvkey'][0]
+        node_to = edge_dict['uvkey'][1]
+        # interpolate missing geometry as straigth line between nodes
+        edge_geom = get_edge_geom_from_node_pair(graph_proj, node_from, node_to)
+        edge_d['geometry'] = edge_geom
+    else:
+        edge_d['geometry'] = edge_dict['geometry']
+    edge_d['length'] = round(edge_d['geometry'].length, 3)
+    return edge_d
+
 def add_missing_edge_geometries(edge_dicts, graph_proj):
     edge_count = len(edge_dicts)
     for idx, edge_d in enumerate(edge_dicts):

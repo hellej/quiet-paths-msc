@@ -18,8 +18,8 @@ noise_polys = noise_utils.get_noise_polygons()
 #%% GET NETWORK
 # graph_proj = nw.get_walk_network(koskela_kumpula_box)
 # ox.save_graphml(graph_proj, filename='koskela_kumpula_test.graphml', folder='graphs', gephi=False)
-# graph_proj = ox.load_graphml('koskela_test.graphml', folder='graphs')
 graph_proj = ox.load_graphml('koskela_kumpula_test.graphml', folder='graphs')
+# graph_proj = ox.load_graphml('koskela_test.graphml', folder='graphs')
 node_count = len(graph_proj)
 print('Nodes in the graph:', node_count)
 
@@ -30,15 +30,28 @@ print('Nodes in the graph:', node_count)
 edge_dicts = nw.get_all_edge_dicts(graph_proj)
 edge_count = len(edge_dicts)
 print('Edges in the graph:', edge_count)
-edge_dicts[:3]
+edge_dicts[:2]
 
-#%% ADD MISSING GEOMETRIES TO EDGES
+#%% ADD MISSING GEOMETRIES TO EDGES ONE BY ONE
 print('Adding missing geometries to edges...')
 nw.add_missing_edge_geometries(edge_dicts, graph_proj)
-# check that geometries got added
-edge_dicts = nw.get_all_edge_dicts(graph_proj)
 
-edge_set = edge_dicts[:7]
+#%% ADD MISSING GEOMETRIES TO EDGES WITH POOL
+def get_edge_geoms(edge_dict):
+    return nw.get_missing_edge_geometries(edge_dict, graph_proj)
+start_time = time.time()
+pool = Pool(processes=4)
+edge_geom_dicts = pool.map(get_edge_geoms, edge_dicts)
+pool.close()
+for edge_d in edge_geom_dicts:
+        nx.set_edge_attributes(graph_proj, { edge_d['uvkey']: {'geometry': edge_d['geometry'], 'length': edge_d['length']}})
+time_elapsed = round(time.time() - start_time,1)
+edge_time = round(time_elapsed/edge_count,2)
+print("--- %s seconds ---" % (time_elapsed))
+print("--- %s seconds per edge ---" % (edge_time))
+
+#%% GET SUBSET OF EDGES FOR NOISE EXTRACTION TESTS
+edge_set = edge_dicts[:30]
 
 #%% EXPOSURES ONE BY ONE (TEST)
 start_time = time.time()
@@ -65,7 +78,7 @@ print("--- %s seconds ---" % (time_elapsed))
 print("--- %s seconds per edge ---" % (edge_time))
 edge_noise_dicts[:3]
 
-#%% PROCESS EDGES IN CHUNKS WITH POOL
+#%% PROCESS EDGES WITH POOL IN CHUNKS
 start_time = time.time()
 pool = Pool(processes=4)
 edge_set = edge_dicts[:65]
@@ -83,8 +96,8 @@ print('\n--- %s minute ---' % (round(time_elapsed/60)))
 print('--- %s seconds per node ---' % (edge_time))
 
 #%% SET EDGE ATTRIBUTES USING ATTRIBUTE LISTS
-for edge_dicts in edge_noise_dict_chunks:
-    for edge_d in edge_dicts:
+for edge_noise_dicts in edge_noise_dict_chunks:
+    for edge_d in edge_noise_dicts:
         nx.set_edge_attributes(graph_proj, { edge_d['uvkey']: {'noises': edge_d['noises'], 'th_noises': edge_d['th_noises']}})
 
 print('Edge noise attributes set.')
