@@ -19,117 +19,76 @@ noise_polys = noise_utils.get_noise_polygons()
 # graph_proj = nw.get_walk_network(koskela_kumpula_box)
 # ox.save_graphml(graph_proj, filename='koskela_kumpula_test.graphml', folder='graphs', gephi=False)
 graph_proj = ox.load_graphml('koskela_test.graphml', folder='graphs')
-graph_size = len(graph_proj)
-print('Nodes in the graph:', graph_size)
+node_count = len(graph_proj)
+print('Nodes in the graph:', node_count)
+
+#%% GATHER ALL EDGE DICTS
+edge_dicts = nw.get_all_edge_dicts(graph_proj)
+edge_count = len(edge_dicts)
+print('Edges in the graph:', edge_count)
+edge_dicts[:3]
 
 #%% ADD MISSING GEOMETRIES TO EDGES
-def add_missing_edge_geometries(idx, node_from):
-    utils.print_progress(idx, graph_size, True)
-    # list of nodes to which node_from is connected to
-    nodes_to = graph_proj[node_from]
-    for node_to in nodes_to.keys():
-        # all edges between node-from and node-to as dict (usually)
-        edges = graph_proj[node_from][node_to]
-        # usually only one edge is found between each origin-to-target-node -pair 
-        # edge_k is unique identifier for edge between two nodes, integer (etc. 0 or 1) 
-        for edge_k in edges.keys():
-            # combine unique identifier for the edge
-            edge_uvkey = (node_from, node_to, edge_k)
-            # edge dict contains all edge attributes
-            edge_d = edges[edge_k]
-            if ('geometry' not in edge_d):
-                # print('add missing geometry...')
-                # interpolate missing geometry as straigth line between nodes
-                edge_geom = nw.get_edge_geom_from_node_pair(graph_proj, node_from, node_to)
-                # set geometry attribute of the edge
-                nx.set_edge_attributes(graph_proj, { edge_uvkey: {'geometry': edge_geom} })
-            # set length attribute
-            nx.set_edge_attributes(graph_proj, { edge_uvkey: {'length': round(edge_d['geometry'].length, 3)} })
-            # print all edge attributes
-            # print('edge', edge_k, ':', graph_proj[node_from][node_to][edge_k])
+print('Adding missing geometries to edges...')
+nw.add_missing_edge_geometries(edge_dicts, graph_proj)
+# check that geometries got added
+edge_dicts = nw.get_all_edge_dicts(graph_proj)
 
-for idx, node_from in enumerate(graph_proj):
-    add_missing_edge_geometries(idx, node_from)
+edge_set = edge_dicts[:7]
 
-#%% FUNCTION FOR ADDING CUMULATIVE NOISE EXPOSURES TO EDGES
-def collect_edge_noise_exps(node_from):
-    # list of nodes to which node_from is connected to
-    attr_set_dicts = []
-    nodes_to = graph_proj[node_from]
-    for node_to in nodes_to.keys():
-        # all edges between node-from and node-to as dict (usually)
-        edges = graph_proj[node_from][node_to]
-        # usually only one edge is found between each origin-to-target-node -pair 
-        # edge_k is unique identifier for edge between two nodes, integer (etc. 0 or 1) 
-        for edge_k in edges.keys():
-            # identifier for unique edge (tuple)
-            edge_uvkey = (node_from, node_to, edge_k)
-            # edge dict contains all edge attributes
-            edge_d = edges[edge_k]
-            # get cumulative noises dictionary for edge geometry
-            if ('noises' not in edge_d):
-                noise_lines = noise_utils.get_exposure_lines(edge_d['geometry'], noise_polys)
-                if (noise_lines.empty):
-                    noise_dict = {}
-                else:
-                    noise_dict = noise_utils.get_exposures(noise_lines)
-                th_noise_dict = noise_utils.get_th_exposures(noise_dict, [55,60,65,70])
-                attr_set_dict = { edge_uvkey: {'noises': noise_dict, 'th_noises': th_noise_dict} }
-                # print('attr_set_dict:',attr_set_dict)
-                attr_set_dicts.append(attr_set_dict)
-    return attr_set_dicts
-
-#%% COLLECT LIST OF NODES_FROM FOR TESTING NOISE EXTRACTION
-nodes_from = []
-for idx, node_from in enumerate(graph_proj):
-    nodes_from.append(node_from)
-    if (idx > 10):
-        break
-print('Count nodes to process:', len(nodes_from))
-print('Nodes:', nodes_from)
-
-#%% PROCESS EDGES ONE BY ONE
+#%% EXPOSURES ONE BY ONE (TEST)
 start_time = time.time()
-attr_set_dicts = [collect_edge_noise_exps(node_from) for node_from in nodes_from]
+edge_noise_dicts = []
+for idx, edge_dict in enumerate(edge_set):
+    edge_noise_dicts.append(nw.get_edge_noise_exps(edge_dict, noise_polys, graph_proj))
+    utils.print_progress(idx+1, 7, True)
 time_elapsed = round(time.time() - start_time,1)
-node_time = round(time_elapsed/len(nodes_from),1)
+edge_time = round(time_elapsed/len(edge_set),1)
 print("--- %s seconds ---" % (time_elapsed))
-print("--- %s seconds per node ---" % (node_time))
+print("--- %s seconds per edge ---" % (edge_time))
+edge_noise_dicts[:3]
 
-#%% PROCESS EDGES WITH POOL
+#%% EXPOSURES WITH POOL (TEST)
+def get_edge_noise_exps(edge_dict):
+    return nw.get_edge_noise_exps(edge_dict, noise_polys, graph_proj)
 start_time = time.time()
 pool = Pool(processes=4)
-attr_set_dicts = pool.map(collect_edge_noise_exps, nodes_from)
+edge_noise_dicts = pool.map(get_edge_noise_exps, edge_set)
 pool.close()
 time_elapsed = round(time.time() - start_time,1)
-node_time = round(time_elapsed/len(nodes_from),1)
+edge_time = round(time_elapsed/len(edge_set),1)
 print("--- %s seconds ---" % (time_elapsed))
-print("--- %s seconds per node ---" % (node_time))
+print("--- %s seconds per edge ---" % (edge_time))
+edge_noise_dicts[:3]
 
 #%% PROCESS EDGES IN CHUNKS WITH POOL
 start_time = time.time()
 pool = Pool(processes=4)
-n_chunks = utils.get_list_chunks(nodes_from, 4)
-for n_chunk in n_chunks:
-    print('processing nodes:', n_chunk)
-    attr_set_dicts = pool.map(collect_edge_noise_exps, n_chunk)
+edge_set = edge_dicts[:65]
+edge_chunks = utils.get_list_chunks(edge_set, 20)
+edge_noise_dict_chunks = []
+print('Extracting edge exposures...')
+for idx, edge_chunk in enumerate(edge_chunks):
+    edge_noise_dicts = pool.map(get_edge_noise_exps, edge_chunk)
+    edge_noise_dict_chunks.append(edge_noise_dicts)
+    utils.print_progress(idx+1, len(edge_chunks), True)
 pool.close()
-time_elapsed = round(time.time() - start_time,1)
-node_time = round(time_elapsed/len(nodes_from),1)
-print("--- %s seconds ---" % (time_elapsed))
-print("--- %s seconds per node ---" % (node_time))
+time_elapsed = round(time.time() - start_time, 1)
+edge_time = round(time_elapsed/len(edge_set), 1)
+print('\n--- %s minute ---' % (round(time_elapsed/60)))
+print('--- %s seconds per node ---' % (edge_time))
 
 #%% SET EDGE ATTRIBUTES USING ATTRIBUTE LISTS
-for attr_dict in attr_set_dicts:
-    for attrs_d in attr_dict:
-        nx.set_edge_attributes(graph_proj, attrs_d)
+for edge_dicts in edge_noise_dict_chunks:
+    for edge_d in edge_dicts:
+        nx.set_edge_attributes(graph_proj, { edge_d['uvkey']: {'noises': edge_d['noises'], 'th_noises': edge_d['th_noises']}})
 
-#%% PRINT EDGE ATTRIBUTES
-for node_from in nodes_from:
-    nw.print_edges_from_node_attributes(node_from, graph_proj)
+print('Edge noise attributes set.')
+edge_dicts = nw.get_all_edge_dicts(graph_proj)
+edge_dicts[:3]
 
 #%% GET NODES & EDGES (AS GDFS) FROM GRAPH
-nodes, edges = ox.graph_to_gdfs(graph_proj, nodes=True, edges=True, node_geometry=True, fill_edge_geometry=True)
-edges = edges[['geometry', 'u', 'v', 'length', 'noises', 'th_noises']]
-edges.to_file('data/networks.gpkg', layer='koskela_edges_noise', driver="GPKG")
-nodes.to_file('data/networks.gpkg', layer='koskela_nodes_noise', driver="GPKG")
+# nodes, edges = ox.graph_to_gdfs(graph_proj, nodes=True, edges=True, node_geometry=True, fill_edge_geometry=True)
+# edges = edges[['geometry', 'u', 'v', 'length', 'noises', 'th_noises']]
+# edges.to_file('data/networks.gpkg', layer='koskela_edges_noise', driver="GPKG")
+# nodes.to_file('data/networks.gpkg', layer='koskela_nodes_noise', driver="GPKG")

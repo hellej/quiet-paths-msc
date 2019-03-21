@@ -140,7 +140,7 @@ def split_line_with_polys(line_geom, polygons):
     polygons_under_line = get_polygons_under_line(line_geom, polygons)
     polygons_under_line_geoms = list(polygons_under_line['geometry'])
     if (len(polygons_under_line_geoms) == 0):
-        print('no line-polygon-intersection')
+        # print('no line-polygon-intersection')
         return gpd.GeoDataFrame()
     multi_polygon = MultiPolygon(polygons_under_line_geoms)
     split_line_geom = split(line_geom, multi_polygon)

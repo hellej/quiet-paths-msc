@@ -7,6 +7,8 @@ import json
 from fiona.crs import from_epsg
 from shapely.geometry import Point, LineString, MultiLineString, box
 import utils.geometry as geom_utils
+import utils.utils as utils
+import utils.noise_overlays as noise_utils
 
 bboxes = gpd.read_file('data/extents_grids.gpkg', layer='bboxes')
 
@@ -141,13 +143,48 @@ def join_dt_path_attributes(s_paths_g_gdf, dt_paths):
     merged = pd.merge(s_paths_g_gdf, dt_paths_join, how='inner', on='uniq_id')
     return merged
 
-def print_edges_from_node_attributes(node_from, graph_proj):
-    # list of nodes to which node_from is connected to
-    nodes_to = graph_proj[node_from]
-    for node_to in nodes_to.keys():
-        # all edges between node-from and node-to as dict (usually)
-        edges = graph_proj[node_from][node_to]
-        # usually only one edge is found between each origin-to-target-node -pair 
-        # edge_k is unique identifier for edge between two nodes, integer (etc. 0 or 1) 
-        for edge_k in edges.keys():
-            print('edge', edge_k, ':', graph_proj[node_from][node_to][edge_k])
+def get_all_edge_dicts(graph_proj):
+    edge_dicts = []
+    for idx, node_from in enumerate(graph_proj):
+        nodes_to = graph_proj[node_from]
+        for node_to in nodes_to.keys():
+            # all edges between node-from and node-to as dict (usually)
+            edges = graph_proj[node_from][node_to]
+            # usually only one edge is found between each origin-to-target-node -pair 
+            # edge_k is unique identifier for edge between two nodes, integer (etc. 0 or 1) 
+            for edge_k in edges.keys():
+                # combine unique identifier for the edge
+                edge_uvkey = (node_from, node_to, edge_k)
+                # edge dict contains all edge attributes
+                edge_d = edges[edge_k]
+                edge_d['uvkey'] = edge_uvkey
+                edge_dicts.append(edge_d)
+    return edge_dicts
+
+def add_missing_edge_geometries(edge_dicts, graph_proj):
+    edge_count = len(edge_dicts)
+    for idx, edge_d in enumerate(edge_dicts):
+        if ('geometry' not in edge_d):
+            node_from = edge_d['uvkey'][0]
+            node_to = edge_d['uvkey'][1]
+            # interpolate missing geometry as straigth line between nodes
+            edge_geom = get_edge_geom_from_node_pair(graph_proj, node_from, node_to)
+            # set geometry attribute of the edge
+            nx.set_edge_attributes(graph_proj, { edge_d['uvkey']: {'geometry': edge_geom} })
+        # set length attribute
+        nx.set_edge_attributes(graph_proj, { edge_d['uvkey']: {'length': round(edge_d['geometry'].length, 3)} })
+        utils.print_progress(idx+1, edge_count, True)
+
+def get_edge_noise_exps(edge_dict, noise_polys, graph_proj):
+    edge_d = {}
+    if ('noisesee' not in edge_d):
+        noise_lines = noise_utils.get_exposure_lines(edge_dict['geometry'], noise_polys)
+        if (noise_lines.empty):
+            noise_dict = {}
+        else:
+            noise_dict = noise_utils.get_exposures(noise_lines)
+        th_noise_dict = noise_utils.get_th_exposures(noise_dict, [55,60,65,70])
+        edge_d['uvkey'] = edge_dict['uvkey']
+        edge_d['noises'] = noise_dict
+        edge_d['th_noises'] = th_noise_dict
+        return edge_d

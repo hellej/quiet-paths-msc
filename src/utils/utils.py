@@ -18,5 +18,7 @@ def print_progress(idx, count, percentages: bool):
     sleep(0.02)
 
 def get_list_chunks(l, n):
+    chunks = []
     for i in range(0, len(l), n):
-        yield l[i:i + n]
+        chunks.append(l[i:i + n])
+    return chunks
