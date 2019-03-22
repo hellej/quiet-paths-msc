@@ -5,23 +5,17 @@ import osmnx as ox
 from fiona.crs import from_epsg
 import ast
 import utils.geometry as geom_utils
+import utils.routing as rt
+import utils.files as files
 import utils.networks as nw
 
 #%% GET BOUNDING BOX POLYGONS
-koskela_box = geom_utils.project_to_wgs(nw.get_koskela_box())
-koskela_kumpula_box = geom_utils.project_to_wgs(nw.get_koskela_kumpula_box())
+koskela_box = geom_utils.project_to_wgs(files.get_koskela_box())
+koskela_kumpula_box = geom_utils.project_to_wgs(files.get_koskela_kumpula_box())
 
 #%% GET NETWORK
 # graph_proj = nw.get_walk_network(koskela_kumpula_box)
 graph_proj = ox.load_graphml('koskela_kumpula_test.graphml', folder='graphs')
-
-#%% GET NODES & EDGES (AS GDFS) FROM GRAPH
-nodes, edges = ox.graph_to_gdfs(graph_proj, nodes=True, edges=True, node_geometry=True, fill_edge_geometry=True)
-
-#%% EXPORT NODES & EDGES TO FILES
-edges = edges[['geometry', 'u', 'v', 'length']]
-edges.to_file('data/networks.gpkg', layer='koskela_edges', driver="GPKG")
-nodes.to_file('data/networks.gpkg', layer='koskela_nodes', driver="GPKG")
 
 #%% CALCULATE SHORTEST PATHS
 dt_paths = gpd.read_file('outputs/DT_output_test.gpkg', layer='paths_g', driver="GPKG")
@@ -30,11 +24,13 @@ shortest_paths = []
 for idx, row in dt_paths.iterrows():
     # if (row['from_id'] != 16932):
     #     continue
+    if (idx > 5):
+        break
     from_xy = ast.literal_eval(row['from_xy'])
     to_xy = ast.literal_eval(row['to_xy'])
     from_coords = geom_utils.get_coords_from_xy(from_xy)
     to_coords = geom_utils.get_coords_from_xy(to_xy)
-    shortest_path = nw.get_shortest_path(graph_proj, from_coords, to_coords)
+    shortest_path = rt.get_shortest_path(graph_proj, from_coords, to_coords)
     if (shortest_path != None):
         s_path = {'uniq_id': row['uniq_id'], 'from_id': row['from_id'], 'path': shortest_path}
         print('Found path no.', idx, ':', s_path)
@@ -53,14 +49,13 @@ s_paths_g_gdf = gpd.GeoDataFrame(shortest_paths, crs=from_epsg(3879))
 s_paths_g_gdf.head(4)
 
 #%% MERGE DIGITRANSIT PATH ATTRIBUTES TO SHORTEST PATHS
-s_paths_g_gdf = nw.join_dt_path_attributes(s_paths_g_gdf, dt_paths)
+s_paths_g_gdf = rt.join_dt_path_attributes(s_paths_g_gdf, dt_paths)
 s_paths_g_gdf['length_diff'] = s_paths_g_gdf.apply(lambda row: row['total_length'] - row['dt_total_length'], axis=1)
 s_paths_g_gdf.head(4)
 
-#%% SAVE SHORTEST PATHS TO FILE NEW
+#%% SAVE SHORTEST PATHS TO FILE
 cols = ['from_id', 'to_id', 'geometry', 'uniq_id', 'total_length', 'dt_total_length', 'length_diff', 'count']
 s_paths_g_gdf[cols].to_file('outputs/shortest_paths.gpkg', layer='shortest_paths_g', driver="GPKG")
-#s_paths_g_gdf[cols].to_file('outputs/shortest_paths.gpkg', layer='sp_create_node_edges_test', driver="GPKG")
 s_paths_g_gdf.head(4)
 
 
