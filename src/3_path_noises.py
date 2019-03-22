@@ -16,7 +16,7 @@ walk_proj
 walk_geom
 
 #%% SPLIT LINE WITH NOISE POLYGON BOUNDARIES
-split_lines = geom_utils.split_line_with_polys(walk_geom, noise_polys)
+split_lines = geom_utils.get_split_lines_gdf(walk_geom, noise_polys)
 
 #%% JOIN NOISE LEVELS TO SPLIT LINES
 noise_lines = noise_utils.add_noises_to_split_lines(noise_polys, split_lines)
