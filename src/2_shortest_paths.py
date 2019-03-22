@@ -19,16 +19,16 @@ graph_proj = ox.load_graphml('koskela_kumpula_test.graphml', folder='graphs')
 
 #%% CALCULATE SHORTEST PATHS
 dt_paths = gpd.read_file('outputs/DT_output_test.gpkg', layer='paths_g', driver="GPKG")
-# list for shortest paths as dictionaries
 shortest_paths = []
 for idx, row in dt_paths.iterrows():
     # if (row['from_id'] != 16932):
     #     continue
-    if (idx > 5):
+    if (idx > 3):
         break
     from_xy = ast.literal_eval(row['from_xy'])
     to_xy = ast.literal_eval(row['to_xy'])
-    shortest_path = rt.get_shortest_path(graph_proj, from_xy, to_xy)
+    path_params = rt.get_shortest_path_params(graph_proj, from_xy, to_xy)
+    shortest_path = rt.get_shortest_path(graph_proj, path_params)
     if (shortest_path != None):
         s_path = {'uniq_id': row['uniq_id'], 'from_id': row['from_id'], 'path': shortest_path}
         print('Found path no.', idx, ':', s_path)

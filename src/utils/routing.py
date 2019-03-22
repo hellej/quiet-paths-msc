@@ -23,13 +23,16 @@ def get_nearest_node(graph_proj, coords):
         print('Nearby node exists')
         return nearest_node
 
-def get_shortest_path(graph_proj, from_xy, to_xy):
+def get_shortest_path_params(graph_proj, from_xy, to_xy):
     from_coords = geom_utils.get_coords_from_xy(from_xy)
     to_coords = geom_utils.get_coords_from_xy(to_xy)
     orig_node = get_nearest_node(graph_proj, from_coords)
     target_node = get_nearest_node(graph_proj, to_coords)
-    print('Nearest origin node for routing:', orig_node)
-    print('Nearest target node for routing:', target_node)
+    return {'orig_node': orig_node, 'target_node':target_node}
+
+def get_shortest_path(graph_proj, path_params):
+    orig_node = path_params['orig_node']
+    target_node = path_params['target_node']
     if (orig_node != target_node):
         s_path = nx.shortest_path(G=graph_proj, source=orig_node, target=target_node, weight='length')
         return s_path
