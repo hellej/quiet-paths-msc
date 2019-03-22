@@ -1,7 +1,7 @@
 import pandas as pd
 import geopandas as gpd
 import pyproj
-from shapely.geometry import Point, LineString, MultiPolygon
+from shapely.geometry import Point, LineString, MultiPolygon, MultiLineString, MultiPoint
 from shapely.ops import split, snap, transform
 from functools import partial
 from fiona.crs import from_epsg
@@ -72,11 +72,6 @@ def split_line_at_point(line, point):
     result = split(snap_line, point)
     return result
 
-def get_polygons_under_line(line_geom, polygons):
-    intersects_mask = polygons.intersects(line_geom)
-    polygons_under_line = polygons.loc[intersects_mask]
-    return polygons_under_line
-
 def get_inters_points(inters_line):
     inters_coords = inters_line.coords
     intersection_line = list(inters_coords)
@@ -109,40 +104,30 @@ def filter_duplicate_split_points(split_points):
         point_geoms.append(point_geom)
     return gpd.GeoDataFrame(geometry=point_geoms, crs=from_epsg(3879))
 
-# THIS DOESN'T WORK
-def split_line_at_points(line_geom, points_gdf):
-    split_lines = []
-    for idx, split_point in points_gdf.iterrows():
-        point_geom = split_point['geometry']    
-        # point_line_distance = line_geom.distance(point_geom)
-        # print(point_line_distance < 1e-8)   
-        snap_point_geom = line_geom.interpolate(line_geom.project(point_geom))
-        print(snap_point_geom.wkt)
-        # print('snap_point', list(snap_line.coords))
-        split_geoms = split(line_geom, snap_point_geom)
-        print(split_geoms)
-        split_lines += split_geoms
-    return split_lines
+def get_polygons_under_line(line_geom, polygons):
+    intersects_mask = polygons.intersects(line_geom)
+    polygons_under_line = polygons.loc[intersects_mask]
+    return polygons_under_line
 
-def get_select_line_for_noise_polygon(lines, polygon):
-    lines_under_poly = []
-    # points_under_polys = []
-    for line in lines:
-        # get center point in the middle of the line
-        point_on_line = line.interpolate(0.5, normalized = True)
-        # points_under_polys.append(point_on_line)
-        if (point_on_line.within(polygon) or polygon.contains(point_on_line)):
-            print('POINT IN POLYGON')
-            lines_under_poly.append(line)
-    return lines_under_poly
+def get_multipolygon_under_line(line_geom, polygons):
+    polys = get_polygons_under_line(line_geom, polygons)
+    geoms = list(polys['geometry'])
+    if (len(geoms) == 0):
+        return None
+    return MultiPolygon(geoms)
 
-def split_line_with_polys(line_geom, polygons):
-    polygons_under_line = get_polygons_under_line(line_geom, polygons)
-    polygons_under_line_geoms = list(polygons_under_line['geometry'])
-    if (len(polygons_under_line_geoms) == 0):
+def get_split_lines_list(line_geom, polygons):
+    multi_polygon = get_multipolygon_under_line(line_geom, polygons)
+    if (multi_polygon == None):
+        return [line_geom]
+    split_line_geom = split(line_geom, multi_polygon)
+    return list(split_line_geom)
+
+def get_split_lines_gdf(line_geom, polygons):
+    multi_polygon = get_multipolygon_under_line(line_geom, polygons)
+    if (multi_polygon == None):
         # print('no line-polygon-intersection')
         return gpd.GeoDataFrame()
-    multi_polygon = MultiPolygon(polygons_under_line_geoms)
     split_line_geom = split(line_geom, multi_polygon)
     line_geoms = list(split_line_geom.geoms)
     lengths = [round(line_geom.length, 3) for line_geom in line_geoms]

@@ -13,16 +13,15 @@ import utils.utils as utils
 #%% READ NOISE DATA
 noise_polys = noise_utils.get_noise_polygons()
 
+#%% SAVE NETWORK
+# ox.save_graphml(graph_proj, filename='koskela_kumpula_geom.graphml', folder='graphs', gephi=False)
+
 #%% READ NETWORK
 # graph_proj = nw.get_walk_network(koskela_kumpula_box)
 graph_proj = ox.load_graphml('koskela_kumpula_geom.graphml', folder='graphs')
 node_count = len(graph_proj)
 print('Nodes in the graph:', node_count)
-
-#%% SAVE NETWORK
-# ox.save_graphml(graph_proj, filename='koskela_kumpula_geom.graphml', folder='graphs', gephi=False)
-
-#%% GATHER ALL EDGE DICTS
+# get all edges as list of dicts
 edge_dicts = nw.get_all_edge_dicts(graph_proj)
 edge_count = len(edge_dicts)
 print('Edges in the graph:', edge_count)
@@ -104,8 +103,41 @@ print('Edge noise attributes set.')
 edge_dicts = nw.get_all_edge_dicts(graph_proj)
 edge_dicts[:3]
 
-#%% GET NODES & EDGES (AS GDFS) FROM GRAPH
-# nodes, edges = ox.graph_to_gdfs(graph_proj, nodes=True, edges=True, node_geometry=True, fill_edge_geometry=True)
+#%% EXTRACT NOISES TO SEGMENTS QUICKLY
+edge_gdf = nw.get_edge_gdf(edge_dicts, ['geometry', 'length', 'uvkey'])
+edge_gdf_sub = edge_gdf[:20].copy()
+
+start_time = time.time()
+# add noise split lines as list
+edge_gdf_sub['split_lines'] = [geom_utils.get_split_lines_list(line_geom, noise_polys) for line_geom in edge_gdf_sub['geometry']]
+# explode new rows from split lines column
+split_lines = nw.explode_edges_to_noise_parts(edge_gdf_sub)
+# join noises to split lines
+split_line_noises = noise_utils.get_noise_attrs_to_split_lines(split_lines, noise_polys)
+# aggregate noises back to segments
+segment_noises = nw.aggregate_segment_noises(split_line_noises)
+
+time_elapsed = round(time.time() - start_time, 1)
+edge_time = round(time_elapsed/20, 3)
+
+print('\n--- %s seconds ---' % (round(time_elapsed, 1)))
+print('--- %s seconds per node ---' % (edge_time))
+split_line_noises.head()
+segment_noises.head()
+
+#%% UPDATE NOISES TO GRAPH
+nw.update_segment_noises(segment_noises, graph_proj)
+
+#%% EDGE GDFS FROM GRAPH
+edge_dicts = nw.get_all_edge_dicts(graph_proj)
+edges = nw.get_edge_gdf(edge_dicts, ['geometry', 'length', 'noises', 'th_noises'])
+edges.head()
+
+#%% 
+edges.to_file('data/networks.gpkg', layer='koskela_edges_noise', driver="GPKG")
+
+# nodes = ox.graph_to_gdfs(graph_proj, nodes=True, edges=False, node_geometry=True)
 # edges = edges[['geometry', 'u', 'v', 'length', 'noises', 'th_noises']]
-# edges.to_file('data/networks.gpkg', layer='koskela_edges_noise', driver="GPKG")
 # nodes.to_file('data/networks.gpkg', layer='koskela_nodes_noise', driver="GPKG")
+
+#%%

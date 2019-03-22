@@ -19,7 +19,7 @@ def add_noises_to_split_lines(noise_polygons, split_lines):
     return line_noises[['geometry', 'length', 'db_lo', 'db_hi', 'index_right']]
 
 def get_exposure_lines(line_geom, noise_polys):
-    split_lines = geom_utils.split_line_with_polys(line_geom, noise_polys)
+    split_lines = geom_utils.get_split_lines_gdf(line_geom, noise_polys)
     if (split_lines.empty):
         return gpd.GeoDataFrame()
     line_noises = add_noises_to_split_lines(noise_polys, split_lines)
@@ -119,3 +119,8 @@ def plot_exposure_times(exp_times):
     ax.yaxis.labelpad = 10
 
     return fig
+
+def get_noise_attrs_to_split_lines(gdf, noise_polys):
+    gdf['geometry'] = gdf['mid_point']
+    split_line_noises = gpd.sjoin(gdf, noise_polys, how='left', op='within')
+    return split_line_noises
