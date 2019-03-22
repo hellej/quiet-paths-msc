@@ -105,7 +105,7 @@ edge_dicts[:3]
 
 #%% EXTRACT NOISES TO SEGMENTS QUICKLY
 edge_gdf = nw.get_edge_gdf(edge_dicts, ['geometry', 'length', 'uvkey'])
-edge_gdf_sub = edge_gdf[:20].copy()
+edge_gdf_sub = edge_gdf[:200].copy()
 
 start_time = time.time()
 # add noise split lines as list
@@ -118,7 +118,7 @@ split_line_noises = noise_utils.get_noise_attrs_to_split_lines(split_lines, nois
 segment_noises = nw.aggregate_segment_noises(split_line_noises)
 
 time_elapsed = round(time.time() - start_time, 1)
-edge_time = round(time_elapsed/20, 3)
+edge_time = round(time_elapsed/200, 3)
 
 print('\n--- %s seconds ---' % (round(time_elapsed, 1)))
 print('--- %s seconds per node ---' % (edge_time))

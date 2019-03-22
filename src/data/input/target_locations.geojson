@@ -27,6 +27,7 @@
 { "type": "Feature", "properties": { "fid": null, "type": "workplace", "name": "Vantaankoski", "name_en": "Vantaankoski" }, "geometry": { "type": "Point", "coordinates": [ 24.848502278504093, 60.285481607769732 ] } },
 { "type": "Feature", "properties": { "fid": null, "type": "workplace", "name": "Lentokenttä", "name_en": "Helsinki Vantaa Airport" }, "geometry": { "type": "Point", "coordinates": [ 24.968994630924129, 60.315857856432658 ] } },
 { "type": "Feature", "properties": { "fid": null, "type": "workplace", "name": "Veromies", "name_en": "Veromies" }, "geometry": { "type": "Point", "coordinates": [ 24.962842209359149, 60.295654952329528 ] } },
-{ "type": "Feature", "properties": { "fid": null, "type": "workplace", "name": "Tikkurila", "name_en": "Tikkurila" }, "geometry": { "type": "Point", "coordinates": [ 25.04343679472704, 60.293914639355251 ] } }
+{ "type": "Feature", "properties": { "fid": null, "type": "workplace", "name": "Tikkurila", "name_en": "Tikkurila" }, "geometry": { "type": "Point", "coordinates": [ 25.04343679472704, 60.293914639355251 ] } },
+{ "type": "Feature", "properties": { "fid": null, "type": "POI", "name": "Koskela", "name_en": "Koskela" }, "geometry": { "type": "Point", "coordinates": [ 24.969744687192424, 60.217538818281447 ] } }
 ]
 }
