@@ -1,12 +1,15 @@
 import pytest
 import geopandas as gpd
+import osmnx as ox
 import utils.geometry as geom_utils
 import utils.noise_overlays as noise_utils
+import utils.networks as nw
+import utils.files as files
+from shapely.geometry import LineString
 
 # read data
-walk = gpd.read_file('data/input/test_walk_line.shp')
-walk_proj = walk.to_crs(epsg=3879)
-walk_geom = walk_proj.loc[0, 'geometry']
+walk = files.get_update_test_walk_line()
+walk_geom = walk.loc[0, 'geometry']
 noise_polys = noise_utils.get_noise_polygons()
 
 def test_split_lines():
@@ -42,3 +45,24 @@ def test_get_exposure_lines():
     min_noise = noise_lines['db_lo'].min()
     max_noise = noise_lines['db_lo'].max()
     assert (mean_noise, min_noise, max_noise) == (59.5, 40.0, 75.0)
+
+def test_get_edge_dicts():
+    graph_proj = files.get_network_graph()
+    edge_dicts = nw.get_all_edge_dicts(graph_proj)
+    edge_d = edge_dicts[0]
+    assert (len(edge_dicts), edge_d['length'], type(edge_d['geometry'])) == (23471, 127.051, LineString)
+
+def test_add_exposures_to_segments():
+    graph_proj = files.get_network_graph()
+    edge_dicts = nw.get_all_edge_dicts(graph_proj)
+    edge_gdf = nw.get_edge_gdf(edge_dicts[:5], ['geometry', 'length', 'uvkey'])
+    edge_gdf['split_lines'] = [geom_utils.get_split_lines_list(line_geom, noise_polys) for line_geom in edge_gdf['geometry']]
+    split_lines = nw.explode_edges_to_noise_parts(edge_gdf)
+    split_line_noises = noise_utils.get_noise_attrs_to_split_lines(split_lines, noise_polys)
+    segment_noises = nw.aggregate_segment_noises(split_line_noises)
+    nw.update_segment_noises(segment_noises, graph_proj)
+    edge_dicts = nw.get_all_edge_dicts(graph_proj)
+    edge_d = edge_dicts[0]
+    print(edge_d)
+    exp_len_sum = sum(edge_d['noises'].values())
+    assert (edge_d['noises'], edge_d['th_noises'], round(exp_len_sum,1)) == ({65: 107.025, 70: 20.027}, {55: 127.052, 60: 127.052, 65: 127.052, 70: 20.027}, round(edge_d['length'],1))
