@@ -28,9 +28,7 @@ for idx, row in dt_paths.iterrows():
         break
     from_xy = ast.literal_eval(row['from_xy'])
     to_xy = ast.literal_eval(row['to_xy'])
-    from_coords = geom_utils.get_coords_from_xy(from_xy)
-    to_coords = geom_utils.get_coords_from_xy(to_xy)
-    shortest_path = rt.get_shortest_path(graph_proj, from_coords, to_coords)
+    shortest_path = rt.get_shortest_path(graph_proj, from_xy, to_xy)
     if (shortest_path != None):
         s_path = {'uniq_id': row['uniq_id'], 'from_id': row['from_id'], 'path': shortest_path}
         print('Found path no.', idx, ':', s_path)

@@ -23,7 +23,9 @@ def get_nearest_node(graph_proj, coords):
         print('Nearby node exists')
         return nearest_node
 
-def get_shortest_path(graph_proj, from_coords, to_coords):
+def get_shortest_path(graph_proj, from_xy, to_xy):
+    from_coords = geom_utils.get_coords_from_xy(from_xy)
+    to_coords = geom_utils.get_coords_from_xy(to_xy)
     orig_node = get_nearest_node(graph_proj, from_coords)
     target_node = get_nearest_node(graph_proj, to_coords)
     print('Nearest origin node for routing:', orig_node)
