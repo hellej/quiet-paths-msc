@@ -58,7 +58,7 @@ for idx, edge_dict in enumerate(edge_set):
 time_elapsed = round(time.time() - start_time,1)
 edge_time = round(time_elapsed/len(edge_set),1)
 print('\n--- %s minutes ---' % (round(time_elapsed/60, 1)))
-print('--- %s seconds per node ---' % (edge_time))
+print('--- %s seconds per edge ---' % (edge_time))
 edge_noise_dicts[:3]
 
 #%% EXPOSURES WITH POOL (TEST)
@@ -71,7 +71,7 @@ pool.close()
 time_elapsed = round(time.time() - start_time,1)
 edge_time = round(time_elapsed/len(edge_set),1)
 print('\n--- %s minutes ---' % (round(time_elapsed/60, 1)))
-print('--- %s seconds per node ---' % (edge_time))
+print('--- %s seconds per edge ---' % (edge_time))
 edge_noise_dicts[:3]
 
 #%% update edge attributes with noise dicts
@@ -93,7 +93,7 @@ pool.close()
 time_elapsed = round(time.time() - start_time, 1)
 edge_time = round(time_elapsed/len(edge_set), 1)
 print('\n--- %s minutes ---' % (round(time_elapsed/60, 1)))
-print('--- %s seconds per node ---' % (edge_time))
+print('--- %s seconds per edge ---' % (edge_time))
 
 #%% update edge attributes with lists of noise dicts
 for edge_noise_dicts in edge_noise_dict_chunks:
@@ -122,7 +122,7 @@ time_elapsed = round(time.time() - start_time, 1)
 edge_time = round(time_elapsed/200, 3)
 
 print('\n--- %s seconds ---' % (round(time_elapsed, 1)))
-print('--- %s seconds per node ---' % (edge_time))
+print('--- %s seconds per edge ---' % (edge_time))
 split_line_noises.head()
 segment_noises.head()
 
