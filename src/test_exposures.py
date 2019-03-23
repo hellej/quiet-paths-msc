@@ -1,10 +1,12 @@
 import pytest
 import geopandas as gpd
 import osmnx as ox
+import time
 import utils.geometry as geom_utils
 import utils.exposures as exps
 import utils.networks as nw
 import utils.files as files
+import utils.routing as rt
 from shapely.geometry import LineString
 
 # read data
@@ -66,3 +68,25 @@ def test_add_exposures_to_segments():
     print(edge_d)
     exp_len_sum = sum(edge_d['noises'].values())
     assert (edge_d['noises'], edge_d['th_noises'], round(exp_len_sum,1)) == ({65: 107.025, 70: 20.027}, {55: 127.052, 60: 127.052, 65: 127.052, 70: 20.027}, round(edge_d['length'],1))
+
+def test_shortest_path():
+    graph_proj = files.get_undirected_network_graph()
+    print(type(graph_proj))
+    pois = files.get_pois()
+    koskela = pois.loc[pois['name'] == 'Koskela']
+    kumpula = pois.loc[pois['name'] == 'Kumpulan kampus']
+    from_xy = geom_utils.get_xy_from_geom(list(koskela['geometry'])[0])
+    to_xy = geom_utils.get_xy_from_geom(list(kumpula['geometry'])[0])
+
+    start_time = time.time()
+    path_params = rt.get_shortest_path_params(graph_proj, from_xy, to_xy)
+    shortest_path = rt.get_shortest_path(graph_proj, path_params)
+    path_geom = nw.get_edge_geometries(graph_proj, shortest_path)
+
+    time_elapsed = round(time.time() - start_time, 3)
+    print('\n--- %s seconds ---' % (round(time_elapsed, 1)))
+
+    print(len(shortest_path))
+    print(path_geom['total_length'])
+    assert (len(shortest_path), path_geom['total_length']) == (45, 1764.38)
+test_shortest_path()
