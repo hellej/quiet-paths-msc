@@ -19,7 +19,7 @@ noise_polys = files.get_noise_polygons()
 
 #%% READ NETWORK
 # graph_proj = nw.get_walk_network(koskela_kumpula_box)
-graph_proj = ox.load_graphml('koskela_kumpula_geom.graphml', folder='graphs')
+graph_proj = files.get_undirected_network_graph()
 node_count = len(graph_proj)
 print('Nodes in the graph:', node_count)
 # get all edges as list of dicts
@@ -29,8 +29,8 @@ print('Edges in the graph:', edge_count)
 edge_dicts[:2]
 
 #%% ADD MISSING GEOMETRIES TO EDGES ONE BY ONE
-print('Adding missing geometries to edges...')
-nw.add_missing_edge_geometries(edge_dicts, graph_proj)
+# print('Adding missing geometries to edges...')
+# nw.add_missing_edge_geometries(edge_dicts, graph_proj)
 
 #%% ADD MISSING GEOMETRIES TO EDGES WITH POOL
 def get_edge_geoms(edge_dict):
