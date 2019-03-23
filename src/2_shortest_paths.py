@@ -15,7 +15,7 @@ koskela_kumpula_box = geom_utils.project_to_wgs(files.get_koskela_kumpula_box())
 
 #%% GET NETWORK
 # graph_proj = nw.get_walk_network(koskela_kumpula_box)
-graph_proj = ox.load_graphml('koskela_kumpula_test.graphml', folder='graphs')
+graph_proj = files.get_undirected_network_graph()
 
 #%% CALCULATE SHORTEST PATHS
 dt_paths = gpd.read_file('outputs/DT_output_test.gpkg', layer='paths_g', driver="GPKG")
@@ -23,8 +23,8 @@ shortest_paths = []
 for idx, row in dt_paths.iterrows():
     # if (row['from_id'] != 16932):
     #     continue
-    if (idx > 3):
-        break
+    # if (idx > 1):
+    #     break
     from_xy = ast.literal_eval(row['from_xy'])
     to_xy = ast.literal_eval(row['to_xy'])
     path_params = rt.get_shortest_path_params(graph_proj, from_xy, to_xy)
@@ -53,7 +53,7 @@ s_paths_g_gdf.head(4)
 
 #%% SAVE SHORTEST PATHS TO FILE
 cols = ['from_id', 'to_id', 'geometry', 'uniq_id', 'total_length', 'dt_total_length', 'length_diff', 'count']
-s_paths_g_gdf[cols].to_file('outputs/shortest_paths.gpkg', layer='shortest_paths_g', driver="GPKG")
+s_paths_g_gdf[cols].to_file('outputs/shortest_paths.gpkg', layer='shortest_paths_undir', driver="GPKG")
 s_paths_g_gdf.head(4)
 
 

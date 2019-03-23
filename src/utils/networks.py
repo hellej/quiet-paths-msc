@@ -64,8 +64,9 @@ def add_linking_edges_for_new_node(graph_proj, new_node, closest_point, edge):
     node_to = edge[2]
     split_lines = geom_utils.split_line_at_point(edge_geom, closest_point)
     print('Edge geom splitted to', len(split_lines), 'lines')
-    link1 = split_lines[0]
-    link2 = split_lines[1]
+    # for directed graphs, swap these two:
+    link1 = split_lines[1]
+    link2 = split_lines[0]
     attrs = get_new_edge_attrs(graph_proj, edge)
     print('Add linking edges for new node with attrs:', attrs)
     graph_proj.add_edge(node_from, new_node, geometry=link1, length=link1.length, osmid=attrs['osmid'], highway=attrs['highway'], access='yes', oneway=attrs['oneway'])
@@ -83,11 +84,11 @@ def get_edge_geometries(graph_proj, path):
         node_2 = path[idx+1]
         edge_d = graph_proj[node_1][node_2][0]
         print('Path edge no.', idx, ':', edge_d)
-        try:
+        if ('geometry' in edge_d):
             edge_geoms.append(edge_d['geometry'])
             edge_lengths.append(edge_d['length'])
-        except KeyError:
-            print('Create missing edge geom')
+        else:
+            # print('Create missing edge geom')
             edge_line = get_edge_geom_from_node_pair(graph_proj, node_1, node_2)
             edge_geoms.append(edge_line)
             edge_lengths.append(edge_line.length)

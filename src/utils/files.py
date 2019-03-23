@@ -2,6 +2,7 @@ import geopandas as gpd
 import osmnx as ox
 from shapely.geometry import box
 import utils.geometry as geom_utils
+from fiona.crs import from_epsg
 
 bboxes = gpd.read_file('data/extents_grids.gpkg', layer='bboxes')
 
@@ -36,3 +37,13 @@ def get_update_test_walk_line():
 def get_network_graph():
     graph_proj = ox.load_graphml('koskela_kumpula_geom.graphml', folder='graphs')
     return graph_proj
+
+def get_undirected_network_graph():
+    graph_proj = ox.load_graphml('koskela_kumpula_geom.graphml', folder='graphs')
+    graph_undir = ox.get_undirected(graph_proj)
+    return graph_undir
+
+def get_pois():
+    pois = gpd.read_file('data/input/target_locations.geojson')
+    pois = pois.to_crs(from_epsg(3879))
+    return pois
