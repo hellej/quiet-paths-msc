@@ -15,7 +15,7 @@ import utils.utils as utils
 noise_polys = files.get_noise_polygons()
 
 #%% SAVE NETWORK
-# ox.save_graphml(graph_proj, filename='koskela_kumpula_geom.graphml', folder='graphs', gephi=False)
+# ox.save_graphml(graph_proj, filename='kumpula_u_g.graphml', folder='graphs', gephi=False)
 
 #%% READ NETWORK
 # graph_proj = nw.get_walk_network(koskela_kumpula_box)
