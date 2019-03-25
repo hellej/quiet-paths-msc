@@ -7,6 +7,9 @@ sbatch -options batch_job_file
 sbatch nw_noises.sh
 -> "Submitted batch job 42017569"
 
+# WITH OPTIONS
+sbatch -t 00:20:00 nw_noises.sh
+
 # CHECK STATUS OF THE JOB(S)
 squeue -l -u hellejoo
 

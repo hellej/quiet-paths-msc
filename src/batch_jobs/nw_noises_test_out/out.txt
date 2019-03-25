@@ -1,5 +1,5 @@
 Nodes in the graph: 8352
 Edges in the graph: 24159
 
---- 33.7 seconds ---
---- 0.034 seconds per edge ---
+--- 377.4 seconds ---
+--- 0.377 seconds per edge ---

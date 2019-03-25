@@ -1,5 +1,6 @@
 
-e.g. kumpula_u_g_n.graphml
+e.g. kumpula_u_g_n_t.graphml
 u/d = unidrected / directed
 g = missing edge geometries added
 n = noise exposures added (as edge attributes)
+t = test (only subset of the graph is processed)

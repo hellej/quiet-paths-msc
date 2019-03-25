@@ -35,15 +35,15 @@ def get_segment_noises_df(edge_dicts):
     segment_noises = nw.aggregate_segment_noises(split_line_noises)
     return segment_noises
 
-edge_set = edge_dicts[:1000]
-edge_chunks = utils.get_list_chunks(edge_set, 150)
+# edge_set = edge_dicts[:1000]
+edge_chunks = utils.get_list_chunks(edge_dicts, 300)
 pool = Pool(processes=15)
 start_time = time.time()
 
 segment_noise_dfs = pool.map(get_segment_noises_df, edge_chunks)
 
 time_elapsed = round(time.time() - start_time, 1)
-edge_time = round(time_elapsed/1000, 3)
+edge_time = round(time_elapsed/len(edge_dicts), 3)
 print('\n--- %s seconds ---' % (round(time_elapsed, 1)))
 print('--- %s seconds per edge ---' % (edge_time))
 

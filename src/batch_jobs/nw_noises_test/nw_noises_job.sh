@@ -1,5 +1,5 @@
-#!/bin/bash -l
-#SBATCH -J graph_noise_test
+#!/bin/bash
+#SBATCH -J nw_nois
 #SBATCH -o out.txt
 #SBATCH -e err.txt
 #SBATCH -n 1
@@ -7,7 +7,7 @@
 #SBATCH --cpus-per-task=15
 #SBATCH --mem-per-cpu=4000
 #SBATCH –p test
-#SBATCH -t 00:06:00
+#SBATCH -t 00:20:00
 #SBATCH --mail-type=END
 #
 
