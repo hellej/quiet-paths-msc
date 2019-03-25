@@ -1,1 +1,0 @@
-geoconda 3.7 environment loaded

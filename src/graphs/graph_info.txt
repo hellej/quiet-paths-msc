@@ -1,5 +1,5 @@
 
-e.g. koskela_kumpula_u_g_n.graphml
+e.g. kumpula_u_g_n.graphml
 u/d = unidrected / directed
 g = missing edge geometries added
 n = noise exposures added (as edge attributes)
