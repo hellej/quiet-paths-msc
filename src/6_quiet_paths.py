@@ -29,7 +29,6 @@ set_graph_noise_costs(edge_gdf, graph_proj, 2)
 edge_dicts = nw.get_all_edge_dicts(graph_proj)
 edge_dicts[:2]
 
-
 #%% GET SHORTEST PATH FOR REFERENCE
 path_list = []
 from_xy = geom_utils.get_xy_from_geom(list(koskela['geometry'])[0])
@@ -41,10 +40,13 @@ shortest_path = rt.get_shortest_path(graph_proj, path_params, 'length')
 path_geom = nw.get_edge_geometries(graph_proj, shortest_path)
 path_list.append({**path_geom, **{'type': 'short', 'nt': 0}})
 
-#%% quiet path 1
-shortest_path = rt.get_shortest_path(graph_proj, path_params, 'tot_cost')
-path_geom = nw.get_edge_geometries(graph_proj, shortest_path)
-path_list.append({**path_geom, **{'type': 'quiet', 'nt': 1}})
+#%% quiet paths
+nts = [0.25, 0.5, 1, 1.5, 2]
+for nt in nts:
+    set_graph_noise_costs(edge_gdf, graph_proj, nt)
+    shortest_path = rt.get_shortest_path(graph_proj, path_params, 'tot_cost')
+    path_geom = nw.get_edge_geometries(graph_proj, shortest_path)
+    path_list.append({**path_geom, **{'type': 'quiet', 'nt': nt}})
 
 #%%
 s_paths_gdf = gpd.GeoDataFrame(path_list, crs=from_epsg(3879))
