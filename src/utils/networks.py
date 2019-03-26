@@ -84,7 +84,7 @@ def get_edge_geometries(graph_proj, path):
         node_1 = path[idx]
         node_2 = path[idx+1]
         edge_d = graph_proj[node_1][node_2][0]
-        print('Path edge no.', idx, ':', edge_d)
+        # print('Path edge no.', idx, ':', edge_d)
         if ('geometry' in edge_d):
             edge_geoms.append(edge_d['geometry'])
             edge_lengths.append(edge_d['length'])
@@ -158,6 +158,7 @@ def get_edge_noise_exps(edge_dict, noise_polys, graph_proj):
 
 def get_edge_gdf(edge_dicts, cols):
     edge_gdf = gpd.GeoDataFrame(edge_dicts, crs=from_epsg(3879))
+    edge_gdf['noises'] = [ast.literal_eval(noises) if type(noises)!=dict else noises for noises in edge_gdf['noises']]
     return edge_gdf[cols]
 
 def explode_edges_to_noise_parts(edge_df):
@@ -198,10 +199,9 @@ def get_noise_cost(noises: 'noise dictionary', costs: 'cost dictionary', nt: 'no
             noise_cost += noises[db] * costs[db] * nt
     return round(noise_cost,2)
 
-def get_noise_costs(edge_gdf):
+def get_noise_costs(edge_gdf, nt: 'noise tolerance, float: 0.0-2.0'):
     costs = { 50: 0.05, 55: 0.1, 60: 0.2, 65: 0.3, 70: 0.4, 75: 0.5 }
-    edge_gdf['noises'] = [ast.literal_eval(noises) for noises in edge_gdf['noises']]
-    edge_gdf['noise_cost'] = [get_noise_cost(noises, costs, 1) for noises in edge_gdf['noises']]
+    edge_gdf['noise_cost'] = [get_noise_cost(noises, costs, nt) for noises in edge_gdf['noises']]
     edge_gdf['tot_cost'] = edge_gdf.apply(lambda row: round(row.length + row.noise_cost,2), axis=1)
     edge_gdf['cost_rat'] = edge_gdf.apply(lambda row: int(round((row.noise_cost/row.length)*100)), axis=1)
     return edge_gdf
