@@ -127,3 +127,15 @@ def aggregate_line_noises(split_line_noises, uniq_id):
         row_d['noises'] = get_exposures(values)
         row_accumulator.append(row_d)
     return pd.DataFrame(row_accumulator)
+
+def add_noise_exposures_to_gdf(line_gdf, uniq_id, noise_polys):
+    # add noises to lines as list
+    line_gdf['split_lines'] = [geom_utils.get_split_lines_list(line_geom, noise_polys) for line_geom in line_gdf['geometry']]
+    # explode new rows from split lines column
+    split_lines = geom_utils.explode_lines_to_split_lines(line_gdf, uniq_id)
+    # join noises to split lines
+    split_line_noises = get_noise_attrs_to_split_lines(split_lines, noise_polys)
+    # aggregate noises back to segments
+    line_noises = aggregate_line_noises(split_line_noises, uniq_id)
+    line_gdf = line_gdf.drop(['split_lines'], axis=1)
+    return pd.merge(line_gdf, line_noises, how='inner', on=uniq_id)
