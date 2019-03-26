@@ -44,6 +44,10 @@ def get_undirected_network_graph():
     graph_undir = ox.load_graphml('kumpula_u_g.graphml', folder='graphs')
     return graph_undir
 
+def get_noise_network_graph():
+    graph_undir = ox.load_graphml('kumpula_u_g_n.graphml', folder='graphs')
+    return graph_undir
+
 def get_pois():
     pois = gpd.read_file('data/input/target_locations.geojson')
     pois = pois.to_crs(from_epsg(3879))

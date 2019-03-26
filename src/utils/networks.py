@@ -3,6 +3,7 @@ import geopandas as gpd
 import osmnx as ox
 import networkx as nx
 import json
+import ast
 from fiona.crs import from_epsg
 from shapely.geometry import Point, LineString, MultiLineString, box
 import utils.exposures as exps
@@ -185,7 +186,25 @@ def aggregate_segment_noises(split_line_noises):
         row_accumulator.append(row_d)
     return pd.DataFrame(row_accumulator)
 
-def update_segment_noises(segment_noises, graph_proj):
-    for idx, row in segment_noises.iterrows():
-        edge_d = dict(row)
-        nx.set_edge_attributes(graph_proj, { edge_d['uvkey']: {'noises': edge_d['noises'], 'th_noises': edge_d['th_noises']}})
+def update_segment_noises(edge_gdf, graph_proj):
+    for idx, edge in edge_gdf.iterrows():
+        nx.set_edge_attributes(graph_proj, { edge['uvkey']: {'noises': edge['noises'], 'th_noises': edge['th_noises']}})
+
+def update_segment_costs(edge_gdf, graph_proj):
+    for edge in edge_gdf.itertuples():
+        nx.set_edge_attributes(graph_proj, { getattr(edge, 'uvkey'): { 'noise_cost': getattr(edge, 'noise_cost'), 'tot_cost': getattr(edge, 'tot_cost')}}) 
+
+def get_noise_cost(noises: 'noise dictionary', costs: 'cost dictionary', nt: 'noise tolerance'):
+    total_cost = 0
+    for db in noises:
+        if (db in costs):
+            total_cost += noises[db] * costs[db] * nt
+    return round(total_cost,2)
+
+def get_noise_costs(edge_gdf):
+    costs = { 50: 0.05, 55: 0.1, 60: 0.2, 65: 0.3, 70: 0.4, 75: 0.5 }
+    edge_gdf['noises'] = [ast.literal_eval(noises) for noises in edge_gdf['noises']]
+    edge_gdf['noise_cost'] = [get_noise_cost(noises, costs, 1) for noises in edge_gdf['noises']]
+    edge_gdf['tot_cost'] = edge_gdf.apply(lambda row: round(row.length + row.noise_cost,2), axis=1)
+    edge_gdf['cost_rat'] = edge_gdf.apply(lambda row: int(round((row.noise_cost/row.length)*100)), axis=1)
+    return edge_gdf
