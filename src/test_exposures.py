@@ -61,13 +61,13 @@ def test_add_exposures_to_segments():
     edge_gdf['split_lines'] = [geom_utils.get_split_lines_list(line_geom, noise_polys) for line_geom in edge_gdf['geometry']]
     split_lines = nw.explode_edges_to_noise_parts(edge_gdf)
     split_line_noises = exps.get_noise_attrs_to_split_lines(split_lines, noise_polys)
-    segment_noises = nw.aggregate_segment_noises(split_line_noises)
+    segment_noises = nw.aggregate_edge_noises(split_line_noises)
     nw.update_segment_noises(segment_noises, graph_proj)
     edge_dicts = nw.get_all_edge_dicts(graph_proj)
     edge_d = edge_dicts[0]
     print(edge_d)
     exp_len_sum = sum(edge_d['noises'].values())
-    assert (edge_d['noises'], edge_d['th_noises'], round(exp_len_sum,1)) == ({65: 107.025, 70: 20.027}, {55: 127.052, 60: 127.052, 65: 127.052, 70: 20.027}, round(edge_d['length'],1))
+    assert (edge_d['noises'], round(exp_len_sum,1)) == ({65: 107.025, 70: 20.027}, round(edge_d['length'],1))
 
 def test_shortest_path():
     graph_proj = files.get_undirected_network_graph()
