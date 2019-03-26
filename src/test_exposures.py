@@ -77,6 +77,6 @@ def test_shortest_path():
     from_xy = geom_utils.get_xy_from_geom(list(koskela['geometry'])[0])
     to_xy = geom_utils.get_xy_from_geom(list(kumpula['geometry'])[0])
     path_params = rt.get_shortest_path_params(graph_proj, from_xy, to_xy)
-    shortest_path = rt.get_shortest_path(graph_proj, path_params)
+    shortest_path = rt.get_shortest_path(graph_proj, path_params, 'length')
     path_geom = nw.get_edge_geometries(graph_proj, shortest_path)
     assert (len(shortest_path), path_geom['total_length']) == (45, 1764.38)

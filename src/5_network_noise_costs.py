@@ -15,7 +15,7 @@ import utils.utils as utils
 noise_polys = files.get_noise_polygons()
 
 #%% SAVE NETWORK
-# ox.save_graphml(graph_proj, filename='kumpula_u_g.graphml', folder='graphs', gephi=False)
+# ox.save_graphml(graph_proj, filename='kumpula_u_g_n.graphml', folder='graphs', gephi=False)
 
 #%% READ NETWORK
 # graph_proj = nw.get_walk_network(koskela_kumpula_box)
@@ -32,7 +32,7 @@ edge_dicts[:2]
 # print('Adding missing geometries to edges...')
 # nw.add_missing_edge_geometries(edge_dicts, graph_proj)
 
-#%% ADD MISSING GEOMETRIES TO EDGES WITH POOL
+#%% ADD MISSING GEOMETRIES TO EDGES WITH POOL /// DONE ALREADY !!!
 def get_edge_geoms(edge_dict):
     return nw.get_missing_edge_geometries(edge_dict, graph_proj)
 start_time = time.time()
@@ -104,7 +104,8 @@ print('Edge noise attributes set.')
 edge_dicts = nw.get_all_edge_dicts(graph_proj)
 edge_dicts[:3]
 
-#%% EXTRACT NOISES TO SEGMENTS QUICKLY
+
+#%% FUNCTION FOR EXTRACTING NOISES TO SEGMENTS QUICKLY
 def get_segment_noises_df(edge_dicts):
     edge_gdf_sub = nw.get_edge_gdf(edge_dicts, ['geometry', 'length', 'uvkey'])
     # add noise split lines as list
@@ -128,15 +129,15 @@ print('--- %s seconds per edge ---' % (edge_time))
 segment_noises.head()
 
 #%% WITH POOL
-edge_set = edge_dicts[:400]
-edge_chunks = utils.get_list_chunks(edge_set, 150)
+edge_set = edge_dicts #[:600]
+edge_chunks = utils.get_list_chunks(edge_set, 400)
 start_time = time.time()
 
 pool = Pool(processes=4)
 segment_noise_dfs = pool.map(get_segment_noises_df, edge_chunks)
 
 time_elapsed = round(time.time() - start_time, 1)
-edge_time = round(time_elapsed/400, 3)
+edge_time = round(time_elapsed/len(edge_set), 3)
 print('\n--- %s seconds ---' % (round(time_elapsed, 1)))
 print('--- %s seconds per edge ---' % (edge_time))
 
@@ -146,7 +147,7 @@ for segment_noises in segment_noise_dfs:
 
 #%% EDGE GDFS FROM GRAPH
 edge_dicts = nw.get_all_edge_dicts(graph_proj)
-edges = nw.get_edge_gdf(edge_dicts, ['geometry', 'length', 'noises', 'th_noises'])
+edges = nw.get_edge_gdf(edge_dicts, ['geometry', 'length', 'noises'])
 edges.head()
 
 #%% 

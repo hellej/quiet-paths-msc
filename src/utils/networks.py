@@ -96,7 +96,7 @@ def get_edge_geometries(graph_proj, path):
 
     multi_line = MultiLineString(edge_geoms)
     total_length = round(sum(edge_lengths),2)
-    return { 'multiline': multi_line, 'total_length': total_length }
+    return { 'geometry': multi_line, 'total_length': total_length }
 
 def get_all_edge_dicts(graph_proj):
     edge_dicts = []
@@ -152,10 +152,8 @@ def get_edge_noise_exps(edge_dict, noise_polys, graph_proj):
             noise_dict = {}
         else:
             noise_dict = exps.get_exposures(noise_lines)
-        th_noise_dict = exps.get_th_exposures(noise_dict, [55,60,65,70])
         edge_d['uvkey'] = edge_dict['uvkey']
         edge_d['noises'] = noise_dict
-        edge_d['th_noises'] = th_noise_dict
         return edge_d
 
 def get_edge_gdf(edge_dicts, cols):
@@ -182,24 +180,23 @@ def aggregate_segment_noises(split_line_noises):
     for key, values in grouped:
         row_d = {'uvkey': key}
         row_d['noises'] = exps.get_exposures(values)
-        row_d['th_noises'] = exps.get_th_exposures(row_d['noises'], [55, 60, 65, 70])
         row_accumulator.append(row_d)
     return pd.DataFrame(row_accumulator)
 
 def update_segment_noises(edge_gdf, graph_proj):
-    for idx, edge in edge_gdf.iterrows():
-        nx.set_edge_attributes(graph_proj, { edge['uvkey']: {'noises': edge['noises'], 'th_noises': edge['th_noises']}})
+    for edge in edge_gdf.itertuples():
+        nx.set_edge_attributes(graph_proj, { getattr(edge, 'uvkey'): { 'noises': getattr(edge, 'noises')}})
 
 def update_segment_costs(edge_gdf, graph_proj):
     for edge in edge_gdf.itertuples():
         nx.set_edge_attributes(graph_proj, { getattr(edge, 'uvkey'): { 'noise_cost': getattr(edge, 'noise_cost'), 'tot_cost': getattr(edge, 'tot_cost')}}) 
 
 def get_noise_cost(noises: 'noise dictionary', costs: 'cost dictionary', nt: 'noise tolerance'):
-    total_cost = 0
+    noise_cost = 0
     for db in noises:
         if (db in costs):
-            total_cost += noises[db] * costs[db] * nt
-    return round(total_cost,2)
+            noise_cost += noises[db] * costs[db] * nt
+    return round(noise_cost,2)
 
 def get_noise_costs(edge_gdf):
     costs = { 50: 0.05, 55: 0.1, 60: 0.2, 65: 0.3, 70: 0.4, 75: 0.5 }

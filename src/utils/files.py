@@ -39,8 +39,6 @@ def get_network_graph():
     return graph_proj
 
 def get_undirected_network_graph():
-    # graph_proj = ox.load_graphml('kumpula_g.graphml', folder='graphs')
-    # graph_undir = ox.get_undirected(graph_proj)
     graph_undir = ox.load_graphml('kumpula_u_g.graphml', folder='graphs')
     return graph_undir
 

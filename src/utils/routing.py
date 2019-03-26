@@ -30,11 +30,11 @@ def get_shortest_path_params(graph_proj, from_xy, to_xy):
     target_node = get_nearest_node(graph_proj, to_coords)
     return {'orig_node': orig_node, 'target_node':target_node}
 
-def get_shortest_path(graph_proj, path_params):
+def get_shortest_path(graph_proj, path_params: dict, weight: str):
     orig_node = path_params['orig_node']
     target_node = path_params['target_node']
     if (orig_node != target_node):
-        s_path = nx.shortest_path(G=graph_proj, source=orig_node, target=target_node, weight='length')
+        s_path = nx.shortest_path(G=graph_proj, source=orig_node, target=target_node, weight=weight)
         return s_path
     else:
         return None

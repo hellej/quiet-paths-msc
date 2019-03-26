@@ -28,7 +28,7 @@ for idx, row in dt_paths.iterrows():
     from_xy = ast.literal_eval(row['from_xy'])
     to_xy = ast.literal_eval(row['to_xy'])
     path_params = rt.get_shortest_path_params(graph_proj, from_xy, to_xy)
-    shortest_path = rt.get_shortest_path(graph_proj, path_params)
+    shortest_path = rt.get_shortest_path(graph_proj, path_params, 'length')
     if (shortest_path != None):
         s_path = {'uniq_id': row['uniq_id'], 'from_id': row['from_id'], 'path': shortest_path}
         print('Found path no.', idx, ':', s_path)
@@ -40,7 +40,7 @@ for idx, row in dt_paths.iterrows():
 for s_path in shortest_paths:
     # route as edge geometries
     path_geom = nw.get_edge_geometries(graph_proj, s_path['path'])
-    s_path['geometry'] = path_geom['multiline']
+    s_path['geometry'] = path_geom['geometry']
     s_path['total_length'] = path_geom['total_length']
 
 s_paths_g_gdf = gpd.GeoDataFrame(shortest_paths, crs=from_epsg(3879))
