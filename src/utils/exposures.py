@@ -118,3 +118,12 @@ def get_noise_attrs_to_split_lines(gdf, noise_polys):
     gdf['geometry'] = gdf['mid_point']
     split_line_noises = gpd.sjoin(gdf, noise_polys, how='left', op='within')
     return split_line_noises
+
+def aggregate_line_noises(split_line_noises, uniq_id):
+    row_accumulator = []
+    grouped = split_line_noises.groupby(uniq_id)
+    for key, values in grouped:
+        row_d = {uniq_id: key}
+        row_d['noises'] = get_exposures(values)
+        row_accumulator.append(row_d)
+    return pd.DataFrame(row_accumulator)

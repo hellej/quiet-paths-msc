@@ -159,31 +159,8 @@ def get_edge_noise_exps(edge_dict, noise_polys, graph_proj):
 def get_edge_gdf(edge_dicts, cols):
     edge_gdf = gpd.GeoDataFrame(edge_dicts, crs=from_epsg(3879))
     if 'noises' in cols:
-        edge_gdf['noises'] = [ast.literal_eval(noises) if type(noises)!=dict else noises for noises in edge_gdf['noises']]
+        edge_gdf['noises'] = [ast.literal_eval(noises) if type(noises) == str else noises for noises in edge_gdf['noises']]
     return edge_gdf[cols]
-
-def explode_edges_to_noise_parts(edge_df):
-    row_accumulator = []
-    def split_list_to_rows(row):
-        for line_geom in row['split_lines']:
-            new_row = row.to_dict()
-            new_row['geometry'] = line_geom
-            row_accumulator.append(new_row)
-    
-    edge_df.apply(split_list_to_rows, axis=1)
-    new_gdf = gpd.GeoDataFrame(row_accumulator, crs=from_epsg(3879))
-    new_gdf['length'] = [round(geom.length,3) for geom in new_gdf['geometry']]
-    new_gdf['mid_point'] = [geom_utils.get_line_middle_point(geom) for geom in new_gdf['geometry']]
-    return new_gdf[['uvkey', 'geometry', 'length', 'mid_point']]
-
-def aggregate_edge_noises(split_line_noises, uniq_id):
-    row_accumulator = []
-    grouped = split_line_noises.groupby(uniq_id)
-    for key, values in grouped:
-        row_d = {uniq_id: key}
-        row_d['noises'] = exps.get_exposures(values)
-        row_accumulator.append(row_d)
-    return pd.DataFrame(row_accumulator)
 
 def update_segment_noises(edge_gdf, graph_proj):
     for edge in edge_gdf.itertuples():

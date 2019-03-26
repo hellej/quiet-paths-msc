@@ -155,6 +155,20 @@ def explode_multipolygons_to_polygons(polygons_gdf):
     all_polygons_gdf = gpd.GeoDataFrame(data=data, geometry=all_polygons, crs=from_epsg(3879))
     return all_polygons_gdf
 
+def explode_lines_to_split_lines(line_df, uniq_id):
+    row_accumulator = []
+    def split_list_to_rows(row):
+        for line_geom in row['split_lines']:
+            new_row = row.to_dict()
+            new_row['geometry'] = line_geom
+            row_accumulator.append(new_row)
+    
+    line_df.apply(split_list_to_rows, axis=1)
+    new_gdf = gpd.GeoDataFrame(row_accumulator, crs=from_epsg(3879))
+    new_gdf['length'] = [round(geom.length,3) for geom in new_gdf['geometry']]
+    new_gdf['mid_point'] = [get_line_middle_point(geom) for geom in new_gdf['geometry']]
+    return new_gdf[[uniq_id, 'geometry', 'length', 'mid_point']]
+
 def create_line_geom(point_coords):
     '''
     Function for building line geometries from list of coordinate tuples [(x,y), (x,y)].

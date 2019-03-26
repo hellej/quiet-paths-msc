@@ -111,11 +111,11 @@ def get_segment_noises_df(edge_dicts):
     # add noise split lines as list
     edge_gdf_sub['split_lines'] = [geom_utils.get_split_lines_list(line_geom, noise_polys) for line_geom in edge_gdf_sub['geometry']]
     # explode new rows from split lines column
-    split_lines = nw.explode_edges_to_noise_parts(edge_gdf_sub)
+    split_lines = geom_utils.explode_lines_to_split_lines(edge_gdf_sub, 'uvkey')
     # join noises to split lines
     split_line_noises = exps.get_noise_attrs_to_split_lines(split_lines, noise_polys)
     # aggregate noises back to segments
-    segment_noises = nw.aggregate_edge_noises(split_line_noises, 'uvkey')
+    segment_noises = exps.aggregate_line_noises(split_line_noises, 'uvkey')
     return segment_noises
 
 #%% WITHOUT POOL
@@ -129,8 +129,8 @@ print('--- %s seconds per edge ---' % (edge_time))
 segment_noises.head()
 
 #%% WITH POOL
-edge_set = edge_dicts #[:600]
-edge_chunks = utils.get_list_chunks(edge_set, 400)
+edge_set = edge_dicts[:400]
+edge_chunks = utils.get_list_chunks(edge_set, 100)
 start_time = time.time()
 
 pool = Pool(processes=4)
