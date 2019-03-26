@@ -61,7 +61,7 @@ def test_add_exposures_to_segments():
     edge_gdf['split_lines'] = [geom_utils.get_split_lines_list(line_geom, noise_polys) for line_geom in edge_gdf['geometry']]
     split_lines = nw.explode_edges_to_noise_parts(edge_gdf)
     split_line_noises = exps.get_noise_attrs_to_split_lines(split_lines, noise_polys)
-    segment_noises = nw.aggregate_edge_noises(split_line_noises)
+    segment_noises = nw.aggregate_edge_noises(split_line_noises, 'uvkey')
     nw.update_segment_noises(segment_noises, graph_proj)
     edge_dicts = nw.get_all_edge_dicts(graph_proj)
     edge_d = edge_dicts[0]

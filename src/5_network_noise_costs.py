@@ -115,7 +115,7 @@ def get_segment_noises_df(edge_dicts):
     # join noises to split lines
     split_line_noises = exps.get_noise_attrs_to_split_lines(split_lines, noise_polys)
     # aggregate noises back to segments
-    segment_noises = nw.aggregate_edge_noises(split_line_noises)
+    segment_noises = nw.aggregate_edge_noises(split_line_noises, 'uvkey')
     return segment_noises
 
 #%% WITHOUT POOL

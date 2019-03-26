@@ -176,11 +176,11 @@ def explode_edges_to_noise_parts(edge_df):
     new_gdf['mid_point'] = [geom_utils.get_line_middle_point(geom) for geom in new_gdf['geometry']]
     return new_gdf[['uvkey', 'geometry', 'length', 'mid_point']]
 
-def aggregate_edge_noises(split_line_noises):
+def aggregate_edge_noises(split_line_noises, uniq_id):
     row_accumulator = []
-    grouped = split_line_noises.groupby('uvkey')
+    grouped = split_line_noises.groupby(uniq_id)
     for key, values in grouped:
-        row_d = {'uvkey': key}
+        row_d = {uniq_id: key}
         row_d['noises'] = exps.get_exposures(values)
         row_accumulator.append(row_d)
     return pd.DataFrame(row_accumulator)
