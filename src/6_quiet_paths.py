@@ -53,7 +53,10 @@ for nt in nts:
 s_paths_gdf = gpd.GeoDataFrame(path_list, crs=from_epsg(3879))
 start_time = time.time()
 
-s_paths_gdf = exps.add_noise_exposures_to_gdf(s_paths_gdf, 'id', noise_polys)
+# s_paths_gdf = exps.add_noise_exposures_to_gdf(s_paths_gdf, 'id', noise_polys)
+s_paths_gdf['noises'] = [exps.get_exposures_for_geom(line_geom, noise_polys) for line_geom in s_paths_gdf['geometry']]
+#%%
+s_paths_gdf['th_noises'] = [exps.get_th_exposures(noises, [55, 60, 65, 70]) for noises in s_paths_gdf['noises']]
 
 time_elapsed = round(time.time() - start_time, 1)
 print('\n--- %s seconds ---' % (time_elapsed))

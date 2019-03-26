@@ -28,6 +28,10 @@ def get_exposures(line_noises):
         noise_dict[int(key)] = tot_len
     return noise_dict
 
+def get_exposures_for_geom(line_geom, noise_polys):
+    line_noises = get_exposure_lines(line_geom, noise_polys)
+    return get_exposures(line_noises)
+
 def get_exposure_times(d: 'dict of db: length', speed: 'float: m/s', minutes: bool):
     exp_t_d = {}
     for key in d.keys():
