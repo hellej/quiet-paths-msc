@@ -9,7 +9,6 @@ from shapely.geometry import Point, LineString, MultiLineString, box
 import utils.exposures as exps
 import utils.geometry as geom_utils
 import utils.utils as utils
-import utils.files as files
 
 def get_walk_network(extent_polygon):
     # define filter for acquiring walkable street network
