@@ -2,6 +2,7 @@ import geopandas as gpd
 import osmnx as ox
 from shapely.geometry import box
 import utils.geometry as geom_utils
+import utils.networks as nw
 from fiona.crs import from_epsg
 
 bboxes = gpd.read_file('data/extents_grids.gpkg', layer='bboxes')
@@ -44,6 +45,7 @@ def get_undirected_network_graph():
 
 def get_noise_network_graph():
     graph_undir = ox.load_graphml('kumpula_u_g_n.graphml', folder='graphs')
+    nw.delete_unused_edge_attrs(graph_undir)
     return graph_undir
 
 def get_pois():
