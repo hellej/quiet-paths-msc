@@ -23,6 +23,19 @@ def get_walk_network(extent_polygon):
     #fig, ax = ox.plot_graph(graph_proj)
     return graph_proj
 
+def delete_unused_edge_attrs(graph_proj):
+    for node_from in list(graph_proj.nodes):
+        nodes_to = graph_proj[node_from]
+        for node_to in nodes_to.keys():
+            edges = graph_proj[node_from][node_to]
+            for edge_k in edges.keys():
+                try:
+                    del graph_proj[node_from][node_to][edge_k]['oneway'] 
+                    del graph_proj[node_from][node_to][edge_k]['maxspeed'] 
+                    del graph_proj[node_from][node_to][edge_k]['name']
+                except Exception:
+                    pass
+
 def export_nodes_edges_to_files(graph_proj):
     nodes, edges = ox.graph_to_gdfs(graph_proj, nodes=True, edges=True, node_geometry=True, fill_edge_geometry=True)
     edges = edges[['geometry', 'u', 'v', 'length']]
@@ -100,7 +113,7 @@ def get_edge_geometries(graph_proj, path):
 
 def get_all_edge_dicts(graph_proj):
     edge_dicts = []
-    for idx, node_from in enumerate(graph_proj):
+    for node_from in list(graph_proj.nodes):
         nodes_to = graph_proj[node_from]
         for node_to in nodes_to.keys():
             # all edges between node-from and node-to as dict (usually)

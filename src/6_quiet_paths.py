@@ -17,9 +17,10 @@ koskela = pois.loc[pois['name'] == 'Koskela']
 kumpula = pois.loc[pois['name'] == 'Kumpulan kampus']
 
 #%%
+nw.delete_unused_edge_attrs(graph_proj)
 edge_dicts = nw.get_all_edge_dicts(graph_proj)
 edge_gdf = nw.get_edge_gdf(edge_dicts, ['uvkey', 'geometry', 'length', 'noises'])
-edge_gdf.head(2)
+edge_dicts[:2]
 
 #%% SET NOISE IMPEDANCES TO NETWORK
 def set_graph_noise_costs(edge_gdf, graph_proj, nt: 'noise tolerance, float: 0.0-2.0'):
