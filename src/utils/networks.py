@@ -83,10 +83,10 @@ def add_linking_edges_for_new_node(graph_proj, new_node, closest_point, edge):
     link2 = split_lines[0]
     attrs = get_new_edge_attrs(graph_proj, edge)
     print('Add linking edges for new node with attrs:', attrs)
-    graph_proj.add_edge(node_from, new_node, geometry=link1, length=link1.length, osmid=attrs['osmid'], highway=attrs['highway'], access='yes', oneway=attrs['oneway'])
-    graph_proj.add_edge(new_node, node_from, geometry=link1, length=link1.length, osmid=attrs['osmid'], highway=attrs['highway'], access='yes', oneway=attrs['oneway'])
-    graph_proj.add_edge(new_node, node_to, geometry=link2, length=link2.length, osmid=attrs['osmid'], highway=attrs['highway'], access='yes', oneway=attrs['oneway'])
-    graph_proj.add_edge(node_to, new_node, geometry=link2, length=link2.length, osmid=attrs['osmid'], highway=attrs['highway'], access='yes', oneway=attrs['oneway'])
+    graph_proj.add_edge(node_from, new_node, geometry=link1, length=link1.length, osmid=attrs['osmid'], highway=attrs['highway'], access='yes') #, oneway=attrs['oneway'])
+    graph_proj.add_edge(new_node, node_from, geometry=link1, length=link1.length, osmid=attrs['osmid'], highway=attrs['highway'], access='yes') #, oneway=attrs['oneway'])
+    graph_proj.add_edge(new_node, node_to, geometry=link2, length=link2.length, osmid=attrs['osmid'], highway=attrs['highway'], access='yes') #, oneway=attrs['oneway'])
+    graph_proj.add_edge(node_to, new_node, geometry=link2, length=link2.length, osmid=attrs['osmid'], highway=attrs['highway'], access='yes') #, oneway=attrs['oneway'])
 
 def get_edge_geometries(graph_proj, path):
     edge_geoms = []
@@ -179,9 +179,10 @@ def update_segment_noises(edge_gdf, graph_proj):
     for edge in edge_gdf.itertuples():
         nx.set_edge_attributes(graph_proj, { getattr(edge, 'uvkey'): { 'noises': getattr(edge, 'noises')}})
 
-def update_segment_costs(edge_gdf, graph_proj):
+def update_segment_costs(edge_gdf, graph_proj, nt):
+    cost_attr = 'nc_'+str(nt)
     for edge in edge_gdf.itertuples():
-        nx.set_edge_attributes(graph_proj, { getattr(edge, 'uvkey'): { 'noise_cost': getattr(edge, 'noise_cost'), 'tot_cost': getattr(edge, 'tot_cost')}}) 
+        nx.set_edge_attributes(graph_proj, { getattr(edge, 'uvkey'): { cost_attr: getattr(edge, 'tot_cost')}}) 
 
 def get_noise_cost(noises: 'noise dictionary', costs: 'cost dictionary', nt: 'noise tolerance'):
     noise_cost = 0
@@ -191,8 +192,15 @@ def get_noise_cost(noises: 'noise dictionary', costs: 'cost dictionary', nt: 'no
     return round(noise_cost,2)
 
 def get_noise_costs(edge_gdf, nt: 'noise tolerance, float: 0.0-2.0'):
-    costs = { 50: 0.05, 55: 0.1, 60: 0.2, 65: 0.3, 70: 0.4, 75: 0.5 }
+    costs = { 50: 0.05, 55: 0.1, 60: 0.2, 65: 0.3, 70: 0.4, 75: 0.6 }
     edge_gdf['noise_cost'] = [get_noise_cost(noises, costs, nt) for noises in edge_gdf['noises']]
     edge_gdf['tot_cost'] = edge_gdf.apply(lambda row: round(row.length + row.noise_cost,2), axis=1)
     edge_gdf['cost_rat'] = edge_gdf.apply(lambda row: int(round((row.noise_cost/row.length)*100)), axis=1)
     return edge_gdf
+
+def set_graph_noise_costs(graph_proj, nts: 'list of noise tolerances, float: 0.0-2.0'):
+    edge_dicts = get_all_edge_dicts(graph_proj)
+    edge_gdf = get_edge_gdf(edge_dicts, ['uvkey', 'geometry', 'length', 'noises'])
+    for nt in nts:
+        edge_n_costs = get_noise_costs(edge_gdf, nt)
+        update_segment_costs(edge_n_costs, graph_proj, nt)
