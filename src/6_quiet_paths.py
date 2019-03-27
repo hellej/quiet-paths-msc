@@ -6,6 +6,7 @@ import utils.routing as rt
 import utils.geometry as geom_utils
 import utils.networks as nw
 import utils.exposures as exps
+import utils.routing as rt
 from fiona.crs import from_epsg
 import time
 
@@ -47,20 +48,23 @@ for nt in nts:
     path_list.append({**path_geom, **{'id': 'q_'+str(nt), 'type': 'quiet', 'nt': nt}})
 
 #%% ADD NOISE EXPOSURES
-s_paths_gdf = gpd.GeoDataFrame(path_list, crs=from_epsg(3879))
+paths_gdf = gpd.GeoDataFrame(path_list, crs=from_epsg(3879))
 start_time = time.time()
 
-# s_paths_gdf = exps.add_noise_exposures_to_gdf(s_paths_gdf, 'id', noise_polys)
-s_paths_gdf['noises'] = [exps.get_exposures_for_geom(line_geom, noise_polys) for line_geom in s_paths_gdf['geometry']]
-s_paths_gdf['th_noises'] = [exps.get_th_exposures(noises, [55, 60, 65, 70]) for noises in s_paths_gdf['noises']]
+# paths_gdf = exps.add_noise_exposures_to_gdf(paths_gdf, 'id', noise_polys)
+paths_gdf['noises'] = [exps.get_exposures_for_geom(line_geom, noise_polys) for line_geom in paths_gdf['geometry']]
+paths_gdf['th_noises'] = [exps.get_th_exposures(noises, [55, 60, 65, 70]) for noises in paths_gdf['noises']]
 
 time_elapsed = round(time.time() - start_time, 1)
 print('\n--- %s seconds ---' % (time_elapsed))
+paths_gdf.plot()
+paths_gdf
 
-s_paths_gdf.plot()
-s_paths_gdf
+#%% COMPARE LENGTHS & EXPOSURES
+path_comps = rt.get_short_quiet_paths_comparison(paths_gdf)
+path_comps
 
 #%%
-s_paths_gdf.to_file('outputs/quiet_paths.gpkg', layer='quiet_paths_t', driver="GPKG")
+path_comps.to_file('outputs/quiet_paths.gpkg', layer='quiet_paths_t', driver="GPKG")
 
 #%%

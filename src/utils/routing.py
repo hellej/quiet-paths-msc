@@ -1,9 +1,10 @@
 import pandas as pd
 import osmnx as ox
 import networkx as nx
+from shapely.geometry import Point, LineString, MultiLineString, box
 import utils.networks as nw
 import utils.geometry as geom_utils
-from shapely.geometry import Point, LineString, MultiLineString, box
+import utils.exposures as exps
 
 def get_nearest_node(graph_proj, coords):
     point = Point(coords)
@@ -44,3 +45,16 @@ def join_dt_path_attributes(s_paths_g_gdf, dt_paths):
     dt_paths_join = dt_paths_join[['dt_total_length', 'uniq_id', 'to_id', 'count']]
     merged = pd.merge(s_paths_g_gdf, dt_paths_join, how='inner', on='uniq_id')
     return merged
+
+
+def get_short_quiet_paths_comparison(paths_gdf):
+    paths_gdf_g = paths_gdf.drop_duplicates(subset=['type', 'total_length']).copy()
+    shortest_p = paths_gdf_g.loc[paths_gdf_g['type'] == 'short'].squeeze()
+    s_len = shortest_p.get('total_length')
+    s_th_noises = shortest_p.get('th_noises')
+    paths_gdf_g['diff_len'] = [round(total_len - s_len, 1) for total_len in paths_gdf_g['total_length']]
+    paths_gdf_g['diff_55_dB'] = [exps.get_th_exp_diff(65, th_noises, s_th_noises) for th_noises in paths_gdf_g['th_noises']]
+    paths_gdf_g['diff_60_dB'] = [exps.get_th_exp_diff(60, th_noises, s_th_noises) for th_noises in paths_gdf_g['th_noises']]
+    paths_gdf_g['diff_65_dB'] = [exps.get_th_exp_diff(65, th_noises, s_th_noises) for th_noises in paths_gdf_g['th_noises']]
+    paths_gdf_g['diff_70_dB'] = [exps.get_th_exp_diff(70, th_noises, s_th_noises) for th_noises in paths_gdf_g['th_noises']]
+    return paths_gdf_g
