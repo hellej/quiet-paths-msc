@@ -48,13 +48,13 @@ def join_dt_path_attributes(s_paths_g_gdf, dt_paths):
 
 
 def get_short_quiet_paths_comparison(paths_gdf):
-    paths_gdf_g = paths_gdf.drop_duplicates(subset=['type', 'total_length']).copy()
-    shortest_p = paths_gdf_g.loc[paths_gdf_g['type'] == 'short'].squeeze()
+    shortest_p = paths_gdf.loc[paths_gdf['type'] == 'short'].squeeze()
     s_len = shortest_p.get('total_length')
     s_th_noises = shortest_p.get('th_noises')
-    paths_gdf_g['diff_len'] = [round(total_len - s_len, 1) for total_len in paths_gdf_g['total_length']]
-    paths_gdf_g['diff_55_dB'] = [exps.get_th_exp_diff(65, th_noises, s_th_noises) for th_noises in paths_gdf_g['th_noises']]
-    paths_gdf_g['diff_60_dB'] = [exps.get_th_exp_diff(60, th_noises, s_th_noises) for th_noises in paths_gdf_g['th_noises']]
-    paths_gdf_g['diff_65_dB'] = [exps.get_th_exp_diff(65, th_noises, s_th_noises) for th_noises in paths_gdf_g['th_noises']]
-    paths_gdf_g['diff_70_dB'] = [exps.get_th_exp_diff(70, th_noises, s_th_noises) for th_noises in paths_gdf_g['th_noises']]
-    return paths_gdf_g
+    paths_gdf['diff_len'] = [round(total_len - s_len, 1) for total_len in paths_gdf['total_length']]
+    paths_gdf['diff_rat'] = paths_gdf.apply(lambda row: round((row.diff_len / row.total_length)*100,1), axis=1)
+    paths_gdf['diff_55_dB'] = [exps.get_th_exp_diff(65, th_noises, s_th_noises) for th_noises in paths_gdf['th_noises']]
+    paths_gdf['diff_60_dB'] = [exps.get_th_exp_diff(60, th_noises, s_th_noises) for th_noises in paths_gdf['th_noises']]
+    paths_gdf['diff_65_dB'] = [exps.get_th_exp_diff(65, th_noises, s_th_noises) for th_noises in paths_gdf['th_noises']]
+    paths_gdf['diff_70_dB'] = [exps.get_th_exp_diff(70, th_noises, s_th_noises) for th_noises in paths_gdf['th_noises']]
+    return paths_gdf

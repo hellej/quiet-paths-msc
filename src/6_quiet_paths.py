@@ -22,7 +22,7 @@ edge_dicts = nw.get_all_edge_dicts(graph_proj)
 edge_dicts[:2]
 
 #%% SET NOISE IMPEDANCES TO NETWORK
-nts = [0.1, 0.25, 0.5, 1, 1.5, 2]
+nts = [0.1, 0.15, 0.25, 0.5, 1, 1.5, 2, 4, 6]
 nw.set_graph_noise_costs(graph_proj, nts)
 # check added costs
 edge_dicts = nw.get_all_edge_dicts(graph_proj)
@@ -40,15 +40,17 @@ path_geom = nw.get_edge_geometries(graph_proj, shortest_path)
 path_list.append({**path_geom, **{'id': 'short_p','type': 'short', 'nt': 0}})
 
 #%% CALCULATE QUIET PATHS
-nts = [0.1, 0.25, 0.5, 1, 1.5, 2]
 for nt in nts:
     cost_attr = 'nc_'+str(nt)
     shortest_path = rt.get_shortest_path(graph_proj, path_params, cost_attr)
     path_geom = nw.get_edge_geometries(graph_proj, shortest_path)
     path_list.append({**path_geom, **{'id': 'q_'+str(nt), 'type': 'quiet', 'nt': nt}})
 
-#%% ADD NOISE EXPOSURES
+#%% GROUP SIMILAR PATHS
 paths_gdf = gpd.GeoDataFrame(path_list, crs=from_epsg(3879))
+paths_gdf = paths_gdf.drop_duplicates(subset=['type', 'total_length']).copy()
+
+#%% ADD NOISE EXPOSURES
 start_time = time.time()
 
 # paths_gdf = exps.add_noise_exposures_to_gdf(paths_gdf, 'id', noise_polys)
