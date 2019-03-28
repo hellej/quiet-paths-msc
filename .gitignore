@@ -8,3 +8,4 @@ src/.vscode
 src/batch_jobs/csc_examples
 src/batch_jobs/nw_noises_test/nw_noises.sh
 src/batch_jobs/nw_noises_test/templates.txt
+src/outputs/
