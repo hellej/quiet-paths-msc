@@ -66,7 +66,9 @@ paths_gdf
 path_comps = rt.get_short_quiet_paths_comparison(paths_gdf)
 path_comps
 
-#%%
+#%% EXPORT TO CSV
+path_comps[['id', 'nt', 'total_length','type', 'diff_len', 'diff_rat', 'diff_60_dB', 'diff_70_dB']].to_csv('outputs/quiet_paths.csv')
+#%% EXPORT TO GDF
 path_comps.to_file('outputs/quiet_paths.gpkg', layer='quiet_paths_t', driver="GPKG")
 
 #%%
