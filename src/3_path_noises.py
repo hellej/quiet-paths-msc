@@ -39,7 +39,7 @@ fig_time = exps.plot_exposure_times(exp_times)
 
 
 #%% EXTRACT NOISES FOR ALL SHORTEST PATHS
-shortest_paths = gpd.read_file('outputs/shortest_paths.gpkg', layer='shortest_paths_g')
+shortest_paths = gpd.read_file('outputs/shortest_paths.gpkg', layer='shortest_paths_undir')
 
 noise_lines_all = []
 noise_exps_dfs = []

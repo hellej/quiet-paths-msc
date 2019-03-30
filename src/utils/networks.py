@@ -87,28 +87,47 @@ def add_linking_edges_for_new_node(graph_proj, new_node, closest_point, edge):
     graph_proj.add_edge(new_node, node_to, geometry=link2, length=link2.length, osmid=attrs['osmid'], highway=attrs['highway'], access='yes') #, oneway=attrs['oneway'])
     graph_proj.add_edge(node_to, new_node, geometry=link2, length=link2.length, osmid=attrs['osmid'], highway=attrs['highway'], access='yes') #, oneway=attrs['oneway'])
 
+def get_shortest_edge(edges, length):
+    if (len(edges) == 1):
+        return edges[0]
+    s_edge = edges[0]
+    for edge_k in edges.keys():
+        if (edges[edge_k][length] < s_edge[length]):
+            s_edge = edges[edge_k]
+    return s_edge
+
+def get_edge_line_coords(graph, node_from, edge_d):
+    from_point = geom_utils.get_point_from_xy(graph.nodes[node_from])
+    edge_line = edge_d['geometry']
+    edge_coords = edge_line.coords
+    first_point = Point(edge_coords[0])
+    last_point = Point(edge_coords[len(edge_coords)-1])
+    if(from_point.distance(first_point) > from_point.distance(last_point)):
+        return edge_coords[::-1]
+    return edge_coords
+
 def get_edge_geometries(graph_proj, path):
-    edge_geoms = []
     edge_lengths = []
+    path_coords = []
     for idx in range(0, len(path)):
         if (idx == len(path)-1):
             break
         node_1 = path[idx]
         node_2 = path[idx+1]
-        edge_d = graph_proj[node_1][node_2][0]
-        # print('Path edge no.', idx, ':', edge_d)
+        edges = graph_proj[node_1][node_2]
+        edge_d = get_shortest_edge(edges, 'length')
         if ('geometry' in edge_d):
-            edge_geoms.append(edge_d['geometry'])
             edge_lengths.append(edge_d['length'])
+            edge_coords = get_edge_line_coords(graph_proj, node_1, edge_d)
         else:
-            # print('Create missing edge geom')
             edge_line = get_edge_geom_from_node_pair(graph_proj, node_1, node_2)
-            edge_geoms.append(edge_line)
             edge_lengths.append(edge_line.length)
+            edge_coords = edge_line.coords
+        path_coords += edge_coords
 
-    multi_line = MultiLineString(edge_geoms)
+    path_line = LineString(path_coords)
     total_length = round(sum(edge_lengths),2)
-    return { 'geometry': multi_line, 'total_length': total_length }
+    return { 'geometry': path_line, 'total_length': total_length }
 
 def get_all_edge_dicts(graph_proj):
     edge_dicts = []
