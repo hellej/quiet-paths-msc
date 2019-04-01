@@ -16,5 +16,9 @@ squeue -l -u hellejoo
 # CANCEL
 scancel 6594
 
+# CHECK CPU & MEMORY USAGE
+seff jobid
+seff 42195451
+
 # LOG OUT / EXIT:
 exit

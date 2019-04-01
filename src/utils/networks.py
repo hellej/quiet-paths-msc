@@ -23,17 +23,17 @@ def get_walk_network(extent_polygon):
     return graph_proj
 
 def delete_unused_edge_attrs(graph_proj):
+    save_attrs = ['uvkey', 'length', 'geometry', 'from', 'to', 'noises']
     for node_from in list(graph_proj.nodes):
         nodes_to = graph_proj[node_from]
         for node_to in nodes_to.keys():
             edges = graph_proj[node_from][node_to]
             for edge_k in edges.keys():
-                try:
-                    del graph_proj[node_from][node_to][edge_k]['oneway'] 
-                    del graph_proj[node_from][node_to][edge_k]['maxspeed'] 
-                    del graph_proj[node_from][node_to][edge_k]['name']
-                except Exception:
-                    pass
+                edge = graph_proj[node_from][node_to][edge_k]
+                edge_attrs = list(edge.keys())
+                for attr in edge_attrs:
+                    if (attr not in save_attrs):
+                        del edge[attr]
 
 def export_nodes_edges_to_files(graph_proj):
     nodes, edges = ox.graph_to_gdfs(graph_proj, nodes=True, edges=True, node_geometry=True, fill_edge_geometry=True)

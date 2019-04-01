@@ -36,28 +36,30 @@ def get_segment_noises_df(edge_dicts):
     return segment_noises
 
 # WITH POOL
-edge_set = edge_dicts[:400]
-edge_chunks = utils.get_list_chunks(edge_set, 100)
+edge_set = edge_dicts[:6000]
+edge_chunks = utils.get_list_chunks(edge_set, 400)
+
+pool = Pool(processes=15)
 start_time = time.time()
-
-pool = Pool(processes=4)
 segment_noise_dfs = pool.map(get_segment_noises_df, edge_chunks)
-
-time_elapsed = round(time.time() - start_time, 1)
-edge_time = round(time_elapsed/len(edge_set), 3)
-print('\n--- %s seconds ---' % (round(time_elapsed, 1)))
-print('--- %s seconds per edge ---' % (edge_time))
+print('Noises extracted.')
 
 # UPDATE NOISES TO GRAPH
 for segment_noises in segment_noise_dfs:
     nw.update_segment_noises(segment_noises, graph)
+print('Noises updated.')
 
 # EXPORT GRAPH
 ox.save_graphml(graph, filename='hel_u_g_n.graphml', folder='graphs', gephi=False)
-print('\ngraph with noises exported.')
+print('Graph with noises exported.')
 
 # SAVE GRAPH WITH ATTRIBUTE SUBSET
-graph_n = files.get_hel_noise_network()
-nw.delete_unused_edge_attrs(graph_n)
-ox.save_graphml(graph_n, filename='hel_u_g_n_s.graphml', folder='graphs', gephi=False)
-print('\ngraph with attribute subset exported.')
+nw.delete_unused_edge_attrs(graph)
+ox.save_graphml(graph, filename='hel_u_g_n_s.graphml', folder='graphs', gephi=False)
+print('Graph with attribute subset exported.')
+
+# PRINT TIMES
+time_elapsed = time.time() - start_time
+edge_time = round(time_elapsed/len(edge_set), 4)
+print('\n--- %s minutes ---' % (round(time_elapsed/60, 2)))
+print('--- %s seconds per edge ---' % (edge_time))
