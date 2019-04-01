@@ -210,7 +210,7 @@ def get_noise_cost(noises: 'noise dictionary', costs: 'cost dictionary', nt: 'no
     return round(noise_cost,2)
 
 def get_noise_costs(edge_gdf, nt: 'noise tolerance, float: 0.0-2.0'):
-    costs = { 50: 0.05, 55: 0.1, 60: 0.2, 65: 0.3, 70: 0.4, 75: 0.6 }
+    costs = { 50: 0.1, 55: 0.2, 60: 0.3, 65: 0.4, 70: 0.5, 75: 0.6 }
     edge_gdf['noise_cost'] = [get_noise_cost(noises, costs, nt) for noises in edge_gdf['noises']]
     edge_gdf['tot_cost'] = edge_gdf.apply(lambda row: round(row.length + row.noise_cost,2), axis=1)
     edge_gdf['cost_rat'] = edge_gdf.apply(lambda row: int(round((row.noise_cost/row.length)*100)), axis=1)
