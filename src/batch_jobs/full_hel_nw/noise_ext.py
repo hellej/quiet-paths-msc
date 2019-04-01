@@ -36,10 +36,10 @@ def get_segment_noises_df(edge_dicts):
     return segment_noises
 
 # WITH POOL
-edge_set = edge_dicts[:6000]
-edge_chunks = utils.get_list_chunks(edge_set, 400)
+edge_set = edge_dicts #[:9000]
+edge_chunks = utils.get_list_chunks(edge_set, 2000)
 
-pool = Pool(processes=15)
+pool = Pool(processes=24)
 start_time = time.time()
 segment_noise_dfs = pool.map(get_segment_noises_df, edge_chunks)
 print('Noises extracted.')

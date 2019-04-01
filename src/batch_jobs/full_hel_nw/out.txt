@@ -5,5 +5,5 @@ Noises updated.
 Graph with noises exported.
 Graph with attribute subset exported.
 
---- 5.16 minutes ---
---- 0.0516 seconds per edge ---
+--- 5.6 minutes ---
+--- 0.0373 seconds per edge ---
