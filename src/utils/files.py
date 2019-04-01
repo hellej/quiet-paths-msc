@@ -57,6 +57,10 @@ def get_hel_network():
     graph = ox.load_graphml('hel_u_g.graphml', folder='graphs')
     return graph
 
+def get_hel_noise_network():
+    graph = ox.load_graphml('hel_u_g_n.graphml', folder='graphs')
+    return graph
+
 def get_pois():
     pois = gpd.read_file('data/input/target_locations.geojson')
     pois = pois.to_crs(from_epsg(3879))
