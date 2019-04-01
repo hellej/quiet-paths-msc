@@ -6,6 +6,7 @@ import utils.networks as nw
 from fiona.crs import from_epsg
 
 bboxes = gpd.read_file('data/extents_grids.gpkg', layer='bboxes')
+hel = gpd.read_file('data/extents_grids.gpkg', layer='hel')
 
 def get_noise_polygons():
     noise_data = gpd.read_file('data/data.gpkg', layer='2017_alue_01_tieliikenne_L_Aeq_paiva')
@@ -28,6 +29,10 @@ def get_koskela_kumpula_box():
     bounds = poly.bounds
     return box(*bounds)
 
+def get_hel_poly():
+    poly = list(hel['geometry'])[0]
+    return poly
+
 def get_update_test_walk_line():
     walk_proj = gpd.read_file('data/input/test_walk_line.shp')
     walk_proj['length'] = [int(round(geom.length)) for geom in walk_proj['geometry']]
@@ -47,6 +52,10 @@ def get_noise_network_graph():
     graph_undir = ox.load_graphml('kumpula_u_g_n.graphml', folder='graphs')
     nw.delete_unused_edge_attrs(graph_undir)
     return graph_undir
+
+def get_hel_network():
+    graph = ox.load_graphml('hel_u_g.graphml', folder='graphs')
+    return graph
 
 def get_pois():
     pois = gpd.read_file('data/input/target_locations.geojson')

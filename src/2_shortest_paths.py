@@ -14,7 +14,6 @@ koskela_box = geom_utils.project_to_wgs(files.get_koskela_box())
 koskela_kumpula_box = geom_utils.project_to_wgs(files.get_koskela_kumpula_box())
 
 #%% GET NETWORK
-# graph_proj = nw.get_walk_network(koskela_kumpula_box)
 graph_proj = files.get_undirected_network_graph()
 
 #%% CALCULATE SHORTEST PATHS

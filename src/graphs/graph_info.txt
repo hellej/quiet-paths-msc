@@ -4,3 +4,4 @@ u/d = unidrected / directed
 g = missing edge geometries added
 n = noise exposures added (as edge attributes)
 t = test (only subset of the graph is processed)
+s = subset of the edge attributes
