@@ -56,15 +56,15 @@ def get_new_node_id(graph_proj):
     return  max(graph_nodes)+1
 
 def get_new_node_attrs(graph_proj, point):
-    attrs = {'id': get_new_node_id(graph_proj), 'highway': '', 'osmid': '', 'ref': ''}
+    new_node_id = get_new_node_id(graph_proj)
     wgs_point = geom_utils.project_to_wgs(point)
     geom_attrs = {**geom_utils.get_xy_from_geom(point), **geom_utils.get_lat_lon_from_geom(wgs_point)}
-    return { **attrs, **geom_attrs }
+    return { 'id': new_node_id, **geom_attrs }
 
 def add_new_node(graph_proj, point):
     attrs = get_new_node_attrs(graph_proj, point)
     print('Add new node with attrs:', attrs)
-    graph_proj.add_node(attrs['id'], highway='', osmid='', ref='', x=attrs['x'], y=attrs['y'], lon=attrs['lon'], lat=attrs['lat'])
+    graph_proj.add_node(attrs['id'], ref='', x=attrs['x'], y=attrs['y'], lon=attrs['lon'], lat=attrs['lat'])
     return attrs['id']
 
 def get_new_edge_attrs(graph_proj, old_edge):
@@ -82,10 +82,10 @@ def add_linking_edges_for_new_node(graph_proj, new_node, closest_point, edge):
     link2 = split_lines[0]
     attrs = get_new_edge_attrs(graph_proj, edge)
     print('Add linking edges for new node with attrs:', attrs)
-    graph_proj.add_edge(node_from, new_node, geometry=link1, length=link1.length, osmid=attrs['osmid'], highway=attrs['highway'], access='yes') #, oneway=attrs['oneway'])
-    graph_proj.add_edge(new_node, node_from, geometry=link1, length=link1.length, osmid=attrs['osmid'], highway=attrs['highway'], access='yes') #, oneway=attrs['oneway'])
-    graph_proj.add_edge(new_node, node_to, geometry=link2, length=link2.length, osmid=attrs['osmid'], highway=attrs['highway'], access='yes') #, oneway=attrs['oneway'])
-    graph_proj.add_edge(node_to, new_node, geometry=link2, length=link2.length, osmid=attrs['osmid'], highway=attrs['highway'], access='yes') #, oneway=attrs['oneway'])
+    graph_proj.add_edge(node_from, new_node, geometry=link1, length=link1.length, uvkey=(node_from, new_node, 0))
+    graph_proj.add_edge(new_node, node_from, geometry=link1, length=link1.length, uvkey=(new_node, node_from, 0))
+    graph_proj.add_edge(new_node, node_to, geometry=link2, length=link2.length, uvkey=(new_node, node_to, 0))
+    graph_proj.add_edge(node_to, new_node, geometry=link2, length=link2.length, uvkey=(node_to, new_node, 0))
 
 def get_shortest_edge(edges, length):
     if (len(edges) == 1):
