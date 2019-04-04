@@ -8,7 +8,7 @@ import utils.times as times
 import utils.utils as utils
 
 # routing params for Digitransit API
-walkSpeed = '1.33'
+walkSpeed = '1.16666'
 maxWalkDistance = 6000
 datetime = times.get_next_weekday_datetime(8, 30)
 

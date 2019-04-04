@@ -6,6 +6,8 @@ import utils.exposures as exps
 import utils.utils as utils
 import utils.files as files
 
+walkspeed = 1.16666
+
 #%% read traffic noise polygons
 noise_polys = files.get_noise_polygons()
 
@@ -28,7 +30,7 @@ noise_lines.to_file('outputs/path_noises.gpkg', layer='noise_lines_test', driver
 
 #%% AGGREGATE CUMULATIVE EXPOSURES
 exp_lens = exps.get_exposures(noise_lines)
-exp_times = exps.get_exposure_times(exp_lens, 1.33, True)
+exp_times = exps.get_exposure_times(exp_lens, walkspeed, True)
 exp_lens
 
 #%% PLOT CUMULATIVE EXPOSURES
