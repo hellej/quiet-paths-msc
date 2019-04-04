@@ -6,6 +6,9 @@ from shapely.ops import split, snap, transform
 from functools import partial
 from fiona.crs import from_epsg
 
+def get_etrs_crs():
+    return from_epsg(3879)
+
 def get_lat_lon_from_geom(geom):
     return {'lat': geom.y, 'lon': geom.x }
 

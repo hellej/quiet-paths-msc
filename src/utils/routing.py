@@ -1,4 +1,5 @@
 import pandas as pd
+import geopandas as gpd
 import osmnx as ox
 import networkx as nx
 from shapely.geometry import Point, LineString, MultiLineString, box
@@ -46,7 +47,6 @@ def join_dt_path_attributes(s_paths_g_gdf, dt_paths):
     merged = pd.merge(s_paths_g_gdf, dt_paths_join, how='inner', on='uniq_id')
     return merged
 
-
 def get_short_quiet_paths_comparison(paths_gdf):
     shortest_p = paths_gdf.loc[paths_gdf['type'] == 'short'].squeeze()
     s_len = shortest_p.get('total_length')
@@ -58,3 +58,17 @@ def get_short_quiet_paths_comparison(paths_gdf):
     paths_gdf['diff_65_dB'] = [exps.get_th_exp_diff(65, th_noises, s_th_noises) for th_noises in paths_gdf['th_noises']]
     paths_gdf['diff_70_dB'] = [exps.get_th_exp_diff(70, th_noises, s_th_noises) for th_noises in paths_gdf['th_noises']]
     return paths_gdf
+
+def aggregate_quiet_paths(paths_gdf):
+    grouped = paths_gdf.groupby(['type', 'total_length'])
+    gdfs = []
+    for key, group in grouped:
+        max_nt = group['nt'].max()
+        min_nt = group['nt'].min()
+        g_row = dict(group.iloc[0])
+        g_row['min_nt'] = min_nt
+        g_row['max_nt'] = max_nt
+        g_row.pop('nt', None)
+        gdfs.append(g_row)
+    g_gdf = gpd.GeoDataFrame(gdfs, crs=geom_utils.get_etrs_crs())
+    return g_gdf
