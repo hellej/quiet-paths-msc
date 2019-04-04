@@ -1,6 +1,7 @@
 #%%
 import pandas as pd
 import geopandas as gpd
+import osmnx as ox
 import utils.files as files
 import utils.routing as rt
 import utils.geometry as geom_utils
@@ -12,7 +13,7 @@ import time
 
 #%% READ DATA
 noise_polys = files.get_noise_polygons()
-graph_proj = files.get_noise_network_graph()
+graph_proj = files.get_hel_noise_network()
 pois = files.get_pois()
 koskela = pois.loc[pois['name'] == 'Koskela']
 kumpula = pois.loc[pois['name'] == 'Kumpulan kampus']
@@ -23,10 +24,12 @@ edge_dicts[:2]
 
 #%% SET NOISE IMPEDANCES TO NETWORK
 nts = [0.1, 0.15, 0.25, 0.5, 1, 1.5, 2, 4, 6]
-nw.set_graph_noise_costs(graph_proj, nts)
+# nw.set_graph_noise_costs(graph_proj, nts)
 # check added costs
-edge_dicts = nw.get_all_edge_dicts(graph_proj)
-edge_dicts[:3]
+# edge_dicts = nw.get_all_edge_dicts(graph_proj)
+# edge_dicts[:3]
+#%%
+# ox.save_graphml(graph_proj, filename='hel_u_g_n_s_c.graphml', folder='graphs', gephi=False)
 
 #%% GET ROUTING PARAMS
 path_list = []

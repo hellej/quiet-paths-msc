@@ -58,7 +58,7 @@ def get_hel_network():
     return graph
 
 def get_hel_noise_network():
-    graph = ox.load_graphml('hel_u_g_n.graphml', folder='graphs')
+    graph = ox.load_graphml('hel_u_g_n_s_c.graphml', folder='graphs')
     return graph
 
 def get_pois():
