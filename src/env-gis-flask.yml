@@ -1,0 +1,22 @@
+name: gis
+
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.6
+  - jupyterlab
+  - pylint
+  - pytest
+  - geopandas
+  - osmnx
+  - gdal
+  - geoplot
+  - pysal
+  - flask
+  - flask-testing
+  - requests
+  - pip
+  - pip:
+    - pycrs
+    - polyline
