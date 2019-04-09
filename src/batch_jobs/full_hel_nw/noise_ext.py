@@ -22,8 +22,8 @@ edge_dicts = nw.get_all_edge_dicts(graph)
 edge_count = len(edge_dicts)
 print('Edges in the graph:', edge_count)
 
-# FUNCTION FOR EXTRACTING NOISES TO SEGMENTS QUICKLY
-def get_segment_noises_df(edge_dicts):
+# FUNCTION FOR EXTRACTING NOISES TO EDGES QUICKLY
+def get_edge_noises_df(edge_dicts):
     edge_gdf_sub = nw.get_edge_gdf(edge_dicts, ['geometry', 'length', 'uvkey'])
     # add noise split lines as list
     edge_gdf_sub['split_lines'] = [geom_utils.get_split_lines_list(line_geom, noise_polys) for line_geom in edge_gdf_sub['geometry']]
@@ -31,9 +31,9 @@ def get_segment_noises_df(edge_dicts):
     split_lines = geom_utils.explode_lines_to_split_lines(edge_gdf_sub, 'uvkey')
     # join noises to split lines
     split_line_noises = exps.get_noise_attrs_to_split_lines(split_lines, noise_polys)
-    # aggregate noises back to segments
-    segment_noises = exps.aggregate_line_noises(split_line_noises, 'uvkey')
-    return segment_noises
+    # aggregate noises back to edges
+    edge_noises = exps.aggregate_line_noises(split_line_noises, 'uvkey')
+    return edge_noises
 
 # WITH POOL
 edge_set = edge_dicts #[:9000]
@@ -41,12 +41,12 @@ edge_chunks = utils.get_list_chunks(edge_set, 2000)
 
 pool = Pool(processes=24)
 start_time = time.time()
-segment_noise_dfs = pool.map(get_segment_noises_df, edge_chunks)
+edge_noise_dfs = pool.map(get_edge_noises_df, edge_chunks)
 print('Noises extracted.')
 
 # UPDATE NOISES TO GRAPH
-for segment_noises in segment_noise_dfs:
-    nw.update_segment_noises(segment_noises, graph)
+for edge_noises in edge_noise_dfs:
+    nw.update_edge_noises(edge_noises, graph)
 print('Noises updated.')
 
 # EXPORT GRAPH

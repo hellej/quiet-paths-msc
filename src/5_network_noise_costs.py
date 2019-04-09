@@ -19,7 +19,7 @@ noise_polys = files.get_noise_polygons()
 
 #%% READ NETWORK
 # graph_proj = nw.get_walk_network(koskela_kumpula_box)
-graph_proj = files.get_undirected_network_graph()
+graph_proj = files.get_kumpula_network()
 node_count = len(graph_proj)
 print('Nodes in the graph:', node_count)
 # get all edges as list of dicts
@@ -105,8 +105,8 @@ edge_dicts = nw.get_all_edge_dicts(graph_proj)
 edge_dicts[:3]
 
 
-#%% FUNCTION FOR EXTRACTING NOISES TO SEGMENTS QUICKLY
-def get_segment_noises_df(edge_dicts):
+#%% FUNCTION FOR EXTRACTING NOISES TO EDGES QUICKLY
+def get_edge_noises_df(edge_dicts):
     edge_gdf_sub = nw.get_edge_gdf(edge_dicts, ['geometry', 'length', 'uvkey'])
     # add noise split lines as list
     edge_gdf_sub['split_lines'] = [geom_utils.get_split_lines_list(line_geom, noise_polys) for line_geom in edge_gdf_sub['geometry']]
@@ -114,19 +114,19 @@ def get_segment_noises_df(edge_dicts):
     split_lines = geom_utils.explode_lines_to_split_lines(edge_gdf_sub, 'uvkey')
     # join noises to split lines
     split_line_noises = exps.get_noise_attrs_to_split_lines(split_lines, noise_polys)
-    # aggregate noises back to segments
-    segment_noises = exps.aggregate_line_noises(split_line_noises, 'uvkey')
-    return segment_noises
+    # aggregate noises back to edges
+    edge_noises = exps.aggregate_line_noises(split_line_noises, 'uvkey')
+    return edge_noises
 
 #%% WITHOUT POOL
 start_time = time.time()
-segment_noises = get_segment_noises_df(edge_dicts[:200])
+edge_noises = get_edge_noises_df(edge_dicts[:200])
 
 time_elapsed = round(time.time() - start_time, 1)
 edge_time = round(time_elapsed/200, 3)
 print('\n--- %s seconds ---' % (round(time_elapsed, 1)))
 print('--- %s seconds per edge ---' % (edge_time))
-segment_noises.head()
+edge_noises.head()
 
 #%% WITH POOL
 edge_set = edge_dicts[:400]
@@ -134,7 +134,7 @@ edge_chunks = utils.get_list_chunks(edge_set, 100)
 start_time = time.time()
 
 pool = Pool(processes=4)
-segment_noise_dfs = pool.map(get_segment_noises_df, edge_chunks)
+edge_noise_dfs = pool.map(get_edge_noises_df, edge_chunks)
 
 time_elapsed = round(time.time() - start_time, 1)
 edge_time = round(time_elapsed/len(edge_set), 3)
@@ -142,8 +142,8 @@ print('\n--- %s seconds ---' % (round(time_elapsed, 1)))
 print('--- %s seconds per edge ---' % (edge_time))
 
 #%% UPDATE NOISES TO GRAPH
-for segment_noises in segment_noise_dfs:
-    nw.update_segment_noises(segment_noises, graph_proj)
+for edge_noises in edge_noise_dfs:
+    nw.update_edge_noises(edge_noises, graph_proj)
 
 #%% EDGE GDFS FROM GRAPH
 edge_dicts = nw.get_all_edge_dicts(graph_proj)

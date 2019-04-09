@@ -198,11 +198,11 @@ def get_edge_gdf(edge_dicts, cols):
         edge_gdf['noises'] = [ast.literal_eval(noises) if type(noises) == str else noises for noises in edge_gdf['noises']]
     return edge_gdf[cols]
 
-def update_segment_noises(edge_gdf, graph_proj):
+def update_edge_noises(edge_gdf, graph_proj):
     for edge in edge_gdf.itertuples():
         nx.set_edge_attributes(graph_proj, { getattr(edge, 'uvkey'): { 'noises': getattr(edge, 'noises')}})
 
-def update_segment_costs(edge_gdf, graph_proj, nt):
+def update_edge_costs(edge_gdf, graph_proj, nt):
     cost_attr = 'nc_'+str(nt)
     for edge in edge_gdf.itertuples():
         nx.set_edge_attributes(graph_proj, { getattr(edge, 'uvkey'): { cost_attr: getattr(edge, 'tot_cost')}}) 
@@ -226,4 +226,4 @@ def set_graph_noise_costs(graph_proj, nts: 'list of noise tolerances, float: 0.0
     edge_gdf = get_edge_gdf(edge_dicts, ['uvkey', 'geometry', 'length', 'noises'])
     for nt in nts:
         edge_n_costs = get_noise_costs(edge_gdf, nt)
-        update_segment_costs(edge_n_costs, graph_proj, nt)
+        update_edge_costs(edge_n_costs, graph_proj, nt)

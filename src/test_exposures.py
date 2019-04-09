@@ -54,15 +54,15 @@ def test_get_edge_dicts():
     edge_d = edge_dicts[0]
     assert (len(edge_dicts), edge_d['length'], type(edge_d['geometry'])) == (23471, 127.051, LineString)
 
-def test_add_exposures_to_segments():
+def test_add_exposures_to_edges():
     graph_proj = files.get_network_graph()
     edge_dicts = nw.get_all_edge_dicts(graph_proj)
     edge_gdf = nw.get_edge_gdf(edge_dicts[:5], ['geometry', 'length', 'uvkey'])
     edge_gdf['split_lines'] = [geom_utils.get_split_lines_list(line_geom, noise_polys) for line_geom in edge_gdf['geometry']]
     split_lines = geom_utils.explode_lines_to_split_lines(edge_gdf, 'uvkey')
     split_line_noises = exps.get_noise_attrs_to_split_lines(split_lines, noise_polys)
-    segment_noises = exps.aggregate_line_noises(split_line_noises, 'uvkey')
-    nw.update_segment_noises(segment_noises, graph_proj)
+    edge_noises = exps.aggregate_line_noises(split_line_noises, 'uvkey')
+    nw.update_edge_noises(edge_noises, graph_proj)
     edge_dicts = nw.get_all_edge_dicts(graph_proj)
     edge_d = edge_dicts[0]
     print(edge_d)
