@@ -9,12 +9,15 @@ import utils.routing as rt
 import utils.files as files
 import utils.networks as nw
 
-#%% GET BOUNDING BOX POLYGONS
-koskela_box = geom_utils.project_to_wgs(files.get_koskela_box())
-koskela_kumpula_box = geom_utils.project_to_wgs(files.get_koskela_kumpula_box())
+#%% READ GRAPH
+graph_proj = files.get_kumpula_noise_network()
 
-#%% GET NETWORK
-graph_proj = files.get_undirected_network_graph()
+#%% GET GRAPH GDFS
+edge_dicts = nw.get_all_edge_dicts(graph_proj)
+edge_gdf = nw.get_edge_gdf(edge_dicts, ['uvkey', 'geometry'])
+node_gdf = nw.get_node_gdf(graph_proj)
+edges_sind = edge_gdf.sindex
+nodes_sind = node_gdf.sindex
 
 #%% CALCULATE SHORTEST PATHS
 dt_paths = gpd.read_file('outputs/DT_output_test.gpkg', layer='paths_g', driver="GPKG")
@@ -26,8 +29,10 @@ for idx, row in dt_paths.iterrows():
     #     break
     from_xy = ast.literal_eval(row['from_xy'])
     to_xy = ast.literal_eval(row['to_xy'])
-    path_params = rt.get_shortest_path_params(graph_proj, from_xy, to_xy)
-    shortest_path = rt.get_shortest_path(graph_proj, path_params, 'length')
+
+    orig_node = rt.get_nearest_node(graph_proj, from_xy, edge_gdf, edges_sind, node_gdf, nodes_sind)
+    target_node = rt.get_nearest_node(graph_proj, to_xy, edge_gdf, edges_sind, node_gdf, nodes_sind)
+    shortest_path = rt.get_shortest_path(graph_proj, orig_node, target_node, 'length')
     if (shortest_path != None):
         s_path = {'uniq_id': row['uniq_id'], 'from_id': row['from_id'], 'path': shortest_path}
         print('Found path no.', idx, ':', s_path)

@@ -2,39 +2,61 @@ import pandas as pd
 import geopandas as gpd
 import osmnx as ox
 import networkx as nx
+import time
 from shapely.geometry import Point, LineString, MultiLineString, box
 import utils.networks as nw
 import utils.geometry as geom_utils
 import utils.exposures as exps
+import utils.utils as utils
+from shapely.ops import nearest_points
 
-def get_nearest_node(graph_proj, coords):
+def find_nearest_edge(xy, edge_gdf, edges_sind):
+    start_time = time.time()
+    point_geom = geom_utils.get_point_from_xy(xy)
+    possible_matches_index = list(edges_sind.intersection(point_geom.buffer(100).bounds))
+    possible_matches = edge_gdf.iloc[possible_matches_index].copy()
+    possible_matches['distance'] = [geom.distance(point_geom) for geom in possible_matches['geometry']]
+    shortest_dist = possible_matches['distance'].min()
+    nearest = possible_matches['distance'] == shortest_dist
+    nearest_edges =  possible_matches.loc[nearest]
+    nearest_edge = nearest_edges.iloc[0]
+    nearest_edge_dict = nearest_edge.to_dict()
+    utils.print_duration(start_time, 'found nearest edge')
+    return nearest_edge_dict
+
+def find_nearest_node(xy, node_gdf, nodes_sind):
+    start_time = time.time()
+    point_geom = geom_utils.get_point_from_xy(xy)
+    possible_matches_index = list(nodes_sind.intersection(point_geom.buffer(700).bounds))
+    possible_matches = node_gdf.iloc[possible_matches_index]
+    points_union = possible_matches.geometry.unary_union
+    nearest_geom = nearest_points(point_geom, points_union)[1]
+    nearest = possible_matches.geometry.geom_equals(nearest_geom)
+    nearest_point =  possible_matches.loc[nearest]
+    nearest_node = nearest_point.index.tolist()[0]
+    utils.print_duration(start_time, 'found nearest node')
+    return nearest_node
+
+def get_nearest_node(graph_proj, xy, edge_gdf, edges_sind, node_gdf, nodes_sind):
+    coords = geom_utils.get_coords_from_xy(xy)
     point = Point(coords)
-    edge = ox.get_nearest_edge(graph_proj, coords[::-1])
-    edge_geom = edge[0]
-    point_edge_distance = point.distance(edge_geom)
-    nearest_node = ox.get_nearest_node(graph_proj, coords[::-1], method='euclidean')
+    near_edge = find_nearest_edge(xy, edge_gdf, edges_sind)
+    edge_geom = near_edge['geometry']
+    point_edge_distance = near_edge['distance']
+    nearest_node = find_nearest_node(xy, node_gdf, nodes_sind)
     nearest_node_geom = geom_utils.get_point_from_xy(graph_proj.nodes[nearest_node])
     point_node_distance = point.distance(nearest_node_geom)
     if (point_node_distance - point_edge_distance > 5):
         # create a new node on the nearest edge nearest to the origin
         closest_line_point = geom_utils.get_closest_point_on_line(edge_geom, point)
         new_node = nw.add_new_node(graph_proj, closest_line_point)
-        nw.add_linking_edges_for_new_node(graph_proj, new_node, closest_line_point, edge)
+        nw.add_linking_edges_for_new_node(graph_proj, new_node, closest_line_point, near_edge)
         return new_node
     else:
-        print('Nearby node exists')
+        print('Nearby node exists:', nearest_node)
         return nearest_node
 
-def get_shortest_path_params(graph_proj, from_xy, to_xy):
-    from_coords = geom_utils.get_coords_from_xy(from_xy)
-    to_coords = geom_utils.get_coords_from_xy(to_xy)
-    orig_node = get_nearest_node(graph_proj, from_coords)
-    target_node = get_nearest_node(graph_proj, to_coords)
-    return {'orig_node': orig_node, 'target_node':target_node}
-
-def get_shortest_path(graph_proj, path_params: dict, weight: str):
-    orig_node = path_params['orig_node']
-    target_node = path_params['target_node']
+def get_shortest_path(graph_proj, orig_node, target_node, weight: str):
     if (orig_node != target_node):
         s_path = nx.shortest_path(G=graph_proj, source=orig_node, target=target_node, weight=weight)
         return s_path

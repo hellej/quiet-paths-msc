@@ -67,37 +67,38 @@ def get_new_node_attrs(graph_proj, point):
 
 def add_new_node(graph_proj, point):
     attrs = get_new_node_attrs(graph_proj, point)
-    print('Add new node with attrs:', attrs)
+    print('add new node:', attrs['id'])
     graph_proj.add_node(attrs['id'], ref='', x=attrs['x'], y=attrs['y'], lon=attrs['lon'], lat=attrs['lat'])
     return attrs['id']
 
-def get_new_edge_attrs(graph_proj, old_edge):
-    attrs = graph_proj[old_edge[1]][old_edge[2]][0]
-    return attrs
-
 def add_linking_edges_for_new_node(graph_proj, new_node, closest_point, edge):
-    edge_geom = edge[0]
-    node_from = edge[1]
-    node_to = edge[2]
+    edge_geom = edge['geometry']
     split_lines = geom_utils.split_line_at_point(edge_geom, closest_point)
-    print('Edge geom splitted to', len(split_lines), 'lines')
-    # for directed graphs, swap these two:
-    link1 = split_lines[1]
-    link2 = split_lines[0]
-    attrs = get_new_edge_attrs(graph_proj, edge)
-    print('Add linking edges for new node with attrs:', attrs)
+    node_from = edge['uvkey'][0]
+    node_to = edge['uvkey'][1]
+    node_from_p = get_node_geom(graph_proj, node_from)
+    node_to_p = get_node_geom(graph_proj, node_to)
+    edge_first_p = Point(edge_geom.coords[0])
+    if(edge_first_p.distance(node_from_p) < edge_first_p.distance(node_to_p)):
+        link1 = split_lines[0]
+        link2 = split_lines[1]
+    else:
+        link1 = split_lines[1]
+        link2 = split_lines[0]
+    print('add linking edges between:', node_from, new_node, node_to)
     graph_proj.add_edge(node_from, new_node, geometry=link1, length=link1.length, uvkey=(node_from, new_node, 0))
     graph_proj.add_edge(new_node, node_from, geometry=link1, length=link1.length, uvkey=(new_node, node_from, 0))
     graph_proj.add_edge(new_node, node_to, geometry=link2, length=link2.length, uvkey=(new_node, node_to, 0))
     graph_proj.add_edge(node_to, new_node, geometry=link2, length=link2.length, uvkey=(node_to, new_node, 0))
 
-def get_shortest_edge(edges, length):
+def get_shortest_edge(edges, weight):
     if (len(edges) == 1):
         return edges[0]
     s_edge = edges[0]
     for edge_k in edges.keys():
-        if (edges[edge_k][length] < s_edge[length]):
-            s_edge = edges[edge_k]
+        if (weight in edges[edge_k].keys() and weight in s_edge.keys()):
+            if (edges[edge_k][weight] < s_edge[weight]):
+                s_edge = edges[edge_k]
     return s_edge
 
 def get_edge_line_coords(graph, node_from, edge_d):
@@ -110,7 +111,7 @@ def get_edge_line_coords(graph, node_from, edge_d):
         return edge_coords[::-1]
     return edge_coords
 
-def get_edge_geometries(graph_proj, path):
+def get_edge_geometries(graph_proj, path, weight):
     edge_lengths = []
     path_coords = []
     for idx in range(0, len(path)):
@@ -119,7 +120,7 @@ def get_edge_geometries(graph_proj, path):
         node_1 = path[idx]
         node_2 = path[idx+1]
         edges = graph_proj[node_1][node_2]
-        edge_d = get_shortest_edge(edges, 'length')
+        edge_d = get_shortest_edge(edges, weight)
         if ('geometry' in edge_d):
             edge_lengths.append(edge_d['length'])
             edge_coords = get_edge_line_coords(graph_proj, node_1, edge_d)
