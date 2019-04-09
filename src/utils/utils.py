@@ -1,5 +1,6 @@
 import pandas as pd
 import geopandas as gpd
+import time
 from time import sleep
 import sys
 
@@ -22,3 +23,7 @@ def get_list_chunks(l, n):
     for i in range(0, len(l), n):
         chunks.append(l[i:i + n])
     return chunks
+
+def print_duration(time1, text):
+    time_elapsed = round(time.time() - time1, 3)
+    print('--- %s s --- %s' % (time_elapsed, text))

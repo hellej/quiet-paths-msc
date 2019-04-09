@@ -40,25 +40,25 @@ def get_update_test_walk_line():
     # walk_proj.to_file('data/input/test_walk_line.shp')
     return walk_proj
 
-def get_network_graph():
+def get_kumpula_network_dir():
     graph_proj = ox.load_graphml('kumpula_g.graphml', folder='graphs')
     return graph_proj
 
-def get_undirected_network_graph():
+def get_kumpula_network():
     graph_undir = ox.load_graphml('kumpula_u_g.graphml', folder='graphs')
     return graph_undir
 
-def get_noise_network_graph():
+def get_kumpula_noise_network():
     graph_undir = ox.load_graphml('kumpula_u_g_n.graphml', folder='graphs')
     nw.delete_unused_edge_attrs(graph_undir)
     return graph_undir
 
-def get_hel_network():
+def get_full_network():
     graph = ox.load_graphml('hel_u_g.graphml', folder='graphs')
     return graph
 
-def get_hel_noise_network():
-    graph = ox.load_graphml('hel_u_g_n_s_c.graphml', folder='graphs')
+def get_full_noise_network():
+    graph = ox.load_graphml('hel_u_g_n_s.graphml', folder='graphs')
     return graph
 
 def get_pois():

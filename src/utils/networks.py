@@ -41,6 +41,10 @@ def export_nodes_edges_to_files(graph_proj):
     edges.to_file('data/networks.gpkg', layer='koskela_edges', driver="GPKG")
     nodes.to_file('data/networks.gpkg', layer='koskela_nodes', driver="GPKG")
 
+def get_node_gdf(graph_proj):
+    node_gdf = ox.graph_to_gdfs(graph_proj, nodes=True, edges=False, node_geometry=True, fill_edge_geometry=False)
+    return node_gdf[['geometry']]
+
 def get_node_geom(graph_proj, node):
     node_d = graph_proj.node[node]
     return Point(node_d['x'], node_d['y'])
