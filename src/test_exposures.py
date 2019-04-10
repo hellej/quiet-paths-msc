@@ -49,13 +49,13 @@ def test_get_exposure_lines():
     assert (mean_noise, min_noise, max_noise) == (59.5, 40.0, 75.0)
 
 def test_get_edge_dicts():
-    graph_proj = files.get_network_graph()
+    graph_proj = files.get_kumpula_network()
     edge_dicts = nw.get_all_edge_dicts(graph_proj)
     edge_d = edge_dicts[0]
-    assert (len(edge_dicts), edge_d['length'], type(edge_d['geometry'])) == (23471, 127.051, LineString)
+    assert (len(edge_dicts), edge_d['length'], type(edge_d['geometry'])) == (24159, 127.051, LineString)
 
 def test_add_exposures_to_edges():
-    graph_proj = files.get_network_graph()
+    graph_proj = files.get_kumpula_network()
     edge_dicts = nw.get_all_edge_dicts(graph_proj)
     edge_gdf = nw.get_edge_gdf(edge_dicts[:5], ['geometry', 'length', 'uvkey'])
     edge_gdf['split_lines'] = [geom_utils.get_split_lines_list(line_geom, noise_polys) for line_geom in edge_gdf['geometry']]
@@ -70,13 +70,17 @@ def test_add_exposures_to_edges():
     assert (edge_d['noises'], round(exp_len_sum,1)) == ({65: 107.025, 70: 20.027}, round(edge_d['length'],1))
 
 def test_shortest_path():
-    graph_proj = files.get_undirected_network_graph()
+    graph_proj = files.get_kumpula_network()
+    edge_dicts = nw.get_all_edge_dicts(graph_proj)
+    edge_gdf = nw.get_edge_gdf(edge_dicts, ['uvkey', 'geometry'])
+    node_gdf = nw.get_node_gdf(graph_proj)
     pois = files.get_pois()
     koskela = pois.loc[pois['name'] == 'Koskela']
     kumpula = pois.loc[pois['name'] == 'Kumpulan kampus']
     from_xy = geom_utils.get_xy_from_geom(list(koskela['geometry'])[0])
     to_xy = geom_utils.get_xy_from_geom(list(kumpula['geometry'])[0])
-    path_params = rt.get_shortest_path_params(graph_proj, from_xy, to_xy)
-    shortest_path = rt.get_shortest_path(graph_proj, path_params, 'length')
-    path_geom = nw.get_edge_geometries(graph_proj, shortest_path)
+    orig_node = rt.get_nearest_node(graph_proj, from_xy, edge_gdf, node_gdf, [])
+    target_node = rt.get_nearest_node(graph_proj, to_xy, edge_gdf, node_gdf, [])
+    shortest_path = rt.get_shortest_path(graph_proj, orig_node, target_node, 'length')
+    path_geom = nw.get_edge_geometries(graph_proj, shortest_path, 'length')
     assert (len(shortest_path), path_geom['total_length']) == (45, 1764.38)
