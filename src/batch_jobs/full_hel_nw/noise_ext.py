@@ -15,7 +15,7 @@ import utils.utils as utils
 noise_polys = files.get_noise_polygons()
 
 # READ NETWORK
-graph = files.get_hel_network()
+graph = files.get_full_network()
 print('Nodes in the graph:', len(graph))
 # get all edges as list of dicts
 edge_dicts = nw.get_all_edge_dicts(graph)

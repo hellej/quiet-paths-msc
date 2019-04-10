@@ -13,7 +13,7 @@ import utils.utils as utils
 
 # READ DATA
 noise_polys = files.get_noise_polygons()
-graph_proj = files.get_undirected_network_graph()
+graph_proj = files.get_kumpula_network()
 node_count = len(graph_proj)
 print('Nodes in the graph:', node_count)
 # get all edges as list of dicts

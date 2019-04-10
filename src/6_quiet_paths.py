@@ -22,12 +22,12 @@ kumpula = pois.loc[pois['name'] == 'Kumpulan kampus']
 #%% SET NOISE IMPEDANCES TO GRAPH
 nts = [0.1, 0.15, 0.25, 0.5, 1, 1.5, 2, 4, 6]
 nw.set_graph_noise_costs(graph_proj, nts)
+
 #%% GET GRAPH GDFS
 edge_dicts = nw.get_all_edge_dicts(graph_proj)
 edge_gdf = nw.get_edge_gdf(edge_dicts, ['uvkey', 'geometry'])
-edges_sind = edge_gdf.sindex
 node_gdf = nw.get_node_gdf(graph_proj)
-nodes_sind = node_gdf.sindex
+edge_dicts[:2]
 
 #%% GET ROUTING PARAMS
 path_list = []
@@ -35,8 +35,8 @@ from_xy = geom_utils.get_xy_from_geom(list(koskela['geometry'])[0])
 to_xy = geom_utils.get_xy_from_geom(list(kumpula['geometry'])[0])
 
 start_time = time.time()
-orig_node = rt.get_nearest_node(graph_proj, from_xy, edge_gdf, edges_sind, node_gdf, nodes_sind)
-target_node = rt.get_nearest_node(graph_proj, to_xy, edge_gdf, edges_sind, node_gdf, nodes_sind)
+orig_node = rt.get_nearest_node(graph_proj, from_xy, edge_gdf, node_gdf, nts)
+target_node = rt.get_nearest_node(graph_proj, to_xy, edge_gdf, node_gdf, nts)
 utils.print_duration(start_time, 'get all routing params')
 
 #%% SHORTEST PATH

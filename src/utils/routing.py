@@ -10,8 +10,9 @@ import utils.exposures as exps
 import utils.utils as utils
 from shapely.ops import nearest_points
 
-def find_nearest_edge(xy, edge_gdf, edges_sind):
+def find_nearest_edge(xy, edge_gdf):
     start_time = time.time()
+    edges_sind = edge_gdf.sindex
     point_geom = geom_utils.get_point_from_xy(xy)
     possible_matches_index = list(edges_sind.intersection(point_geom.buffer(100).bounds))
     possible_matches = edge_gdf.iloc[possible_matches_index].copy()
@@ -24,8 +25,9 @@ def find_nearest_edge(xy, edge_gdf, edges_sind):
     utils.print_duration(start_time, 'found nearest edge')
     return nearest_edge_dict
 
-def find_nearest_node(xy, node_gdf, nodes_sind):
+def find_nearest_node(xy, node_gdf):
     start_time = time.time()
+    nodes_sind = node_gdf.sindex
     point_geom = geom_utils.get_point_from_xy(xy)
     possible_matches_index = list(nodes_sind.intersection(point_geom.buffer(700).bounds))
     possible_matches = node_gdf.iloc[possible_matches_index]
@@ -37,20 +39,20 @@ def find_nearest_node(xy, node_gdf, nodes_sind):
     utils.print_duration(start_time, 'found nearest node')
     return nearest_node
 
-def get_nearest_node(graph_proj, xy, edge_gdf, edges_sind, node_gdf, nodes_sind):
+def get_nearest_node(graph_proj, xy, edge_gdf, node_gdf, nts):
     coords = geom_utils.get_coords_from_xy(xy)
     point = Point(coords)
-    near_edge = find_nearest_edge(xy, edge_gdf, edges_sind)
+    near_edge = find_nearest_edge(xy, edge_gdf)
     edge_geom = near_edge['geometry']
     point_edge_distance = near_edge['distance']
-    nearest_node = find_nearest_node(xy, node_gdf, nodes_sind)
+    nearest_node = find_nearest_node(xy, node_gdf)
     nearest_node_geom = geom_utils.get_point_from_xy(graph_proj.nodes[nearest_node])
     point_node_distance = point.distance(nearest_node_geom)
     if (point_node_distance - point_edge_distance > 5):
         # create a new node on the nearest edge nearest to the origin
         closest_line_point = geom_utils.get_closest_point_on_line(edge_geom, point)
         new_node = nw.add_new_node(graph_proj, closest_line_point)
-        nw.add_linking_edges_for_new_node(graph_proj, new_node, closest_line_point, near_edge)
+        nw.add_linking_edges_for_new_node(graph_proj, new_node, closest_line_point, near_edge, nts)
         return new_node
     else:
         print('Nearby node exists:', nearest_node)
