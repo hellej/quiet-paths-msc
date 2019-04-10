@@ -1,6 +1,5 @@
 #%% IMPORT MODULES FOR NETWORK CONSTRUCTION
 import pandas as pd
-import geopandas as gpd
 import osmnx as ox
 import networkx as nx
 from multiprocessing import current_process, Pool
