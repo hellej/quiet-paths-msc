@@ -71,7 +71,14 @@ def add_new_node(graph_proj, point):
     graph_proj.add_node(attrs['id'], ref='', x=attrs['x'], y=attrs['y'], lon=attrs['lon'], lat=attrs['lat'])
     return attrs['id']
 
-def add_linking_edges_for_new_node(graph_proj, new_node, closest_point, edge):
+def get_noise_cost_attrs(nts, length):
+    attr_set = {'noises': {}}
+    for nt in nts:
+        cost_attr = 'nc_'+str(nt)
+        attr_set[cost_attr] = length
+    return attr_set
+
+def add_linking_edges_for_new_node(graph_proj, new_node, closest_point, edge, nts):
     edge_geom = edge['geometry']
     split_lines = geom_utils.split_line_at_point(edge_geom, closest_point)
     node_from = edge['uvkey'][0]
@@ -86,10 +93,20 @@ def add_linking_edges_for_new_node(graph_proj, new_node, closest_point, edge):
         link1 = split_lines[1]
         link2 = split_lines[0]
     print('add linking edges between:', node_from, new_node, node_to)
-    graph_proj.add_edge(node_from, new_node, geometry=link1, length=link1.length, uvkey=(node_from, new_node, 0))
-    graph_proj.add_edge(new_node, node_from, geometry=link1, length=link1.length, uvkey=(new_node, node_from, 0))
-    graph_proj.add_edge(new_node, node_to, geometry=link2, length=link2.length, uvkey=(new_node, node_to, 0))
-    graph_proj.add_edge(node_to, new_node, geometry=link2, length=link2.length, uvkey=(node_to, new_node, 0))
+    graph_proj.add_edge(node_from, new_node, geometry=link1, length=round(link1.length, 3), uvkey=(node_from, new_node, 0))
+    graph_proj.add_edge(new_node, node_from, geometry=link1, length=round(link1.length, 3), uvkey=(new_node, node_from, 0))
+    graph_proj.add_edge(new_node, node_to, geometry=link2, length=round(link2.length, 3), uvkey=(new_node, node_to, 0))
+    graph_proj.add_edge(node_to, new_node, geometry=link2, length=round(link2.length, 3), uvkey=(node_to, new_node, 0))
+    if (len(nts) > 0):
+        # fill missing noise cost attributes to edges as edge lengths
+        attrs = { 
+            (node_from, new_node, 0): get_noise_cost_attrs(nts, round(link1.length, 3)),
+            (new_node, node_from, 0): get_noise_cost_attrs(nts, round(link1.length, 3)),
+            (new_node, node_to, 0): get_noise_cost_attrs(nts, round(link2.length, 3)),
+            (node_to, new_node, 0): get_noise_cost_attrs(nts, round(link2.length, 3)) 
+        }
+        print('seg edge attrs:', attrs)
+        nx.set_edge_attributes(graph_proj, attrs)
 
 def get_shortest_edge(edges, weight):
     if (len(edges) == 1):
