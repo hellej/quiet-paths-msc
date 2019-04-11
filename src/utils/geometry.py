@@ -1,7 +1,8 @@
 import pandas as pd
 import geopandas as gpd
 import pyproj
-from shapely.geometry import Point, LineString, MultiPolygon, MultiLineString, MultiPoint
+import shapely
+from shapely.geometry import mapping, Point, LineString, MultiPolygon, MultiLineString, MultiPoint
 from shapely.ops import split, snap, transform
 from functools import partial
 from fiona.crs import from_epsg
@@ -189,3 +190,12 @@ def get_line_middle_point(line_geom):
 
 def get_simple_line(row, from_col, to_col):
     return LineString([row[from_col], row[to_col]])
+
+def get_geojson_from_geom(geom):
+    geom_wgs = project_to_wgs(geom)
+    feature = { 
+        'type': 'Feature', 
+        'properties': {}, 
+        'geometry': mapping(geom_wgs)
+        }
+    return feature
