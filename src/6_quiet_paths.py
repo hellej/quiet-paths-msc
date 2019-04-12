@@ -4,6 +4,7 @@ import utils.files as files
 import utils.routing as rt
 import utils.geometry as geom_utils
 import utils.networks as nw
+import utils.quiet_paths as qp
 import utils.exposures as exps
 import utils.utils as utils
 from fiona.crs import from_epsg
@@ -30,7 +31,8 @@ edge_dicts[:2]
 path_list = []
 from_xy = geom_utils.get_xy_from_geom(list(koskela['geometry'])[0])
 to_xy = geom_utils.get_xy_from_geom(list(kumpula['geometry'])[0])
-
+print(from_xy)
+print(to_xy)
 start_time = time.time()
 orig_node = rt.get_nearest_node(graph_proj, from_xy, edge_gdf, node_gdf, nts)
 target_node = rt.get_nearest_node(graph_proj, to_xy, edge_gdf, node_gdf, nts)
@@ -69,6 +71,11 @@ paths_gdf
 #%% COMPARE LENGTHS & EXPOSURES
 path_comps = rt.get_short_quiet_paths_comparison(paths_gdf)
 path_comps
+
+#%% FEATURES TO DICT -> JSON
+path_dicts = qp.get_geojson_from_q_path_gdf(path_comps)
+for path_dict in path_dicts:
+    print(path_dict['properties']['length'])
 
 #%% EXPORT TO CSV
 path_comps[['id', 'min_nt', 'max_nt', 'total_length','type', 'diff_len', 'diff_rat', 'diff_60_dB', 'diff_70_dB']].to_csv('outputs/quiet_paths.csv')

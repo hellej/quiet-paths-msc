@@ -105,7 +105,6 @@ def add_linking_edges_for_new_node(graph_proj, new_node, closest_point, edge, nt
             (new_node, node_to, 0): get_noise_cost_attrs(nts, round(link2.length, 3)),
             (node_to, new_node, 0): get_noise_cost_attrs(nts, round(link2.length, 3)) 
         }
-        print('seg edge attrs:', attrs)
         nx.set_edge_attributes(graph_proj, attrs)
 
 def get_shortest_edge(edges, weight):
