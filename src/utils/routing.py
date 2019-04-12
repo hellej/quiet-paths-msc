@@ -74,7 +74,9 @@ def join_dt_path_attributes(s_paths_g_gdf, dt_paths):
 def get_short_quiet_paths_comparison(paths_gdf):
     shortest_p = paths_gdf.loc[paths_gdf['type'] == 'short'].squeeze()
     s_len = shortest_p.get('total_length')
+    s_noises = shortest_p.get('noises')
     s_th_noises = shortest_p.get('th_noises')
+    paths_gdf['noises_diff'] = [exps.get_noises_diff(s_noises, noises) for noises in paths_gdf['noises']]
     paths_gdf['diff_len'] = [round(total_len - s_len, 1) for total_len in paths_gdf['total_length']]
     paths_gdf['diff_rat'] = [round((diff_len / s_len)*100,1) for diff_len in paths_gdf['diff_len']]
     paths_gdf['diff_55_dB'] = [exps.get_th_exp_diff(65, th_noises, s_th_noises) for th_noises in paths_gdf['th_noises']]

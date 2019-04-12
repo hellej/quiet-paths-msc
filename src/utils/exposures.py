@@ -146,3 +146,13 @@ def add_noise_exposures_to_gdf(line_gdf, uniq_id, noise_polys):
 
 def get_th_exp_diff(dB, th_noises, s_th_noises):
     return round(th_noises[dB]-s_th_noises[dB],1)
+
+def get_noises_diff(s_noises, q_noises):
+    dbs = [40, 45, 50, 55, 60, 65, 70, 75]
+    diff_dict = {}
+    for db in dbs:
+        s_noise = s_noises[db] if db in s_noises.keys() else 0
+        q_noise = q_noises[db] if db in q_noises.keys() else 0
+        noise_diff = q_noise - s_noise
+        diff_dict[db] = round(noise_diff, 2)
+    return diff_dict
