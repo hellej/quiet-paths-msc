@@ -2,6 +2,7 @@ import pandas as pd
 import geopandas as gpd
 import matplotlib.pyplot as plt
 import numpy as np
+import ast
 import utils.geometry as geom_utils
 
 def add_noises_to_split_lines(noise_polygons, split_lines):
@@ -146,6 +147,19 @@ def add_noise_exposures_to_gdf(line_gdf, uniq_id, noise_polys):
 
 def get_th_exp_diff(dB, th_noises, s_th_noises):
     return round(th_noises[dB]-s_th_noises[dB],1)
+
+def aggregate_exposures(exp_list):
+    exps = {}
+    for exp_d_value in exp_list:
+        exp_d = ast.literal_eval(exp_d_value) if type(exp_d_value) == str else exp_d_value
+        for db in exp_d.keys():
+            if db in exps.keys():
+                exps[db] += exp_d[db]
+            else:
+                exps[db] = exp_d[db]
+    for db in exps.keys():
+        exps[db] = round(exps[db], 2)
+    return exps
 
 def get_noises_diff(s_noises, q_noises):
     dbs = [40, 45, 50, 55, 60, 65, 70, 75]

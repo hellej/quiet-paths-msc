@@ -127,9 +127,11 @@ def get_edge_line_coords(graph, node_from, edge_d):
         return edge_coords[::-1]
     return edge_coords
 
-def get_edge_geometries(graph_proj, path, weight):
+def get_edge_geoms_attrs(graph_proj, path, weight, geoms: bool, noises: bool):
+    result = {}
     edge_lengths = []
     path_coords = []
+    edge_exps = []
     for idx in range(0, len(path)):
         if (idx == len(path)-1):
             break
@@ -137,18 +139,26 @@ def get_edge_geometries(graph_proj, path, weight):
         node_2 = path[idx+1]
         edges = graph_proj[node_1][node_2]
         edge_d = get_shortest_edge(edges, weight)
-        if ('geometry' in edge_d):
-            edge_lengths.append(edge_d['length'])
-            edge_coords = get_edge_line_coords(graph_proj, node_1, edge_d)
-        else:
-            edge_line = get_edge_geom_from_node_pair(graph_proj, node_1, node_2)
-            edge_lengths.append(edge_line.length)
-            edge_coords = edge_line.coords
-        path_coords += edge_coords
-
-    path_line = LineString(path_coords)
-    total_length = round(sum(edge_lengths),2)
-    return { 'geometry': path_line, 'total_length': total_length }
+        if geoms:
+            if ('geometry' in edge_d):
+                edge_lengths.append(edge_d['length'])
+                edge_coords = get_edge_line_coords(graph_proj, node_1, edge_d)
+            else:
+                edge_line = get_edge_geom_from_node_pair(graph_proj, node_1, node_2)
+                edge_lengths.append(edge_line.length)
+                edge_coords = edge_line.coords
+            path_coords += edge_coords
+        if noises:
+            if ('noises' in edge_d):
+                edge_exps.append(edge_d['noises'])
+    if geoms:
+        path_line = LineString(path_coords)
+        total_length = round(sum(edge_lengths),2)
+        result['geometry'] = path_line
+        result['total_length'] = total_length
+    if noises:
+        result['noises'] = exps.aggregate_exposures(edge_exps)
+    return result
 
 def get_all_edge_dicts(graph_proj):
     edge_dicts = []

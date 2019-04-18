@@ -82,5 +82,11 @@ def test_shortest_path():
     orig_node = rt.get_nearest_node(graph_proj, from_xy, edge_gdf, node_gdf, [])
     target_node = rt.get_nearest_node(graph_proj, to_xy, edge_gdf, node_gdf, [])
     shortest_path = rt.get_shortest_path(graph_proj, orig_node, target_node, 'length')
-    path_geom = nw.get_edge_geometries(graph_proj, shortest_path, 'length')
+    path_geom = nw.get_edge_geoms_attrs(graph_proj, shortest_path, 'length', True, False)
     assert (len(shortest_path), path_geom['total_length']) == (45, 1764.38)
+
+def test_aggregate_exposures():
+    exp_list = [{55: 21.5, 60: 12}, {55: 3.5, 60: 1.5}, {60: 2.5, 70: 200}]
+    exposure = exps.aggregate_exposures(exp_list)
+    print(exposure)
+    assert exposure == { 55: 25, 60: 16, 70: 200 }
