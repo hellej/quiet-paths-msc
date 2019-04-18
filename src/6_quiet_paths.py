@@ -12,19 +12,19 @@ import time
 
 #%% READ DATA
 noise_polys = files.get_noise_polygons()
-graph_proj = files.get_kumpula_noise_network()
+graph = files.get_network_kumpula_noise()
 pois = files.get_pois()
 koskela = pois.loc[pois['name'] == 'Koskela']
 kumpula = pois.loc[pois['name'] == 'Kumpulan kampus']
 
 #%% SET NOISE IMPEDANCES TO GRAPH
 nts = [0.1, 0.15, 0.25, 0.5, 1, 1.5, 2, 4, 6]
-nw.set_graph_noise_costs(graph_proj, nts)
+nw.set_graph_noise_costs(graph, nts)
 
 #%% GET GRAPH GDFS
-edge_dicts = nw.get_all_edge_dicts(graph_proj)
+edge_dicts = nw.get_all_edge_dicts(graph)
 edge_gdf = nw.get_edge_gdf(edge_dicts, ['uvkey', 'geometry'])
-node_gdf = nw.get_node_gdf(graph_proj)
+node_gdf = nw.get_node_gdf(graph)
 edge_dicts[:2]
 
 #%% GET ROUTING PARAMS
@@ -34,22 +34,22 @@ to_xy = geom_utils.get_xy_from_geom(list(kumpula['geometry'])[0])
 print(from_xy)
 print(to_xy)
 start_time = time.time()
-orig_node = rt.get_nearest_node(graph_proj, from_xy, edge_gdf, node_gdf, nts)
-target_node = rt.get_nearest_node(graph_proj, to_xy, edge_gdf, node_gdf, nts)
+orig_node = rt.get_nearest_node(graph, from_xy, edge_gdf, node_gdf, nts)
+target_node = rt.get_nearest_node(graph, to_xy, edge_gdf, node_gdf, nts)
 utils.print_duration(start_time, 'get all routing params')
 
 #%% SHORTEST PATH
 start_time = time.time()
-shortest_path = rt.get_shortest_path(graph_proj, orig_node, target_node, 'length')
-path_geom = nw.get_edge_geoms_attrs(graph_proj, shortest_path, 'length', True, True)
+shortest_path = rt.get_shortest_path(graph, orig_node, target_node, 'length')
+path_geom = nw.get_edge_geoms_attrs(graph, shortest_path, 'length', True, True)
 path_list.append({**path_geom, **{'id': 'short_p','type': 'short', 'nt': 0}})
 utils.print_duration(start_time, 'get shortest path & its geom')
 
 #%% CALCULATE QUIET PATHS
 for nt in nts:
     cost_attr = 'nc_'+str(nt)
-    shortest_path = rt.get_shortest_path(graph_proj, orig_node, target_node, cost_attr)
-    path_geom = nw.get_edge_geoms_attrs(graph_proj, shortest_path, cost_attr, True, True)
+    shortest_path = rt.get_shortest_path(graph, orig_node, target_node, cost_attr)
+    path_geom = nw.get_edge_geoms_attrs(graph, shortest_path, cost_attr, True, True)
     path_list.append({**path_geom, **{'id': 'q_'+str(nt), 'type': 'quiet', 'nt': nt}})
 
 #%% GROUP SIMILAR PATHS

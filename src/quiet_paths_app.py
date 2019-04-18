@@ -19,7 +19,7 @@ CORS(app)
 
 # READ DATA
 noise_polys = files.get_noise_polygons()
-graph = files.get_kumpula_noise_network()
+graph = files.get_network_full_noise()
 # SET NOISE COSTS
 nts = [0.1, 0.125, 0.15, 0.2, 0.25, 0.35, 0.5, 0.75, 1, 1.5, 2, 3, 4, 5, 6]
 nw.set_graph_noise_costs(graph, nts)

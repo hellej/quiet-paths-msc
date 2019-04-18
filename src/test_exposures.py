@@ -49,13 +49,13 @@ def test_get_exposure_lines():
     assert (mean_noise, min_noise, max_noise) == (59.5, 40.0, 75.0)
 
 def test_get_edge_dicts():
-    graph_proj = files.get_kumpula_network()
+    graph_proj = files.get_network_kumpula()
     edge_dicts = nw.get_all_edge_dicts(graph_proj)
     edge_d = edge_dicts[0]
     assert (len(edge_dicts), edge_d['length'], type(edge_d['geometry'])) == (24159, 127.051, LineString)
 
 def test_add_exposures_to_edges():
-    graph_proj = files.get_kumpula_network()
+    graph_proj = files.get_network_kumpula()
     edge_dicts = nw.get_all_edge_dicts(graph_proj)
     edge_gdf = nw.get_edge_gdf(edge_dicts[:5], ['geometry', 'length', 'uvkey'])
     edge_gdf['split_lines'] = [geom_utils.get_split_lines_list(line_geom, noise_polys) for line_geom in edge_gdf['geometry']]
@@ -70,7 +70,7 @@ def test_add_exposures_to_edges():
     assert (edge_d['noises'], round(exp_len_sum,1)) == ({65: 107.025, 70: 20.027}, round(edge_d['length'],1))
 
 def test_shortest_path():
-    graph_proj = files.get_kumpula_network()
+    graph_proj = files.get_network_kumpula()
     edge_dicts = nw.get_all_edge_dicts(graph_proj)
     edge_gdf = nw.get_edge_gdf(edge_dicts, ['uvkey', 'geometry'])
     node_gdf = nw.get_node_gdf(graph_proj)
