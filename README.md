@@ -8,7 +8,8 @@ This repository contains the main components of my master's thesis, including:
 
 ## Tech
 * Python (3.6)
-* Geopandas (incl. Shapely)
+* Shapely
+* GeoPandas
 * NetworkX (+ OSMnx)
 * Flask
 
@@ -20,8 +21,7 @@ This repository contains the main components of my master's thesis, including:
 ```
 $ git clone git@github.com:hellej/gradu-pocs.git
 $ cd gradu-pocs/src
-```
-```
+
 $ conda env create -f env-gis-flask.yml
 $ conda activate gis
 ```
