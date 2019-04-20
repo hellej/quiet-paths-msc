@@ -6,11 +6,15 @@ This repository contains the main components of my master's thesis, including:
 * [Quiet path route optimization application](src/quiet_paths_app.py) (under development)
 * Quiet path route planner UI: [github.com/hellej/quiet-path-ui](https://github.com/hellej/quiet-path-ui)
 
-## Built With
+## Tech
 * Python (3.6)
 * Geopandas (incl. Shapely)
 * NetworkX (+ OSMnx)
 * Flask
+
+## Materials
+* [Traffic noise zones in Helsinki 2017](https://hri.fi/data/en_GB/dataset/helsingin-kaupungin-meluselvitys-2017)
+* [OpenStreetMap](https://www.openstreetmap.org/about/)
 
 ## Installation
 ```
