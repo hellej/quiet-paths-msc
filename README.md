@@ -1,18 +1,22 @@
-## Gradu POCs & tests
+# MSc thesis scripts & POCs
+This repository contains the main components of my master's thesis, including:
+* Walkable street network (graph) [construction, processing and analysis](src/utils/networks.py)
+* [Scripts](https://github.com/hellej/gradu-pocs/tree/master/src/batch_jobs) (for CSC's Taito supercluster) for extracting traffic noises to all edges of the network 
+* [Analysis](src/3_path_noises.py) and [utilities](src/utils/exposures.py) for assessing pedestrians exposure to traffic noise (under development)
+* [Quiet path route optimization application](src/quiet_paths_app.py) (under development)
+* Quiet path route planner UI: [github.com/hellej/quiet-path-ui](https://github.com/hellej/quiet-path-ui)
+
+## Built With
+* Python (3.6)
+* Geopandas (incl. Shapely)
+* NetworkX (+ OSMnx)
+* Flask
 
 ## Installation
 ```
 $ git clone git@github.com:hellej/gradu-pocs.git
 $ cd gradu-pocs/src
 ```
-```
-$ conda create -n gis -c conda-forge python=3.6.5 jupyterlab geopandas geoplot osmnx pysal pylint pytest
-$ conda activate gis
-$ pip install pycrs
-$ pip install requests
-$ pip install polyline
-```
-Or:
 ```
 $ conda env create -f env-gis-flask.yml
 $ conda activate gis
