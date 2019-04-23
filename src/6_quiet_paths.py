@@ -34,8 +34,8 @@ to_xy = geom_utils.get_xy_from_geom(list(kumpula['geometry'])[0])
 print(from_xy)
 print(to_xy)
 start_time = time.time()
-orig_node = rt.get_nearest_node(graph, from_xy, edge_gdf, node_gdf, nts)
-target_node = rt.get_nearest_node(graph, to_xy, edge_gdf, node_gdf, nts)
+orig_node = rt.get_nearest_node(graph, from_xy, edge_gdf, node_gdf, nts, True, noise_polys)
+target_node = rt.get_nearest_node(graph, to_xy, edge_gdf, node_gdf, nts, True, noise_polys)
 utils.print_duration(start_time, 'get all routing params')
 
 #%% SHORTEST PATH

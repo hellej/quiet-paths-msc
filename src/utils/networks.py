@@ -71,14 +71,20 @@ def add_new_node(graph_proj, point):
     graph_proj.add_node(attrs['id'], ref='', x=attrs['x'], y=attrs['y'], lon=attrs['lon'], lat=attrs['lat'])
     return attrs['id']
 
-def get_noise_cost_attrs(nts, length):
-    attr_set = {'noises': {}}
+def get_edge_noise_cost_attrs(nts, geom, b_add_noises: bool, noise_polys):
+    cost_attrs = {}
+    if b_add_noises:
+        noises_dict = exps.get_noise_dict_for_geom(geom, noise_polys)
+        cost_attrs['noises'] = noises_dict
     for nt in nts:
-        cost_attr = 'nc_'+str(nt)
-        attr_set[cost_attr] = length
-    return attr_set
+        if b_add_noises:
+            cost = get_noise_cost_from_noises_dict(geom, noises_dict, nt)
+        else:
+            cost = round(geom.length, 2)
+        cost_attrs['nc_'+str(nt)] = cost
+    return cost_attrs
 
-def add_linking_edges_for_new_node(graph_proj, new_node, closest_point, edge, nts):
+def add_linking_edges_for_new_node(graph_proj, new_node, closest_point, edge, nts, b_add_noises, noise_polys):
     edge_geom = edge['geometry']
     split_lines = geom_utils.split_line_at_point(edge_geom, closest_point)
     node_from = edge['uvkey'][0]
@@ -97,13 +103,15 @@ def add_linking_edges_for_new_node(graph_proj, new_node, closest_point, edge, nt
     graph_proj.add_edge(new_node, node_from, geometry=link1, length=round(link1.length, 3), uvkey=(new_node, node_from, 0))
     graph_proj.add_edge(new_node, node_to, geometry=link2, length=round(link2.length, 3), uvkey=(new_node, node_to, 0))
     graph_proj.add_edge(node_to, new_node, geometry=link2, length=round(link2.length, 3), uvkey=(node_to, new_node, 0))
+    # set noise cost attributes for new edges if they will be used in quiet path routing
     if (len(nts) > 0):
-        # fill missing noise cost attributes to edges as edge lengths
-        attrs = { 
-            (node_from, new_node, 0): get_noise_cost_attrs(nts, round(link1.length, 3)),
-            (new_node, node_from, 0): get_noise_cost_attrs(nts, round(link1.length, 3)),
-            (new_node, node_to, 0): get_noise_cost_attrs(nts, round(link2.length, 3)),
-            (node_to, new_node, 0): get_noise_cost_attrs(nts, round(link2.length, 3)) 
+        link1_noise_costs = get_edge_noise_cost_attrs(nts, link1, b_add_noises, noise_polys)
+        link2_noise_costs = get_edge_noise_cost_attrs(nts, link2, b_add_noises, noise_polys)
+        attrs = {
+            (node_from, new_node, 0): link1_noise_costs,
+            (new_node, node_from, 0): link1_noise_costs,
+            (new_node, node_to, 0): link2_noise_costs,
+            (node_to, new_node, 0): link2_noise_costs
         }
         nx.set_edge_attributes(graph_proj, attrs)
 
@@ -240,16 +248,22 @@ def get_noise_cost(noises: 'noise dictionary', costs: 'cost dictionary', nt: 'no
             noise_cost += noises[db] * costs[db] * nt
     return round(noise_cost,2)
 
-def get_noise_costs(edge_gdf, nt: 'noise tolerance, float: 0.0-2.0'):
+def add_noise_costs_to_edge_gdf(edge_gdf, nt: 'noise tolerance, float: 0.0-2.0'):
     costs = { 50: 0.1, 55: 0.2, 60: 0.3, 65: 0.4, 70: 0.5, 75: 0.6 }
     edge_gdf['noise_cost'] = [get_noise_cost(noises, costs, nt) for noises in edge_gdf['noises']]
     edge_gdf['tot_cost'] = edge_gdf.apply(lambda row: round(row.length + row.noise_cost,2), axis=1)
     edge_gdf['cost_rat'] = edge_gdf.apply(lambda row: int(round((row.noise_cost/row.length)*100)), axis=1)
     return edge_gdf
 
+def get_noise_cost_from_noises_dict(geom, noises_dict, nt):
+    costs = { 50: 0.1, 55: 0.2, 60: 0.3, 65: 0.4, 70: 0.5, 75: 0.6 }
+    noise_cost = get_noise_cost(noises_dict, costs, nt)
+    tot_cost = round(geom.length + noise_cost, 2)
+    return tot_cost
+
 def set_graph_noise_costs(graph_proj, nts: 'list of noise tolerances, float: 0.0-2.0'):
     edge_dicts = get_all_edge_dicts(graph_proj)
     edge_gdf = get_edge_gdf(edge_dicts, ['uvkey', 'geometry', 'length', 'noises'])
     for nt in nts:
-        edge_n_costs = get_noise_costs(edge_gdf, nt)
+        edge_n_costs = add_noise_costs_to_edge_gdf(edge_gdf, nt)
         update_edge_costs(edge_n_costs, graph_proj, nt)

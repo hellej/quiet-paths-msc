@@ -19,7 +19,7 @@ CORS(app)
 
 # READ DATA
 noise_polys = files.get_noise_polygons()
-graph = files.get_network_full_noise()
+graph = files.get_network_kumpula_noise()
 print('Data read.')
 # SET NOISE COSTS
 nts = [0.1, 0.125, 0.15, 0.2, 0.25, 0.35, 0.5, 0.75, 1, 1.5, 2, 3, 4, 5, 6]
@@ -48,8 +48,8 @@ def get_shortest_path(from_lat, from_lon, to_lat, to_lon):
     to_xy = geom_utils.get_xy_from_lat_lon(to_latLon)
     print('from:', from_xy)
     print('to:', to_xy)
-    orig_node = rt.get_nearest_node(graph, from_xy, edge_gdf, node_gdf, [])
-    target_node = rt.get_nearest_node(graph, to_xy, edge_gdf, node_gdf, [])
+    orig_node = rt.get_nearest_node(graph, from_xy, edge_gdf, node_gdf, [], False, noise_polys)
+    target_node = rt.get_nearest_node(graph, to_xy, edge_gdf, node_gdf, [], False, noise_polys)
     shortest_path = rt.get_shortest_path(graph, orig_node, target_node, 'length')
     path_geom = nw.get_edge_geoms_attrs(graph, shortest_path, 'length', True, False)
     feature = geom_utils.get_geojson_from_geom(path_geom['geometry'])
@@ -70,8 +70,8 @@ def get_quiet_path(from_lat, from_lon, to_lat, to_lon):
     to_xy = geom_utils.get_xy_from_lat_lon(to_latLon)
     print('from:', from_xy)
     print('to:', to_xy)
-    orig_node = rt.get_nearest_node(graph, from_xy, edge_gdf, node_gdf, [])
-    target_node = rt.get_nearest_node(graph, to_xy, edge_gdf, node_gdf, [])
+    orig_node = rt.get_nearest_node(graph, from_xy, edge_gdf, node_gdf, [], False, noise_polys)
+    target_node = rt.get_nearest_node(graph, to_xy, edge_gdf, node_gdf, [], False, noise_polys)
     # get shortest path
     path_list = []
     shortest_path = rt.get_shortest_path(graph, orig_node, target_node, 'length')

@@ -124,6 +124,13 @@ def get_noise_attrs_to_split_lines(gdf, noise_polys):
     split_line_noises = gpd.sjoin(gdf, noise_polys, how='left', op='within')
     return split_line_noises
 
+def get_noise_dict_for_geom(geom, noise_polys):
+    noise_lines = get_exposure_lines(geom, noise_polys)
+    if (noise_lines.empty):
+        return {}
+    else:
+        return get_exposures(noise_lines)
+
 def aggregate_line_noises(split_line_noises, uniq_id):
     row_accumulator = []
     grouped = split_line_noises.groupby(uniq_id)
