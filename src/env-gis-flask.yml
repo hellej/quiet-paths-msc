@@ -1,4 +1,4 @@
-name: gis
+name: gis-flask
 
 channels:
   - conda-forge
@@ -16,6 +16,7 @@ dependencies:
   - flask
   - flask-cors
   - flask-testing
+  - gunicorn
   - requests
   - pip
   - pip:

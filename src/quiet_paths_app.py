@@ -93,4 +93,4 @@ def get_quiet_path(from_lat, from_lon, to_lat, to_lon):
     return jsonify(qp.get_geojson_from_q_path_gdf(path_comps))
 
 if __name__ == '__main__':
-    app.run()
+    app.run(host='0.0.0.0')
