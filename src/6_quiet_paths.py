@@ -76,7 +76,7 @@ for path_dict in path_dicts:
     print(path_dict['properties']['length'])
 
 #%% EXPORT TO CSV
-path_comps[['id', 'min_nt', 'max_nt', 'total_length','type', 'len_diff', 'diff_rat', 'diff_60_dB', 'diff_70_dB']].to_csv('outputs/quiet_paths.csv')
+path_comps[['id', 'min_nt', 'max_nt', 'total_length','type', 'len_diff', 'len_diff_rat', 'nei', 'nei_norm', 'nei_diff_rat']].to_csv('outputs/quiet_paths.csv')
 #%% EXPORT TO GDF
 path_comps.to_file('outputs/quiet_paths.gpkg', layer='quiet_paths_t', driver="GPKG")
 

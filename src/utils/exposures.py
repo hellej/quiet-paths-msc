@@ -152,9 +152,6 @@ def add_noise_exposures_to_gdf(line_gdf, uniq_id, noise_polys):
     line_gdf = line_gdf.drop(['split_lines'], axis=1)
     return pd.merge(line_gdf, line_noises, how='inner', on=uniq_id)
 
-def get_th_exp_diff(dB, th_noises, s_th_noises):
-    return round(th_noises[dB]-s_th_noises[dB],1)
-
 def aggregate_exposures(exp_list):
     exps = {}
     for exp_d_value in exp_list:
