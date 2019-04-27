@@ -70,8 +70,9 @@ def get_quiet_path(from_lat, from_lon, to_lat, to_lon):
     to_xy = geom_utils.get_xy_from_lat_lon(to_latLon)
     print('from:', from_xy)
     print('to:', to_xy)
-    orig_node = rt.get_nearest_node(graph, from_xy, edge_gdf, node_gdf, [], False, noise_polys)
-    target_node = rt.get_nearest_node(graph, to_xy, edge_gdf, node_gdf, [], False, noise_polys)
+    # find origin and target nodes from closest edges
+    orig_node = rt.get_nearest_node(graph, from_xy, edge_gdf, node_gdf, nts, False, noise_polys)
+    target_node = rt.get_nearest_node(graph, to_xy, edge_gdf, node_gdf, nts, False, noise_polys)
     # get shortest path
     path_list = []
     shortest_path = rt.get_shortest_path(graph, orig_node, target_node, 'length')
