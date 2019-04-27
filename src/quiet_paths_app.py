@@ -77,7 +77,7 @@ def get_quiet_path(from_lat, from_lon, to_lat, to_lon):
     shortest_path = rt.get_shortest_path(graph, orig_node, target_node, 'length')
     path_geom = nw.get_edge_geoms_attrs(graph, shortest_path, 'length', True, True)
     path_list.append({**path_geom, **{'id': 'short_p','type': 'short', 'nt': 0}})
-    # get quiet paths
+    # get quiet paths to list
     for nt in nts:
         cost_attr = 'nc_'+str(nt)
         shortest_path = rt.get_shortest_path(graph, orig_node, target_node, cost_attr)
@@ -89,6 +89,11 @@ def get_quiet_path(from_lat, from_lon, to_lat, to_lon):
     # get exposures to noises along the paths
     # paths_gdf['noises'] = [exps.get_exposures_for_geom(line_geom, noise_polys) for line_geom in paths_gdf['geometry']]
     paths_gdf['th_noises'] = [exps.get_th_exposures(noises, [55, 60, 65, 70]) for noises in paths_gdf['noises']]
+    # add noise exposure index (same as noise cost with noise tolerance: 1)
+    costs = { 50: 0.1, 55: 0.2, 60: 0.3, 65: 0.4, 70: 0.5, 75: 0.6 }
+    paths_gdf['nei'] = [round(nw.get_noise_cost(noises, costs, 1), 1) for noises in paths_gdf['noises']]
+    paths_gdf['nei_norm'] = paths_gdf.apply(lambda row: round(row.nei / (0.6 * row.total_length), 2), axis=1)
+    # add attributes of changes between shortest and quiet path noises
     path_comps = rt.get_short_quiet_paths_comparison(paths_gdf)
     return jsonify(qp.get_geojson_from_q_path_gdf(path_comps))
 

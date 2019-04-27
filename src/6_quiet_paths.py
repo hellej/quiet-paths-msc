@@ -57,16 +57,14 @@ gdf = gpd.GeoDataFrame(path_list, crs=from_epsg(3879))
 paths_gdf = rt.aggregate_quiet_paths(gdf)
 paths_gdf
 
-#%% ADD NOISE EXPOSURES // ADDING ABOVE FROM EDGE ATTRIBUTES
-# start_time = time.time()
-# paths_gdf = exps.add_noise_exposures_to_gdf(paths_gdf, 'id', noise_polys)
-# paths_gdf['noises'] = [exps.get_exposures_for_geom(line_geom, noise_polys) for line_geom in paths_gdf['geometry']]
+# add cumulative noise exposures above threshold noise levels
 paths_gdf['th_noises'] = [exps.get_th_exposures(noises, [55, 60, 65, 70]) for noises in paths_gdf['noises']]
 
-# time_elapsed = round(time.time() - start_time, 1)
-# print('\n--- %s seconds ---' % (time_elapsed))
-# paths_gdf.plot()
-# paths_gdf
+# add noise exposure index (same as noise cost with noise tolerance: 1)
+costs = { 50: 0.1, 55: 0.2, 60: 0.3, 65: 0.4, 70: 0.5, 75: 0.6 }
+paths_gdf['nei'] = [round(nw.get_noise_cost(noises, costs, 1), 1) for noises in paths_gdf['noises']]
+paths_gdf['nei_norm'] = paths_gdf.apply(lambda row: round(row.nei / (0.6 * row.total_length), 2), axis=1)
+
 
 #%% COMPARE LENGTHS & EXPOSURES
 path_comps = rt.get_short_quiet_paths_comparison(paths_gdf)
@@ -78,7 +76,7 @@ for path_dict in path_dicts:
     print(path_dict['properties']['length'])
 
 #%% EXPORT TO CSV
-path_comps[['id', 'min_nt', 'max_nt', 'total_length','type', 'diff_len', 'diff_rat', 'diff_60_dB', 'diff_70_dB']].to_csv('outputs/quiet_paths.csv')
+path_comps[['id', 'min_nt', 'max_nt', 'total_length','type', 'len_diff', 'diff_rat', 'diff_60_dB', 'diff_70_dB']].to_csv('outputs/quiet_paths.csv')
 #%% EXPORT TO GDF
 path_comps.to_file('outputs/quiet_paths.gpkg', layer='quiet_paths_t', driver="GPKG")
 
