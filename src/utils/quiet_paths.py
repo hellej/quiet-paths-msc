@@ -18,6 +18,7 @@ def get_geojson_from_q_path_gdf(gdf):
         feature_d['properties']['nei'] = getattr(path, 'nei')
         feature_d['properties']['nei_norm'] = getattr(path, 'nei_norm')
         feature_d['properties']['nei_diff_rat'] = getattr(path, 'nei_diff_rat')
+        feature_d['properties']['path_score'] = getattr(path, 'path_score')
         features.append(feature_d)
     
     return features

@@ -72,8 +72,7 @@ path_comps
 
 #%% FEATURES TO DICT -> JSON
 path_dicts = qp.get_geojson_from_q_path_gdf(path_comps)
-for path_dict in path_dicts:
-    print(path_dict['properties']['length'])
+path_dicts[1]['properties']
 
 #%% EXPORT TO CSV
 path_comps[['id', 'min_nt', 'max_nt', 'total_length','type', 'len_diff', 'len_diff_rat', 'nei', 'nei_norm', 'nei_diff_rat']].to_csv('outputs/quiet_paths.csv')
