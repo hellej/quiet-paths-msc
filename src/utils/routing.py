@@ -11,7 +11,7 @@ import utils.utils as utils
 from shapely.ops import nearest_points
 
 def find_nearest_edge(xy, edge_gdf):
-    start_time = time.time()
+    # start_time = time.time()
     edges_sind = edge_gdf.sindex
     point_geom = geom_utils.get_point_from_xy(xy)
     possible_matches_index = list(edges_sind.intersection(point_geom.buffer(100).bounds))
@@ -22,11 +22,11 @@ def find_nearest_edge(xy, edge_gdf):
     nearest_edges =  possible_matches.loc[nearest]
     nearest_edge = nearest_edges.iloc[0]
     nearest_edge_dict = nearest_edge.to_dict()
-    utils.print_duration(start_time, 'found nearest edge')
+    # utils.print_duration(start_time, 'found nearest edge')
     return nearest_edge_dict
 
 def find_nearest_node(xy, node_gdf):
-    start_time = time.time()
+    # start_time = time.time()
     nodes_sind = node_gdf.sindex
     point_geom = geom_utils.get_point_from_xy(xy)
     possible_matches_index = list(nodes_sind.intersection(point_geom.buffer(700).bounds))
@@ -36,7 +36,7 @@ def find_nearest_node(xy, node_gdf):
     nearest = possible_matches.geometry.geom_equals(nearest_geom)
     nearest_point =  possible_matches.loc[nearest]
     nearest_node = nearest_point.index.tolist()[0]
-    utils.print_duration(start_time, 'found nearest node')
+    # utils.print_duration(start_time, 'found nearest node')
     return nearest_node
 
 def get_nearest_node(graph_proj, xy, edge_gdf, node_gdf, nts, add_new_edge_noises: bool, noise_polys):
@@ -55,7 +55,7 @@ def get_nearest_node(graph_proj, xy, edge_gdf, node_gdf, nts, add_new_edge_noise
         link_edges = nw.add_linking_edges_for_new_node(graph_proj, new_node, closest_line_point, near_edge, nts, add_new_edge_noises, noise_polys)
         return {'node': new_node, 'link_edges': link_edges }
     else:
-        print('Nearby node exists:', nearest_node)
+        # print('Nearby node exists:', nearest_node)
         return {'node': nearest_node }
 
 def get_shortest_path(graph_proj, orig_node, target_node, weight: str):
@@ -71,7 +71,7 @@ def join_dt_path_attributes(s_paths_g_gdf, dt_paths):
     merged = pd.merge(s_paths_g_gdf, dt_paths_join, how='inner', on='uniq_id')
     return merged
 
-def get_short_quiet_paths_comparison(paths_gdf):
+def get_short_quiet_paths_comparison_for_gdf(paths_gdf):
     shortest_p = paths_gdf.loc[paths_gdf['type'] == 'short'].squeeze()
     s_len = shortest_p.get('total_length')
     s_noises = shortest_p.get('noises')
@@ -86,6 +86,25 @@ def get_short_quiet_paths_comparison(paths_gdf):
     paths_gdf['path_score'] = paths_gdf.apply(lambda row: round((row.nei_diff / row.len_diff) * -1, 1) if row.len_diff > 0 else 0, axis=1)
     return paths_gdf
 
+def get_short_quiet_paths_comparison_for_dicts(paths):
+    comp_paths = paths.copy()
+    path_s = [path for path in comp_paths if path['properties']['type'] == 'short'][0]
+    s_len = path_s['properties']['length']
+    s_noises = path_s['properties']['noises']
+    s_th_noises = path_s['properties']['th_noises']
+    s_nei = path_s['properties']['nei']
+    for path in comp_paths:
+        props = path['properties']
+        path['properties']['noises_diff'] = exps.get_noises_diff(s_noises, props['noises'])
+        path['properties']['th_noises_diff'] = exps.get_noises_diff(s_th_noises, props['th_noises'])
+        path['properties']['len_diff'] = round(props['length'] - s_len, 1)
+        path['properties']['len_diff_rat'] = round((path['properties']['len_diff'] / s_len) * 100, 1) if s_len > 0 else 0
+        path['properties']['nei_norm'] = round(path['properties']['nei_norm'], 2)
+        path['properties']['nei_diff'] = round(path['properties']['nei'] - s_nei, 1)
+        path['properties']['nei_diff_rat'] = round((path['properties']['nei_diff'] / s_nei) * 100, 1) if s_nei > 0 else 0
+        path['properties']['path_score'] = round((path['properties']['nei_diff'] / path['properties']['len_diff']) * -1, 1) if path['properties']['len_diff'] > 0 else 0
+    return comp_paths
+
 def aggregate_quiet_paths(paths_gdf):
     grouped = paths_gdf.groupby(['type', 'total_length'])
     gdfs = []
@@ -98,4 +117,5 @@ def aggregate_quiet_paths(paths_gdf):
         g_row.pop('nt', None)
         gdfs.append(g_row)
     g_gdf = gpd.GeoDataFrame(gdfs, crs=geom_utils.get_etrs_crs())
+    g_gdf = g_gdf.sort_values(by=['type', 'total_length'])
     return g_gdf

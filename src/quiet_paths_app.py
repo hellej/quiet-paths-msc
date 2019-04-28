@@ -84,6 +84,9 @@ def get_quiet_path(from_lat, from_lon, to_lat, to_lon):
         shortest_path = rt.get_shortest_path(graph, orig_node['node'], target_node['node'], cost_attr)
         path_geom = nw.get_edge_geoms_attrs(graph, shortest_path, cost_attr, True, True)
         path_list.append({**path_geom, **{'id': 'q_'+str(nt), 'type': 'quiet', 'nt': nt}})
+    # remove linking edges of the origin / target nodes
+    nw.remove_linking_edges_of_new_node(graph, orig_node)
+    nw.remove_linking_edges_of_new_node(graph, target_node)
     # collect quiet paths to gdf
     gdf = gpd.GeoDataFrame(path_list, crs=from_epsg(3879))
     paths_gdf = rt.aggregate_quiet_paths(gdf)
@@ -93,13 +96,15 @@ def get_quiet_path(from_lat, from_lon, to_lat, to_lon):
     # add noise exposure index (same as noise cost with noise tolerance: 1)
     costs = { 50: 0.1, 55: 0.2, 60: 0.3, 65: 0.4, 70: 0.5, 75: 0.6 }
     paths_gdf['nei'] = [round(nw.get_noise_cost(noises, costs, 1), 1) for noises in paths_gdf['noises']]
-    paths_gdf['nei_norm'] = paths_gdf.apply(lambda row: round(row.nei / (0.6 * row.total_length), 2), axis=1)
-    # add attributes of changes between shortest and quiet path noises
-    path_comps = rt.get_short_quiet_paths_comparison(paths_gdf)
-    # remove linking edges of the origin / target nodes
-    nw.remove_linking_edges_of_new_node(graph, orig_node)
-    nw.remove_linking_edges_of_new_node(graph, target_node)
-    return jsonify(qp.get_geojson_from_q_path_gdf(path_comps))
+    paths_gdf['nei_norm'] = paths_gdf.apply(lambda row: round(row.nei / (0.6 * row.total_length), 4), axis=1)
+    # gdf to dicts
+    path_dicts = qp.get_geojson_from_q_path_gdf(paths_gdf)
+    # aggregate paths based on similarity of the geometries
+    unique_paths = qp.remove_duplicate_geom_paths(path_dicts, 10)
+    # calculate exposure differences to shortest path
+    path_comps = rt.get_short_quiet_paths_comparison_for_dicts(unique_paths)
+    # return paths as GeoJSON (FeatureCollection)
+    return jsonify(path_comps)
 
 if __name__ == '__main__':
     app.run(debug=False, host='0.0.0.0')
