@@ -27,7 +27,7 @@ nw.set_graph_noise_costs(graph, nts)
 print('Noise costs set.')
 # EXTRACT GRAPH FEATURES
 edge_dicts = nw.get_all_edge_dicts(graph)
-edge_gdf = nw.get_edge_gdf(edge_dicts, ['uvkey', 'geometry'])
+edge_gdf = nw.get_edge_gdf(edge_dicts, ['uvkey', 'geometry', 'noises'])
 node_gdf = nw.get_node_gdf(graph)
 print('Network features extracted.')
 edges_sind = edge_gdf.sindex
@@ -61,6 +61,7 @@ def get_shortest_path(from_lat, from_lon, to_lat, to_lon):
 
 @app.route('/quietpaths/<from_lat>,<from_lon>/<to_lat>,<to_lon>')
 def get_quiet_path(from_lat, from_lon, to_lat, to_lon):
+    start_time = time.time()
     # get origin & target nodes
     from_latLon = {'lat': float(from_lat), 'lon': float(from_lon)}
     to_latLon = {'lat': float(to_lat), 'lon': float(to_lon)}
@@ -73,6 +74,8 @@ def get_quiet_path(from_lat, from_lon, to_lat, to_lon):
     # find origin and target nodes from closest edges
     orig_node = rt.get_nearest_node(graph, from_xy, edge_gdf, node_gdf, nts, False, noise_polys)
     target_node = rt.get_nearest_node(graph, to_xy, edge_gdf, node_gdf, nts, False, noise_polys)
+    utils.print_duration(start_time, 'GOT ROUTING PARAMS')
+    start_time = time.time()
     # get shortest path
     path_list = []
     shortest_path = rt.get_shortest_path(graph, orig_node['node'], target_node['node'], 'length')
@@ -104,6 +107,7 @@ def get_quiet_path(from_lat, from_lon, to_lat, to_lon):
     # calculate exposure differences to shortest path
     path_comps = rt.get_short_quiet_paths_comparison_for_dicts(unique_paths)
     # return paths as GeoJSON (FeatureCollection)
+    utils.print_duration(start_time, 'GOT SHORT & QUIET PATHS')
     return jsonify(path_comps)
 
 if __name__ == '__main__':

@@ -71,16 +71,24 @@ def add_new_node(graph_proj, point):
     graph_proj.add_node(attrs['id'], ref='', x=attrs['x'], y=attrs['y'], lon=attrs['lon'], lat=attrs['lat'])
     return attrs['id']
 
-def get_edge_noise_cost_attrs(nts, geom, b_add_noises: bool, noise_polys):
+def estimate_link_noises(link_geom, edge_geom, edge_noises):
+    link_noises = {}
+    link_len_ratio = link_geom.length / edge_geom.length
+    print('link_len_ratio', round(link_len_ratio, 2))
+    for db in edge_noises.keys():
+        link_noises[db] = round(edge_noises[db] * link_len_ratio, 3)
+    return link_noises
+
+def get_edge_noise_cost_attrs(nts, edge_d, link_geom, b_add_noises: bool, noise_polys):
     cost_attrs = {}
-    if b_add_noises:
-        noises_dict = exps.get_noise_dict_for_geom(geom, noise_polys)
-        cost_attrs['noises'] = noises_dict
+    if (b_add_noises == True):
+        # get link noise exposures accurately if b_add_noises = True
+        cost_attrs['noises'] = exps.get_noise_dict_for_geom(link_geom, noise_polys)
+    else:
+        # estimate link noises based on link length - edge length -ratio and edge noises
+        cost_attrs['noises'] = estimate_link_noises(link_geom, edge_d['geometry'], edge_d['noises'])
     for nt in nts:
-        if b_add_noises:
-            cost = get_noise_cost_from_noises_dict(geom, noises_dict, nt)
-        else:
-            cost = round(geom.length, 2)
+        cost = get_noise_cost_from_noises_dict(link_geom, cost_attrs['noises'], nt)
         cost_attrs['nc_'+str(nt)] = cost
     return cost_attrs
 
@@ -105,8 +113,8 @@ def add_linking_edges_for_new_node(graph_proj, new_node, closest_point, edge, nt
     graph_proj.add_edge(node_to, new_node, geometry=link2, length=round(link2.length, 3), uvkey=(node_to, new_node, 0))
     # set noise cost attributes for new edges if they will be used in quiet path routing
     if (len(nts) > 0):
-        link1_noise_costs = get_edge_noise_cost_attrs(nts, link1, b_add_noises, noise_polys)
-        link2_noise_costs = get_edge_noise_cost_attrs(nts, link2, b_add_noises, noise_polys)
+        link1_noise_costs = get_edge_noise_cost_attrs(nts, edge, link1, b_add_noises, noise_polys)
+        link2_noise_costs = get_edge_noise_cost_attrs(nts, edge, link2, b_add_noises, noise_polys)
         attrs = {
             (node_from, new_node, 0): link1_noise_costs,
             (new_node, node_from, 0): link1_noise_costs,
@@ -238,8 +246,6 @@ def get_edge_noise_exps(edge_dict, noise_polys, graph_proj):
 
 def get_edge_gdf(edge_dicts, cols):
     edge_gdf = gpd.GeoDataFrame(edge_dicts, crs=from_epsg(3879))
-    if 'noises' in cols:
-        edge_gdf['noises'] = [ast.literal_eval(noises) if type(noises) == str else noises for noises in edge_gdf['noises']]
     return edge_gdf[cols]
 
 def update_edge_noises(edge_gdf, graph_proj):
