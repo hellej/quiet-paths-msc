@@ -19,7 +19,7 @@ CORS(app)
 
 # READ DATA
 noise_polys = files.get_noise_polygons()
-graph = files.get_network_kumpula_noise()
+graph = files.get_network_full_noise()
 print('Data read.')
 # SET NOISE COSTS
 nts = [0.1, 0.15, 0.25, 0.5, 1, 1.5, 2, 4, 6]
@@ -36,7 +36,7 @@ print('Network ready.')
 
 @app.route('/')
 def hello_world():
-    return 'Hello, World!'
+    return 'Keep calm and walk quiet paths.'
 
 @app.route('/shortestpath/<from_lat>,<from_lon>/<to_lat>,<to_lon>')
 def get_shortest_path(from_lat, from_lon, to_lat, to_lon):

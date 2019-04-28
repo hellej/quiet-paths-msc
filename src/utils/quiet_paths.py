@@ -21,7 +21,7 @@ def get_best_path(paths):
     def get_score(path):
         return path['properties']['nei_norm']
     ordered.sort(key=get_score)
-    print('ordered (best=[0]):', [(path['properties']['id'], path['properties']['nei_norm']) for path in ordered])
+    # print('ordered (best=[0]):', [(path['properties']['id'], path['properties']['nei_norm']) for path in ordered])
     return ordered[0]
 
 def remove_duplicate_geom_paths(paths, tolerance):

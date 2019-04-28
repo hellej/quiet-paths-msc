@@ -74,7 +74,6 @@ def add_new_node(graph_proj, point):
 def estimate_link_noises(link_geom, edge_geom, edge_noises):
     link_noises = {}
     link_len_ratio = link_geom.length / edge_geom.length
-    print('link_len_ratio', round(link_len_ratio, 2))
     for db in edge_noises.keys():
         link_noises[db] = round(edge_noises[db] * link_len_ratio, 3)
     return link_noises
