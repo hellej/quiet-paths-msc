@@ -52,11 +52,11 @@ def get_nearest_node(graph_proj, xy, edge_gdf, node_gdf, nts, add_new_edge_noise
         # create a new node on the nearest edge nearest to the origin
         closest_line_point = geom_utils.get_closest_point_on_line(edge_geom, point)
         new_node = nw.add_new_node(graph_proj, closest_line_point)
-        nw.add_linking_edges_for_new_node(graph_proj, new_node, closest_line_point, near_edge, nts, add_new_edge_noises, noise_polys)
-        return new_node
+        link_edges = nw.add_linking_edges_for_new_node(graph_proj, new_node, closest_line_point, near_edge, nts, add_new_edge_noises, noise_polys)
+        return {'node': new_node, 'link_edges': link_edges }
     else:
         print('Nearby node exists:', nearest_node)
-        return nearest_node
+        return {'node': nearest_node }
 
 def get_shortest_path(graph_proj, orig_node, target_node, weight: str):
     if (orig_node != target_node):

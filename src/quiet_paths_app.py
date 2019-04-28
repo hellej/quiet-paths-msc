@@ -75,13 +75,13 @@ def get_quiet_path(from_lat, from_lon, to_lat, to_lon):
     target_node = rt.get_nearest_node(graph, to_xy, edge_gdf, node_gdf, nts, False, noise_polys)
     # get shortest path
     path_list = []
-    shortest_path = rt.get_shortest_path(graph, orig_node, target_node, 'length')
+    shortest_path = rt.get_shortest_path(graph, orig_node['node'], target_node['node'], 'length')
     path_geom = nw.get_edge_geoms_attrs(graph, shortest_path, 'length', True, True)
     path_list.append({**path_geom, **{'id': 'short_p','type': 'short', 'nt': 0}})
     # get quiet paths to list
     for nt in nts:
         cost_attr = 'nc_'+str(nt)
-        shortest_path = rt.get_shortest_path(graph, orig_node, target_node, cost_attr)
+        shortest_path = rt.get_shortest_path(graph, orig_node['node'], target_node['node'], cost_attr)
         path_geom = nw.get_edge_geoms_attrs(graph, shortest_path, cost_attr, True, True)
         path_list.append({**path_geom, **{'id': 'q_'+str(nt), 'type': 'quiet', 'nt': nt}})
     # collect quiet paths to gdf
@@ -96,7 +96,10 @@ def get_quiet_path(from_lat, from_lon, to_lat, to_lon):
     paths_gdf['nei_norm'] = paths_gdf.apply(lambda row: round(row.nei / (0.6 * row.total_length), 2), axis=1)
     # add attributes of changes between shortest and quiet path noises
     path_comps = rt.get_short_quiet_paths_comparison(paths_gdf)
+    # remove linking edges of the origin / target nodes
+    nw.remove_linking_edges_of_new_node(graph, orig_node)
+    nw.remove_linking_edges_of_new_node(graph, target_node)
     return jsonify(qp.get_geojson_from_q_path_gdf(path_comps))
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0')
+    app.run(debug=False, host='0.0.0.0')

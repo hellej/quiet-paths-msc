@@ -114,6 +114,16 @@ def add_linking_edges_for_new_node(graph_proj, new_node, closest_point, edge, nt
             (node_to, new_node, 0): link2_noise_costs
         }
         nx.set_edge_attributes(graph_proj, attrs)
+    return {'node_from': node_from, 'new_node': new_node, 'node_to': node_to}
+
+def remove_linking_edges_of_new_node(graph, new_node_d):
+    if 'link_edges' in new_node_d.keys():
+        link_edges = new_node_d['link_edges']
+        print('removing linking edges:', link_edges)
+        graph.remove_edge(link_edges['node_from'], link_edges['new_node'])
+        graph.remove_edge(link_edges['new_node'], link_edges['node_from'])
+        graph.remove_edge(link_edges['new_node'], link_edges['node_to'])
+        graph.remove_edge(link_edges['node_to'], link_edges['new_node'])
 
 def get_shortest_edge(edges, weight):
     if (len(edges) == 1):
