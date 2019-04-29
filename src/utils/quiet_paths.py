@@ -45,9 +45,6 @@ def remove_duplicate_geom_paths(paths, tolerance):
                 if (path_id not in filtered_paths_ids):
                     filtered_paths.append(path)
                     filtered_paths_ids.append(path_id)
-    # delete shapely geometries from path dicts
-    for path in filtered_paths:
-        del path['properties']['geometry']
     # check if shortest path is shorter than shortest quiet path
     shortest_quiet_path = filtered_paths[0]
     if (shortest_quiet_path['properties']['length'] - shortest_path['properties']['length'] > 10):
@@ -59,6 +56,9 @@ def remove_duplicate_geom_paths(paths, tolerance):
         filtered_paths[0]['properties']['id'] = 'short_p'
     print('unfiltered path lengths:', [round(path['properties']['length']) for path in paths])
     print('found', len(paths), '- return:', len(filtered_paths), 'unique paths')
+    # delete shapely geometries from path dicts
+    for path in filtered_paths:
+        del path['properties']['geometry']
     return filtered_paths
 
 def get_geojson_from_q_path_gdf(gdf):
