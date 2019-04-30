@@ -4,7 +4,7 @@ This repository contains the main components of my master's thesis, including:
 * [Scripts](https://github.com/hellej/gradu-pocs/tree/master/src/batch_jobs) (for CSC's Taito supercluster) for extracting traffic noises to all edges of the network 
 * [Analysis](src/3_path_noises.py) and [utilities](src/utils/exposures.py) for assessing pedestrians exposure to traffic noise (under development)
 * [Quiet path route optimization application](src/quiet_paths_app.py) (under development)
-* Quiet path route planner UI: [github.com/hellej/quiet-path-ui](https://github.com/hellej/quiet-path-ui)
+* Quiet path route planner UI: [github.com/hellej/quiet-path-ui](https://github.com/hellej/quiet-path-ui) / [Live demo](https://quietpath.firebaseapp.com/)
 
 ## Docs
 * [Research plan (doc)](thesis/research_plan_doc.pdf)
