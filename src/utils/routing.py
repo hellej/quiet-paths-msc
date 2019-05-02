@@ -39,7 +39,7 @@ def find_nearest_node(xy, node_gdf):
     # utils.print_duration(start_time, 'found nearest node')
     return nearest_node
 
-def get_nearest_node(graph_proj, xy, edge_gdf, node_gdf, nts, add_new_edge_noises: bool, noise_polys):
+def get_nearest_node(graph_proj, xy, edge_gdf, node_gdf, nts, add_new_edge_noises: bool, noise_polys=None):
     coords = geom_utils.get_coords_from_xy(xy)
     point = Point(coords)
     near_edge = find_nearest_edge(xy, edge_gdf)

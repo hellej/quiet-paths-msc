@@ -185,7 +185,8 @@ def get_edge_geoms_attrs(graph_proj, path, weight, geoms: bool, noises: bool):
         result['noises'] = exps.aggregate_exposures(edge_exps)
     return result
 
-def get_all_edge_dicts(graph_proj):
+def get_all_edge_dicts(graph_proj, attr_subset=False):
+    print('edge dicts attrs subset:', attr_subset)
     edge_dicts = []
     for node_from in list(graph_proj.nodes):
         nodes_to = graph_proj[node_from]
@@ -198,9 +199,12 @@ def get_all_edge_dicts(graph_proj):
                 # combine unique identifier for the edge
                 edge_uvkey = (node_from, node_to, edge_k)
                 # edge dict contains all edge attributes
-                edge_d = edges[edge_k]
-                edge_d['uvkey'] = edge_uvkey
-                edge_dicts.append(edge_d)
+                if (attr_subset == True):
+                    edge_dicts.append({'uvkey': edge_uvkey, 'geometry': edges[edge_k]['geometry'], 'noises': edges[edge_k]['noises']})
+                else:
+                    edge_d = edges[edge_k]
+                    edge_d['uvkey'] = edge_uvkey
+                    edge_dicts.append(edge_d)
     return edge_dicts
 
 def get_missing_edge_geometries(edge_dict, graph_proj):
@@ -243,7 +247,8 @@ def get_edge_noise_exps(edge_dict, noise_polys, graph_proj):
         edge_d['noises'] = noise_dict
         return edge_d
 
-def get_edge_gdf(edge_dicts, cols):
+def get_edge_gdf(graph, cols):
+    edge_dicts = get_all_edge_dicts(graph, attr_subset=True)
     edge_gdf = gpd.GeoDataFrame(edge_dicts, crs=from_epsg(3879))
     return edge_gdf[cols]
 

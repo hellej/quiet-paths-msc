@@ -18,16 +18,12 @@ app = Flask(__name__)
 CORS(app)
 
 # READ DATA
-noise_polys = files.get_noise_polygons()
-graph = files.get_network_full_noise()
+nts = [0.1, 0.15, 0.25, 0.5, 1, 1.5, 2, 4, 6, 10, 15, 20]
+graph = files.get_network_full_noise_costs(nts)
 print('Data read.')
-# SET NOISE COSTS
-nts = [0.1, 0.15, 0.25, 0.5, 1, 1.5, 2, 4, 6]
-nw.set_graph_noise_costs(graph, nts)
-print('Noise costs set.')
+
 # EXTRACT GRAPH FEATURES
-edge_dicts = nw.get_all_edge_dicts(graph)
-edge_gdf = nw.get_edge_gdf(edge_dicts, ['uvkey', 'geometry', 'noises'])
+edge_gdf = nw.get_edge_gdf(graph, ['uvkey', 'geometry', 'noises'])
 node_gdf = nw.get_node_gdf(graph)
 print('Network features extracted.')
 edges_sind = edge_gdf.sindex
@@ -48,8 +44,8 @@ def get_shortest_path(from_lat, from_lon, to_lat, to_lon):
     to_xy = geom_utils.get_xy_from_lat_lon(to_latLon)
     print('from:', from_xy)
     print('to:', to_xy)
-    orig_node = rt.get_nearest_node(graph, from_xy, edge_gdf, node_gdf, [], False, noise_polys)
-    target_node = rt.get_nearest_node(graph, to_xy, edge_gdf, node_gdf, [], False, noise_polys)
+    orig_node = rt.get_nearest_node(graph, from_xy, edge_gdf, node_gdf, [], False)
+    target_node = rt.get_nearest_node(graph, to_xy, edge_gdf, node_gdf, [], False)
     shortest_path = rt.get_shortest_path(graph, orig_node, target_node, 'length')
     path_geom = nw.get_edge_geoms_attrs(graph, shortest_path, 'length', True, False)
     feature = geom_utils.get_geojson_from_geom(path_geom['geometry'])
@@ -72,8 +68,8 @@ def get_quiet_path(from_lat, from_lon, to_lat, to_lon):
     print('from:', from_xy)
     print('to:', to_xy)
     # find origin and target nodes from closest edges
-    orig_node = rt.get_nearest_node(graph, from_xy, edge_gdf, node_gdf, nts, False, noise_polys)
-    target_node = rt.get_nearest_node(graph, to_xy, edge_gdf, node_gdf, nts, False, noise_polys)
+    orig_node = rt.get_nearest_node(graph, from_xy, edge_gdf, node_gdf, nts, False)
+    target_node = rt.get_nearest_node(graph, to_xy, edge_gdf, node_gdf, nts, False)
     utils.print_duration(start_time, 'GOT ROUTING PARAMS')
     start_time = time.time()
     # get shortest path
@@ -94,7 +90,6 @@ def get_quiet_path(from_lat, from_lon, to_lat, to_lon):
     gdf = gpd.GeoDataFrame(path_list, crs=from_epsg(3879))
     paths_gdf = rt.aggregate_quiet_paths(gdf)
     # get exposures to noises along the paths
-    # paths_gdf['noises'] = [exps.get_exposures_for_geom(line_geom, noise_polys) for line_geom in paths_gdf['geometry']]
     paths_gdf['th_noises'] = [exps.get_th_exposures(noises, [55, 60, 65, 70]) for noises in paths_gdf['noises']]
     # add noise exposure index (same as noise cost with noise tolerance: 1)
     costs = { 50: 0.1, 55: 0.2, 60: 0.3, 65: 0.4, 70: 0.5, 75: 0.6 }
