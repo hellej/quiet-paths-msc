@@ -23,7 +23,7 @@ def get_walk_network(extent_polygon):
     return graph_proj
 
 def delete_unused_edge_attrs(graph_proj):
-    save_attrs = ['uvkey', 'length', 'geometry', 'from', 'to', 'noises']
+    save_attrs = ['uvkey', 'length', 'geometry', 'noises']
     for node_from in list(graph_proj.nodes):
         nodes_to = graph_proj[node_from]
         for node_to in nodes_to.keys():
@@ -186,7 +186,6 @@ def get_edge_geoms_attrs(graph_proj, path, weight, geoms: bool, noises: bool):
     return result
 
 def get_all_edge_dicts(graph_proj, attr_subset=False):
-    print('edge dicts attrs subset:', attr_subset)
     edge_dicts = []
     for node_from in list(graph_proj.nodes):
         nodes_to = graph_proj[node_from]
@@ -200,7 +199,10 @@ def get_all_edge_dicts(graph_proj, attr_subset=False):
                 edge_uvkey = (node_from, node_to, edge_k)
                 # edge dict contains all edge attributes
                 if (attr_subset == True):
-                    edge_dicts.append({'uvkey': edge_uvkey, 'geometry': edges[edge_k]['geometry'], 'noises': edges[edge_k]['noises']})
+                    edge_dicts.append({'uvkey': edge_uvkey, 
+                    'length': edges[edge_k]['length'],
+                    'geometry': edges[edge_k]['geometry'], 
+                    'noises': edges[edge_k]['noises']})
                 else:
                     edge_d = edges[edge_k]
                     edge_d['uvkey'] = edge_uvkey
@@ -247,10 +249,9 @@ def get_edge_noise_exps(edge_dict, noise_polys, graph_proj):
         edge_d['noises'] = noise_dict
         return edge_d
 
-def get_edge_gdf(graph, cols):
+def get_edge_gdf(graph):
     edge_dicts = get_all_edge_dicts(graph, attr_subset=True)
-    edge_gdf = gpd.GeoDataFrame(edge_dicts, crs=from_epsg(3879))
-    return edge_gdf[cols]
+    return gpd.GeoDataFrame(edge_dicts, crs=from_epsg(3879))
 
 def update_edge_noises(edge_gdf, graph_proj):
     for edge in edge_gdf.itertuples():
@@ -268,12 +269,9 @@ def get_noise_cost(noises: 'noise dictionary', costs: 'cost dictionary', nt: 'no
             noise_cost += noises[db] * costs[db] * nt
     return round(noise_cost,2)
 
-def add_noise_costs_to_edge_gdf(edge_gdf, nt: 'noise tolerance, float: 0.0-2.0'):
-    costs = { 50: 0.1, 55: 0.2, 60: 0.3, 65: 0.4, 70: 0.5, 75: 0.6 }
-    edge_gdf['noise_cost'] = [get_noise_cost(noises, costs, nt) for noises in edge_gdf['noises']]
-    edge_gdf['tot_cost'] = edge_gdf.apply(lambda row: round(row.length + row.noise_cost,2), axis=1)
-    edge_gdf['cost_rat'] = edge_gdf.apply(lambda row: int(round((row.noise_cost/row.length)*100)), axis=1)
-    return edge_gdf
+# def add_noise_costs_to_edge_gdf(edge_nc_gdf, nt: 'noise tolerance, float: 0.0-2.0'):
+    # edge_nc_gdf['noise_cost'] = [get_noise_cost(noises, costs, nt) for noises in edge_nc_gdf['noises']]
+    # edge_nc_gdf['cost_rat'] = edge_nc_gdf.apply(lambda row: int(round((row.noise_cost/row.length)*100)), axis=1)
 
 def get_noise_cost_from_noises_dict(geom, noises_dict, nt):
     costs = { 50: 0.1, 55: 0.2, 60: 0.3, 65: 0.4, 70: 0.5, 75: 0.6 }
@@ -281,9 +279,10 @@ def get_noise_cost_from_noises_dict(geom, noises_dict, nt):
     tot_cost = round(geom.length + noise_cost, 2)
     return tot_cost
 
-def set_graph_noise_costs(graph_proj, nts: 'list of noise tolerances, float: 0.0-2.0'):
-    edge_dicts = get_all_edge_dicts(graph_proj)
-    edge_gdf = get_edge_gdf(edge_dicts, ['uvkey', 'geometry', 'length', 'noises'])
+def set_graph_noise_costs(edge_gdf, graph, nts: 'list of noise tolerances, float: 0.0-2.0'):
+    costs = { 50: 0.1, 55: 0.2, 60: 0.3, 65: 0.4, 70: 0.5, 75: 0.6 }
+    edge_nc_gdf = edge_gdf.copy()
     for nt in nts:
-        edge_n_costs = add_noise_costs_to_edge_gdf(edge_gdf, nt)
-        update_edge_costs(edge_n_costs, graph_proj, nt)
+        edge_nc_gdf['noise_cost'] = [get_noise_cost(noises, costs, nt) for noises in edge_nc_gdf['noises']]
+        edge_nc_gdf['tot_cost'] = edge_nc_gdf.apply(lambda row: round(row['length'] + row['noise_cost'], 2), axis=1)
+        update_edge_costs(edge_nc_gdf, graph, nt)

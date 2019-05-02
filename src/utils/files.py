@@ -53,9 +53,7 @@ def get_network_kumpula():
     return graph_undir
 
 def get_network_kumpula_noise():
-    graph_undir = load_graphml('kumpula_u_g_n.graphml', folder='graphs', nts=[])
-    nw.delete_unused_edge_attrs(graph_undir)
-    return graph_undir
+    return load_graphml('kumpula_u_g_n_s.graphml', folder='graphs', nts=[])
 
 def get_network_kumpula_noise_costs(nts):
     graph_undir = load_graphml('kumpula_u_g_n_c_s.graphml', folder='graphs', nts=nts)
@@ -66,9 +64,7 @@ def get_network_full():
     return graph
 
 def get_network_full_noise():
-    graph = load_graphml('hel_u_g_n_s.graphml', folder='graphs')
-    nw.delete_unused_edge_attrs(graph)
-    return graph
+    return load_graphml('hel_u_g_n_s.graphml', folder='graphs')
 
 def get_network_full_noise_costs(nts):
     graph_undir = load_graphml('hel_u_g_n_c_s.graphml', folder='graphs', nts=nts)

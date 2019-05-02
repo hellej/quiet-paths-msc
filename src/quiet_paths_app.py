@@ -17,18 +17,20 @@ import time
 app = Flask(__name__)
 CORS(app)
 
-# READ DATA
+start_time = time.time()
 nts = [0.1, 0.15, 0.25, 0.5, 1, 1.5, 2, 4, 6, 10, 15, 20]
-graph = files.get_network_full_noise_costs(nts)
-print('Data read.')
 
-# EXTRACT GRAPH FEATURES
-edge_gdf = nw.get_edge_gdf(graph, ['uvkey', 'geometry', 'noises'])
+# INITIALIZE GRAPH
+graph = files.get_network_full_noise()
+print('Data read.')
+edge_gdf = nw.get_edge_gdf(graph)
 node_gdf = nw.get_node_gdf(graph)
 print('Network features extracted.')
-edges_sind = edge_gdf.sindex
-nodes_sind = node_gdf.sindex
-print('Network ready.')
+nw.set_graph_noise_costs(edge_gdf, graph, nts)
+edge_gdf = edge_gdf[['uvkey', 'geometry', 'noises']]
+print('Noise costs set.')
+
+utils.print_duration(start_time, 'network initialized')
 
 @app.route('/')
 def hello_world():
@@ -61,12 +63,10 @@ def get_quiet_path(from_lat, from_lon, to_lat, to_lon):
     # get origin & target nodes
     from_latLon = {'lat': float(from_lat), 'lon': float(from_lon)}
     to_latLon = {'lat': float(to_lat), 'lon': float(to_lon)}
-    # print('from:', from_latLon)
-    # print('to:', to_latLon)
+    print('from:', from_latLon)
+    print('to:', to_latLon)
     from_xy = geom_utils.get_xy_from_lat_lon(from_latLon)
     to_xy = geom_utils.get_xy_from_lat_lon(to_latLon)
-    print('from:', from_xy)
-    print('to:', to_xy)
     # find origin and target nodes from closest edges
     orig_node = rt.get_nearest_node(graph, from_xy, edge_gdf, node_gdf, nts, False)
     target_node = rt.get_nearest_node(graph, to_xy, edge_gdf, node_gdf, nts, False)

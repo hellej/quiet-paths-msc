@@ -34,6 +34,9 @@ edge_dicts[:2]
 
 #%% READ GRAPH
 graph = files.get_network_full_noise()
+#%%
+ox.save_graphml(graph, filename='hel_u_g_n_s.graphml', folder='graphs', gephi=False)
+
 
 #%% SET NOISE IMPEDANCES TO GRAPH
 nw.set_graph_noise_costs(graph, nts)
