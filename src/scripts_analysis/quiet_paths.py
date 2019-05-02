@@ -35,7 +35,7 @@ print(from_xy)
 print(to_xy)
 start_time = time.time()
 orig_node = rt.get_nearest_node(graph, from_xy, edge_gdf, node_gdf, nts, False, noise_polys)
-target_node = rt.get_nearest_node
+target_node = rt.get_nearest_node(graph, to_xy, edge_gdf, node_gdf, nts, False, noise_polys)
 utils.print_duration(start_time, 'get all routing params')
 
 #%% SHORTEST PATH

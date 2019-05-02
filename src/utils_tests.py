@@ -79,9 +79,9 @@ def test_shortest_path():
     kumpula = pois.loc[pois['name'] == 'Kumpulan kampus']
     from_xy = geom_utils.get_xy_from_geom(list(koskela['geometry'])[0])
     to_xy = geom_utils.get_xy_from_geom(list(kumpula['geometry'])[0])
-    orig_node = rt.get_nearest_node(graph_proj, from_xy, edge_gdf, node_gdf, [])
-    target_node = rt.get_nearest_node(graph_proj, to_xy, edge_gdf, node_gdf, [])
-    shortest_path = rt.get_shortest_path(graph_proj, orig_node, target_node, 'length')
+    orig_node = rt.get_nearest_node(graph_proj, from_xy, edge_gdf, node_gdf, [], False, noise_polys)
+    target_node = rt.get_nearest_node(graph_proj, to_xy, edge_gdf, node_gdf, [], False, noise_polys)
+    shortest_path = rt.get_shortest_path(graph_proj, orig_node['node'], target_node['node'], 'length')
     path_geom = nw.get_edge_geoms_attrs(graph_proj, shortest_path, 'length', True, False)
     assert (len(shortest_path), path_geom['total_length']) == (45, 1764.38)
 
