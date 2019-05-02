@@ -18,7 +18,7 @@ noise_polys = files.get_noise_polygons()
 
 #%% READ NETWORK
 # graph_proj = nw.get_walk_network(koskela_kumpula_box)
-graph_proj = files.get_kumpula_network()
+graph_proj = files.get_network_kumpula()
 node_count = len(graph_proj)
 print('Nodes in the graph:', node_count)
 # get all edges as list of dicts
