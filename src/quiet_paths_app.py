@@ -29,8 +29,11 @@ print('Network features extracted.')
 nw.set_graph_noise_costs(edge_gdf, graph, nts)
 edge_gdf = edge_gdf[['uvkey', 'geometry', 'noises']]
 print('Noise costs set.')
+edges_sind = edge_gdf.sindex
+nodes_sind = node_gdf.sindex
+print('Spatial index built.')
 
-utils.print_duration(start_time, 'network initialized')
+utils.print_duration(start_time, 'Network initialized.')
 
 @app.route('/')
 def hello_world():
