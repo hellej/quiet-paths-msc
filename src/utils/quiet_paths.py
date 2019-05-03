@@ -2,17 +2,17 @@ import utils.geometry as geom_utils
 
 def get_similar_length_paths(paths, path):
     path_len = path['properties']['length']
-    similar_len_paths = [path for path in paths if (path['properties']['length'] < (path_len + 10)) & (path['properties']['length'] > (path_len - 10))]
+    similar_len_paths = [path for path in paths if (path['properties']['length'] < (path_len + 25)) & (path['properties']['length'] > (path_len - 25))]
     return similar_len_paths
 
-def get_overlapping_paths(compare_paths, path):
+def get_overlapping_paths(compare_paths, path, tolerance=None):
     overlapping = [path]
     path_geom = path['properties']['geometry']
-    path_geom_buff = path_geom.buffer(10)
+    path_geom_buff = path_geom.buffer(tolerance)
     for compare_path in [compare_path for compare_path in compare_paths if path['properties']['id'] != compare_path['properties']['id']]:
         comp_path_geom = compare_path['properties']['geometry']
         if (comp_path_geom.within(path_geom_buff)):
-            print('found overlap:', path['properties']['id'], compare_path['properties']['id'])
+            # print('found overlap:', path['properties']['id'], compare_path['properties']['id'])
             overlapping.append(compare_path)
     return overlapping
 
@@ -24,7 +24,7 @@ def get_best_path(paths):
     # print('ordered (best=[0]):', [(path['properties']['id'], path['properties']['nei_norm']) for path in ordered])
     return ordered[0]
 
-def remove_duplicate_geom_paths(paths, tolerance):
+def remove_duplicate_geom_paths(paths, tolerance=None):
     filtered_paths_ids = []
     filtered_paths = []
     quiet_paths = [path for path in paths if path['properties']['type'] == 'quiet']
@@ -34,7 +34,7 @@ def remove_duplicate_geom_paths(paths, tolerance):
         if (path['properties']['type'] != 'short'):
             path_id = path['properties']['id']
             similar_len_paths = get_similar_length_paths(paths, path)
-            overlapping_paths = get_overlapping_paths(similar_len_paths, path)
+            overlapping_paths = get_overlapping_paths(similar_len_paths, path, tolerance)
             best_overlapping_path = get_best_path(overlapping_paths)
             if (len(best_overlapping_path) > 0):
                 best_overlapping_id = best_overlapping_path['properties']['id']
@@ -48,14 +48,13 @@ def remove_duplicate_geom_paths(paths, tolerance):
     # check if shortest path is shorter than shortest quiet path
     shortest_quiet_path = filtered_paths[0]
     if (shortest_quiet_path['properties']['length'] - shortest_path['properties']['length'] > 10):
-        print('set shortest path as shortest')
+        # print('set shortest path as shortest')
         filtered_paths.append(shortest_path)
     else:
-        print('set shortest quiet path as shortest')
+        # print('set shortest quiet path as shortest')
         filtered_paths[0]['properties']['type'] = 'short'
         filtered_paths[0]['properties']['id'] = 'short_p'
-    print('unfiltered path lengths:', [round(path['properties']['length']) for path in paths])
-    print('found', len(paths), '- return:', len(filtered_paths), 'unique paths')
+    print('found', len(paths), 'of which returned', len(filtered_paths), 'unique paths.')
     # delete shapely geometries from path dicts
     for path in filtered_paths:
         del path['properties']['geometry']

@@ -18,11 +18,11 @@ app = Flask(__name__)
 CORS(app)
 
 start_time = time.time()
-nts = [0.1, 0.15, 0.25, 0.5, 1, 1.5, 2, 4, 6, 10, 15, 20]
+nts = [0.1, 0.15, 0.25, 0.5, 1, 1.5, 2, 4, 6, 10, 20, 40]
 
 # INITIALIZE GRAPH
-graph = files.get_network_full_noise()
-print('Data read.')
+graph = files.get_network_kumpula_noise()
+print('Graph of', graph.size(), 'edges read.')
 edge_gdf = nw.get_edge_gdf(graph)
 node_gdf = nw.get_node_gdf(graph)
 print('Network features extracted.')
@@ -73,7 +73,7 @@ def get_quiet_path(from_lat, from_lon, to_lat, to_lon):
     # find origin and target nodes from closest edges
     orig_node = rt.get_nearest_node(graph, from_xy, edge_gdf, node_gdf, nts, False)
     target_node = rt.get_nearest_node(graph, to_xy, edge_gdf, node_gdf, nts, False)
-    utils.print_duration(start_time, 'GOT ROUTING PARAMS')
+    utils.print_duration(start_time, 'Got params for routing.')
     start_time = time.time()
     # get shortest path
     path_list = []
@@ -100,12 +100,12 @@ def get_quiet_path(from_lat, from_lon, to_lat, to_lon):
     paths_gdf['nei_norm'] = paths_gdf.apply(lambda row: round(row.nei / (0.6 * row.total_length), 4), axis=1)
     # gdf to dicts
     path_dicts = qp.get_geojson_from_q_path_gdf(paths_gdf)
-    # aggregate paths based on similarity of the geometries
-    unique_paths = qp.remove_duplicate_geom_paths(path_dicts, 10)
+    # group paths with nearly identical geometries
+    unique_paths = qp.remove_duplicate_geom_paths(path_dicts, tolerance=25)
     # calculate exposure differences to shortest path
     path_comps = rt.get_short_quiet_paths_comparison_for_dicts(unique_paths)
     # return paths as GeoJSON (FeatureCollection)
-    utils.print_duration(start_time, 'GOT SHORT & QUIET PATHS')
+    utils.print_duration(start_time, 'Routing done.')
     return jsonify(path_comps)
 
 if __name__ == '__main__':
