@@ -133,8 +133,8 @@ def remove_linking_edges_of_new_node(graph, new_node_d):
 
 def get_shortest_edge(edges, weight):
     if (len(edges) == 1):
-        return edges[0]
-    s_edge = edges[0]
+        return next(iter(edges.values()))
+    s_edge = next(iter(edges.values()))
     for edge_k in edges.keys():
         if (weight in edges[edge_k].keys() and weight in s_edge.keys()):
             if (edges[edge_k][weight] < s_edge[weight]):
