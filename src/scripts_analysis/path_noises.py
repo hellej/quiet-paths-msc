@@ -49,7 +49,7 @@ path_count = len(shortest_paths.index)
 for idx, shortest_path in shortest_paths.iterrows():
     if (idx < 0):
         break
-    utils.print_progress(idx, path_count, False)
+    utils.print_progress(idx, path_count, percentages=False)
     path_geom = shortest_path['geometry']
     path_id = shortest_path['uniq_id']
 

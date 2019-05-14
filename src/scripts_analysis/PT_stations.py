@@ -24,9 +24,9 @@ print('Targets:', targets_count)
 #%% RUN DIGITRANSIT ROUTING QUERIES
 all_walks = []
 for origin_idx, origin in origins.iterrows():
-    utils.print_progress(origin_idx, origins_count, False)
+    utils.print_progress(origin_idx, origins_count, percentages=False)
     for target_idx, target in targets.iterrows():
-        # utils.print_progress(target_idx, targets_count, False)
+        # utils.print_progress(target_idx, targets_count, percentages=False)
         itins = routing.get_route_itineraries(origin['from_latLon'], target['to_latLon'], walkSpeed, maxWalkDistance, 3, datetime)
         walks = routing.parse_walk_geoms(itins, origin['INDEX'], target['name'])
         all_walks.append(walks)
