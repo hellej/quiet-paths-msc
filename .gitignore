@@ -16,3 +16,5 @@ src/graphs/hel_u_g.graphml
 src/graphs/hel_u_g_n.graphml
 src/graphs/hel_u_g_n_s.graphml
 src/graphs/hel_u_g_n_c_s.graphml
+src/data/input/T06_tma_e_12_TOL2008.csv
+src/data/input/r250m*
