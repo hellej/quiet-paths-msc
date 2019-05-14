@@ -9,7 +9,7 @@ grid_gdf = gpd.read_file('data/extents_grids.gpkg', layer='HSY_vaesto_250m_2017'
 def get_grid():
     return grid_gdf
 
-def print_progress(idx, count, percentages: bool):
+def print_progress(idx, count, percentages=False):
     if (percentages):
         sys.stdout.write('\r{0} %'.format(int(round(((idx/count)*100)))))
     else:

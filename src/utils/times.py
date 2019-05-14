@@ -1,8 +1,7 @@
 from datetime import datetime, date, time, timedelta
 
-def get_next_weekday():
+def get_next_weekday(skipdays=1):
     weekday = datetime.weekday(date.today())
-    skipdays = 1
     if (weekday == 4):
         skipdays = 3
     if (weekday == 5):
@@ -25,6 +24,6 @@ def get_next_sunday():
 def get_datetime(day, hh, mm):
     return datetime.combine(day, time(hh, mm))
 
-def get_next_weekday_datetime(hh, mm):
-    next_weekday_datetime = datetime.combine(get_next_weekday(), time(hh, mm))
+def get_next_weekday_datetime(hh, mm, skipdays=1):
+    next_weekday_datetime = datetime.combine(get_next_weekday(skipdays), time(hh, mm))
     return next_weekday_datetime

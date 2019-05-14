@@ -234,7 +234,7 @@ def add_missing_edge_geometries(edge_dicts, graph_proj):
             nx.set_edge_attributes(graph_proj, { edge_d['uvkey']: {'geometry': edge_geom} })
         # set length attribute
         nx.set_edge_attributes(graph_proj, { edge_d['uvkey']: {'length': round(edge_d['geometry'].length, 3)} })
-        utils.print_progress(idx+1, edge_count, True)
+        utils.print_progress(idx+1, edge_count, percentages=True)
 
 def get_edge_noise_exps(edge_dict, noise_polys, graph_proj):
     edge_d = {}

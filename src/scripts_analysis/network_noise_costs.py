@@ -53,7 +53,7 @@ start_time = time.time()
 edge_noise_dicts = []
 for idx, edge_dict in enumerate(edge_set):
     edge_noise_dicts.append(nw.get_edge_noise_exps(edge_dict, noise_polys, graph_proj))
-    utils.print_progress(idx+1, len(edge_set), True)
+    utils.print_progress(idx+1, len(edge_set), percentages=True)
 time_elapsed = round(time.time() - start_time,1)
 edge_time = round(time_elapsed/len(edge_set),1)
 print('\n--- %s minutes ---' % (round(time_elapsed/60, 1)))
@@ -87,7 +87,7 @@ print('Extracting edge exposures...')
 for idx, edge_chunk in enumerate(edge_chunks):
     edge_noise_dicts = pool.map(get_edge_noise_exps, edge_chunk)
     edge_noise_dict_chunks.append(edge_noise_dicts)
-    utils.print_progress(idx+1, len(edge_chunks), True)
+    utils.print_progress(idx+1, len(edge_chunks), percentages=True)
 pool.close()
 time_elapsed = round(time.time() - start_time, 1)
 edge_time = round(time_elapsed/len(edge_set), 1)

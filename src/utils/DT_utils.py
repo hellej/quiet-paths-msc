@@ -39,31 +39,20 @@ def get_target_locations():
     target_locations = target_locations.to_crs(from_epsg(3879))
     return target_locations[:3]
 
-def group_by_origin_stop(df):
+def group_home_walks(df):
     grouped_dfs = []
-    grouped = df.groupby(['from_id', 'stop_id'])
+    grouped = df.groupby('uniq_id')
+    total_weights_sum = df['weight'].sum()
     for key, values in grouped:
         firstrow = values.iloc[0]
-        count = len(values.index)
-        g_gdf = gpd.GeoDataFrame([firstrow], crs=from_epsg(3879))
-        g_gdf['count'] = count
+        g_gdf = pd.DataFrame([firstrow])
+        g_gdf['count'] = len(values.index)
+        sum_weight = values['weight'].sum()
+        g_gdf['weight'] = round(sum_weight, 4)
+        g_gdf['prob'] = round((sum_weight/total_weights_sum)*100, 2)
         grouped_dfs.append(g_gdf)
     origin_stop_groups = pd.concat(grouped_dfs).reset_index(drop=True)
     return origin_stop_groups
-
-def group_by_origin_target(df):
-    grouped_dfs = []
-    grouped = df.groupby(['from_id', 'to_id'])
-    for key, values in grouped:
-        firstrow = values.iloc[0]
-        count = len(values.index)
-        g_gdf = gpd.GeoDataFrame([firstrow], crs=from_epsg(3879))
-        g_gdf['count'] = count
-        grouped_dfs.append(g_gdf)
-    if (len(grouped_dfs) == 0):
-        return None
-    origin_target_groups = pd.concat(grouped_dfs).reset_index(drop=True)
-    return origin_target_groups
 
 def merge_origin_target_attrs_to_walks(gdf, origins, targets):
     # print('walks columns', list(gdf))

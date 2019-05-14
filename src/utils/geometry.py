@@ -10,6 +10,9 @@ from fiona.crs import from_epsg
 def get_etrs_crs():
     return from_epsg(3879)
 
+def get_lat_lon_from_coords(coords):
+    return {'lat': coords[1], 'lon': coords[0] }
+
 def get_lat_lon_from_geom(geom):
     return {'lat': round(geom.y, 6), 'lon': round(geom.x,6) }
 
