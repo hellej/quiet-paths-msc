@@ -11,7 +11,7 @@ def get_etrs_crs():
     return from_epsg(3879)
 
 def get_lat_lon_from_geom(geom):
-    return {'lat': geom.y, 'lon': geom.x }
+    return {'lat': round(geom.y, 6), 'lon': round(geom.x,6) }
 
 def get_lat_lon_from_row(row):
     return {'lat': row['geometry'].y, 'lon': row['geometry'].x }
@@ -36,10 +36,11 @@ def project_to_etrs(geom):
     geom_proj = transform(project, geom)
     return geom_proj
 
-def project_to_wgs(geom):
+def project_to_wgs(geom, epsg=3879):
+    from_epsg = 'epsg:'+ str(epsg)
     project = partial(
         pyproj.transform,
-        pyproj.Proj(init='epsg:3879'), # source coordinate system
+        pyproj.Proj(init=from_epsg), # source coordinate system
         pyproj.Proj(init='epsg:4326')) # destination coordinate system
     geom_proj = transform(project, geom)
     return geom_proj

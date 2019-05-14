@@ -17,6 +17,12 @@ def get_noise_polygons():
     noise_polys = geom_utils.explode_multipolygons_to_polygons(noise_data)
     return noise_polys
 
+def get_city_districts():
+    return gpd.read_file('data/extents_grids.gpkg', layer='HSY_kaupunginosat_19')
+
+def get_statfi_grid():
+    return gpd.read_file('data/extents_grids.gpkg', layer='r250_hel_tyoalue')
+
 def get_koskela_poly():
     koskela_rows = bboxes.loc[bboxes['name'] == 'koskela']
     poly = list(koskela_rows['geometry'])[0]
