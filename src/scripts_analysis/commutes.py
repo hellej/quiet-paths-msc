@@ -81,13 +81,12 @@ for key, values in home_groups:
 
 #%%
 home_walks_g_gdf = gpd.GeoDataFrame(home_walks_g, geometry='stop_Point', crs=from_epsg(4326))
+# this should be exactly 100:
 print('sum prob', home_walks_g_gdf['prob'].sum())
 home_walks_g_gdf.plot()
 home_walks_g_gdf.head(50)
-# this should be exactly 100
 
 #%%
 home_walks_g_gdf.to_file('outputs/YKR_commutes_output/test.gpkg', layer='stops_test', driver='GPKG')
-# walk_targets_g.to_file('outputs/DT_output_test.gpkg', layer='targets_g', driver="GPKG")
 
 #%%
