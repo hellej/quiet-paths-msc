@@ -77,8 +77,8 @@ def get_walk_target_point(row):
 
 def get_walk_uniq_id(row):
     if (row['to_pt_mode'] == 'none'):
-        uniq_id = f'''{row['from_id']}_{row['to_id']}'''
+        uniq_id = f'''{row['from_axyind']}_{row['to_id']}'''
         return uniq_id
     else:
-        uniq_id = f'''{row['from_id']}_{row['stop_id']}'''
+        uniq_id = f'''{row['from_axyind']}_{row['stop_id']}'''
         return uniq_id

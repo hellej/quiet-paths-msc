@@ -71,13 +71,12 @@ print('Datetime for routing:', datetime)
 #%% process one origin at a time
 axyinds_processed = commutes_utils.get_processed_home_walks()
 for key, values in home_groups:
-    axyind = key
-    # if (axyind in axyinds_processed):
+    # if (key in axyinds_processed):
     #     continue
-    if (axyind in [3873756677375, 3866256677375]):
-        home_walks_g = commutes_utils.get_home_work_walks(axyind=axyind, work_rows=values, districts=districts, datetime=datetime, walk_speed=walk_speed)
+    if (key in [3873756677375, 3866256677375]):
+        home_walks_g = commutes_utils.get_home_work_walks(axyind=key, work_rows=values, districts=districts, datetime=datetime, walk_speed=walk_speed, subset=True)
         home_walks_g_to_file = home_walks_g.drop(columns=['stop_Point'])
-        home_walks_g_to_file.to_csv('outputs/YKR_commutes_output/home_walks/axyind_'+str(axyind)+'.csv')
+        home_walks_g_to_file.to_csv('outputs/YKR_commutes_output/home_walks/axyind_'+str(key)+'.csv')
 
 #%%
 home_walks_g_gdf = gpd.GeoDataFrame(home_walks_g, geometry='stop_Point', crs=from_epsg(4326))
@@ -85,7 +84,7 @@ home_walks_g_gdf = gpd.GeoDataFrame(home_walks_g, geometry='stop_Point', crs=fro
 print('sum prob', home_walks_g_gdf['prob'].sum())
 home_walks_g_gdf.plot()
 home_walks_g_gdf.head(50)
-
+        
 #%%
 home_walks_g_gdf.to_file('outputs/YKR_commutes_output/test.gpkg', layer='stops_test', driver='GPKG')
 

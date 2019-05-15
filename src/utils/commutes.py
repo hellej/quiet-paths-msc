@@ -10,10 +10,10 @@ import utils.DT_API as DT_routing
 import utils.DT_utils as DT_utils
 
 
-def get_home_walks_filenames():
-    path = 'outputs/YKR_commutes_output/home_walks'
+def get_home_walks_filenames(path='outputs/YKR_commutes_output/home_walks'):
     files = [f for f in listdir(path) if isfile(join(path, f))]
-    return files
+    files_filtered = [f for f in files if 'DS_Store' not in f]
+    return files_filtered
 
 def parse_axyinds_from_filenames(filenames):
     axyinds = []
@@ -80,7 +80,7 @@ def get_work_targets_gdf(geom_home, districts, work_rows=None):
     print('missing:', all_works_count - all_included_works_count, '-', outside_ratio, '%')
     return targets
 
-def get_home_work_walks(axyind=None, work_rows=None, districts=None, datetime=None, walk_speed=None):
+def get_home_work_walks(axyind=None, work_rows=None, districts=None, datetime=None, walk_speed=None, subset=True):
     home_stops_all = []
     start_time = time.time()
     geom_home = work_rows['geom_home'].iloc[0]
@@ -88,7 +88,7 @@ def get_home_work_walks(axyind=None, work_rows=None, districts=None, datetime=No
     work_targets = get_work_targets_gdf(geom_home, districts, work_rows=work_rows)
     print('Got', len(work_targets.index), 'targets')
     # filter rows of work_targets for testing
-    work_targets = work_targets[:10]
+    work_targets = work_targets[:10] if subset == True else work_targets
     # print('WORK_TARGETS', work_targets)
     # get routes to all workplaces of the route
     for target_idx, target in work_targets.iterrows():
