@@ -4,6 +4,7 @@ import geopandas as gpd
 import time
 from fiona.crs import from_epsg
 from shapely.geometry import Point
+from multiprocessing import current_process, Pool
 import utils.DT_API as DT_routing
 import utils.DT_utils as DT_utils
 import utils.geometry as geom_utils
@@ -63,32 +64,43 @@ print('unique homes', homes['axyind'].nunique())
 
 #%% group workplaces by homes
 home_groups = commutes.groupby('axyind')
+# collect axyinds to process
+axyinds = commutes['axyind'].unique()
+axyinds_processed = commutes_utils.get_processed_home_walks()
+axyinds = [axyind for axyind in axyinds if axyind not in axyinds_processed]
+axyinds = [3873756677375, 3866256677375, 3863756676625, 3876256675875, 3838756674875]
 
 # routing params for Digitransit API
 walk_speed = '1.16666'
 datetime = times.get_next_weekday_datetime(8, 30, skipdays=7)
 print('Datetime for routing:', datetime)
 
-#%% process one origin at a time
-axyinds_processed = commutes_utils.get_processed_home_walks()
-for key, values in home_groups:
-    # if (key in axyinds_processed):
-    #     continue
-    if (key in [3873756677375, 3866256677375]):
-        home_walks_g = commutes_utils.get_home_work_walks(axyind=key, work_rows=values, districts=districts, datetime=datetime, walk_speed=walk_speed, subset=True)
-        home_walks_g_to_file = home_walks_g.drop(columns=['stop_Point', 'DT_geom'])
-        home_walks_g_to_file.to_csv('outputs/YKR_commutes_output/home_stops/axyind_'+str(key)+'.csv')
+# function that returns home_walks
+def get_home_walk_gdf(axyind):
+    work_rows = home_groups.get_group(axyind)
+    home_walks_g = commutes_utils.get_home_work_walks(axyind=axyind, work_rows=work_rows, districts=districts, datetime=datetime, walk_speed=walk_speed, subset=True, logging=False)
+    home_walks_g_to_file = home_walks_g.drop(columns=['stop_Point', 'DT_geom'])
+    home_walks_g_to_file.to_csv('outputs/YKR_commutes_output/home_stops_pool/axyind_'+str(axyind)+'.csv')
+    return home_walks_g
+
+#%% process origins
+# with pool
+pool = Pool(processes=4)
+all_home_walks_dfs = pool.map(get_home_walk_gdf, axyinds[:2])
+# without pool (one by one)
+# all_home_walks_dfs = [get_home_walk_gdf(axyind) for axyind in axyinds]
 
 #%% export to GDF for debugging
-home_walks_g_gdf = gpd.GeoDataFrame(home_walks_g, geometry='DT_geom', crs=from_epsg(4326))
-home_walks_g_gdf.drop(columns=['stop_Point']).to_file('outputs/YKR_commutes_output/test.gpkg', layer='dt_paths', driver='GPKG')
-home_walks_g_gdf = gpd.GeoDataFrame(home_walks_g, geometry='stop_Point', crs=from_epsg(4326))
-home_walks_g_gdf.drop(columns=['DT_geom']).to_file('outputs/YKR_commutes_output/test.gpkg', layer='dt_stops', driver='GPKG')
+all_home_walks_df = pd.concat(all_home_walks_dfs, ignore_index=True)
+all_home_walks_gdf = gpd.GeoDataFrame(all_home_walks_df, geometry='DT_geom', crs=from_epsg(4326))
+# all_home_walks_gdf.drop(columns=['stop_Point']).to_file('outputs/YKR_commutes_output/test.gpkg', layer='dt_paths', driver='GPKG')
+all_home_walks_gdf = gpd.GeoDataFrame(all_home_walks_df, geometry='stop_Point', crs=from_epsg(4326))
+# all_home_walks_gdf.drop(columns=['DT_geom']).to_file('outputs/YKR_commutes_output/test.gpkg', layer='dt_stops', driver='GPKG')
 
 #%%
 # this should be exactly 100:
-print('sum prob', home_walks_g_gdf['prob'].sum())
-home_walks_g_gdf.plot()
-home_walks_g_gdf.head(50)
+print('sum prob', all_home_walks_gdf['prob'].sum())
+all_home_walks_gdf.plot()
+all_home_walks_gdf.head(50)
 
 #%%

@@ -31,10 +31,10 @@ def get_processed_home_walks():
 def get_home_district(geom_home, districts):
     for idx, distr in districts.iterrows():
         if (geom_home.within(distr['geom_distr_poly'])):
-            print('District of the origin', distr['id_distr'])
+            # print('District of the origin', distr['id_distr'])
             return { 'id_distr': distr['id_distr'], 'geom_distr_poly': distr['geom_distr_poly'] }
 
-def get_work_targets_gdf(geom_home, districts, work_rows=None):
+def get_work_targets_gdf(geom_home, districts, work_rows=None, logging=True):
     home_distr = get_home_district(geom_home, districts)
     # turn work_rows (workplaces) into GDF
     works = gpd.GeoDataFrame(work_rows, geometry='geom_work', crs=from_epsg(3067))
@@ -63,32 +63,37 @@ def get_work_targets_gdf(geom_home, districts, work_rows=None):
     distr_works = distr_works[['yht', 'to_latLon', 'id_target']]
     close_works['target_type'] = 'gridcell'
     distr_works['target_type'] = 'district'
-    print('found', len(close_works.index), 'close work locations')
-    print('found', len(distr_works.index), 'remote work locations')
+    if (logging == True):
+        print('found', len(close_works.index), 'close work locations')
+        print('found', len(distr_works.index), 'remote work locations')
     # combine dataframes
     targets = pd.concat([close_works, distr_works], ignore_index=True)
 
     # print stats about works inside and outside the districts
     all_works_count = works['yht'].sum()
-    print('all works:', all_works_count)
+    if (logging == True):
+        print('all works:', all_works_count)
     all_included_works_count = targets['yht'].sum()
     # calculate reference sum of all included works
     distr_works_join = gpd.sjoin(districts, works, how='left', op='intersects')
     all_included_works_count_reference = distr_works_join['yht'].sum()
-    print('work count match?:', 'yes' if all_included_works_count == all_included_works_count_reference else 'no')
+    if (logging == True):
+        print('work count match?:', 'yes' if all_included_works_count == all_included_works_count_reference else 'no')
     outside_ratio = round(((all_works_count - all_included_works_count)/all_works_count)*100)
-    print('missing:', all_works_count - all_included_works_count, '-', outside_ratio, '%')
+    if (logging == True):
+        print('missing:', all_works_count - all_included_works_count, '-', outside_ratio, '%')
     return targets
 
-def get_home_work_walks(axyind=None, work_rows=None, districts=None, datetime=None, walk_speed=None, subset=True):
+def get_home_work_walks(axyind=None, work_rows=None, districts=None, datetime=None, walk_speed=None, subset=True, logging=True):
     home_stops_all = []
     start_time = time.time()
     geom_home = work_rows['geom_home'].iloc[0]
     home_latLon = work_rows['home_latLon'].iloc[0]
-    work_targets = get_work_targets_gdf(geom_home, districts, work_rows=work_rows)
-    print('Got', len(work_targets.index), 'targets')
+    work_targets = get_work_targets_gdf(geom_home, districts, work_rows=work_rows, logging=logging)
+    if (logging == True):
+        print('Got', len(work_targets.index), 'targets')
     # filter rows of work_targets for testing
-    work_targets = work_targets[:10] if subset == True else work_targets
+    work_targets = work_targets[:6] if subset == True else work_targets
     # print('WORK_TARGETS', work_targets)
     # get routes to all workplaces of the route
     for target_idx, target in work_targets.iterrows():
@@ -106,5 +111,6 @@ def get_home_work_walks(axyind=None, work_rows=None, districts=None, datetime=No
     home_walks_all['uniq_id'] = home_walks_all.apply(lambda row: DT_utils.get_walk_uniq_id(row), axis=1)
     # group similar walks and calculate realtive utilization rates of them
     home_walks_g = DT_utils.group_home_walks(home_walks_all)
-    utils.print_duration(start_time, 'Home walks got.')
+    if (logging == True):
+        utils.print_duration(start_time, 'Home walks got.')
     return home_walks_g
