@@ -4,6 +4,7 @@ import geopandas as gpd
 import ast
 import time
 from fiona.crs import from_epsg
+from multiprocessing import current_process, Pool
 import utils.commutes as commutes_utils
 import utils.geometry as geom_utils
 import utils.files as files
@@ -31,6 +32,7 @@ utils.print_duration(start_time, 'Network initialized.')
 home_stops_path = 'outputs/YKR_commutes_output/home_stops'
 origins_stops_files = commutes_utils.get_axyind_filenames(path=home_stops_path)
 origins_paths_files = commutes_utils.get_axyind_filenames(path='outputs/YKR_commutes_output/home_paths')
+origins_stops_files
 
 #%% prepare for path calculation loop
 # calculate origin-stop paths
@@ -44,16 +46,13 @@ def get_origin_stop_paths(row):
 axyinds_not_processed = [file for file in origins_stops_files if file not in origins_paths_files]
 axyinds_not_processed
 
-home_paths_dfs = []
-#%% calculate quiet & short paths
-for home_stops_file in origins_stops_files:
+#%% function for calculating short & quiet paths
+def get_origin_stops_paths_df(home_stops_file):
     home_stops = pd.read_csv(home_stops_path+'/'+home_stops_file)
     home_stops['DT_origin_latLon'] = [ast.literal_eval(d) for d in home_stops['DT_origin_latLon']]
     home_stops['stop_latLon'] = [ast.literal_eval(d) for d in home_stops['stop_latLon']]
     home_paths = []
     for idx, row in home_stops.iterrows():
-        # if (idx > 2):
-        #     continue
         paths = get_origin_stop_paths(row)
         paths_dicts = [path['properties'] for path in paths]
         paths_df = gpd.GeoDataFrame(paths_dicts)
@@ -66,11 +65,14 @@ for home_stops_file in origins_stops_files:
         home_paths.append(paths_df)
     # collect 
     home_paths_df = pd.concat(home_paths, ignore_index=True)
-    home_paths_dfs.append(home_paths_df)
     # save as axyind.csv table before proceeding to next axyind
     home_walks_g_to_file = home_paths_df.drop(columns=['geometry'])
     home_walks_g_to_file.to_csv('outputs/YKR_commutes_output/home_paths/axyind_'+str(row['from_axyind'])+'.csv')
+    return home_paths_df
 
+#%% process origins with pool
+pool = Pool(processes=4)
+home_paths_dfs = pool.map(get_origin_stops_paths_df, origins_stops_files)
 all_home_paths_df = gpd.GeoDataFrame(pd.concat(home_paths_dfs, ignore_index=True), crs=from_epsg(3879))
 
 #%% check path GDFs

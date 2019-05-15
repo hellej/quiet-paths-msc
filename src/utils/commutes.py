@@ -98,7 +98,7 @@ def get_home_work_walks(axyind=None, work_rows=None, districts=None, datetime=No
     # get routes to all workplaces of the route
     for target_idx, target in work_targets.iterrows():
         # print('Target ', target_idx, 'yht:', target['yht'], target['to_latLon'])
-        utils.print_progress(target_idx, len(work_targets.index), percentages=False)
+        # utils.print_progress(target_idx, len(work_targets.index), percentages=False)
         itins = DT_routing.get_route_itineraries(home_latLon, target['to_latLon'], walk_speed, datetime, itins_count=3, max_walk_distance=6000)
         if (len(itins) > 0):
             stop_dicts = DT_routing.parse_itin_attributes(itins, axyind, target['id_target'], weight=target['yht'])
