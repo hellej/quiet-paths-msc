@@ -10,7 +10,7 @@ import utils.DT_API as DT_routing
 import utils.DT_utils as DT_utils
 
 
-def get_home_walks_filenames(path='outputs/YKR_commutes_output/home_walks'):
+def get_axyind_filenames(path='outputs/YKR_commutes_output/home_stops'):
     files = [f for f in listdir(path) if isfile(join(path, f))]
     files_filtered = [f for f in files if 'DS_Store' not in f]
     return files_filtered
@@ -25,7 +25,7 @@ def parse_axyinds_from_filenames(filenames):
     return axyinds
 
 def get_processed_home_walks():
-    filenames = get_home_walks_filenames()
+    filenames = get_axyind_filenames()
     return parse_axyinds_from_filenames(filenames)
 
 def get_home_district(geom_home, districts):

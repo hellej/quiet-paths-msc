@@ -165,10 +165,13 @@ def aggregate_exposures(exp_list):
         exps[db] = round(exps[db], 2)
     return exps
 
-def get_noises_diff(s_noises, q_noises):
+def get_noises_diff(s_noises, q_noises, full_db_range=True):
     dbs = [40, 45, 50, 55, 60, 65, 70, 75]
     diff_dict = {}
     for db in dbs:
+        if (full_db_range == False):
+            if((db not in s_noises.keys()) and (db not in q_noises.keys())):
+                continue
         s_noise = s_noises[db] if db in s_noises.keys() else 0
         q_noise = q_noises[db] if db in q_noises.keys() else 0
         noise_diff = q_noise - s_noise

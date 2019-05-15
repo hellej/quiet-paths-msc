@@ -13,11 +13,12 @@ import utils.utils as utils
 import utils.commutes as commutes_utils
 
 #%% read YKR work commute data
-commutes = pd.read_csv('data/input/T06_tma_e_12_TOL2008.csv')
-commutes['axyind'] = [int(xyind) for xyind in commutes['axyind']]
-commutes['txyind'] = [int(xyind) for xyind in commutes['txyind']]
-commutes = commutes.loc[commutes['akunta'] == 91]
-commutes = commutes.loc[commutes['sp'] == 0]
+commutes = pd.read_csv('data/input/T06_tma_e_TOL2008_2016_hel.csv')
+# commutes['axyind'] = [int(xyind) for xyind in commutes['axyind']]
+# commutes['txyind'] = [int(xyind) for xyind in commutes['txyind']]
+# commutes = commutes.loc[commutes['akunta'] == 91]
+# commutes = commutes.loc[commutes['sp'] == 0]
+# commutes.to_csv('data/input/T06_tma_e_TOL2008_2016_hel.csv')
 commutes['geom_home'] = commutes.apply(lambda row: Point(row['ax'], row['ay']), axis=1)
 commutes['geom_work'] = commutes.apply(lambda row: Point(row['tx'], row['ty']), axis=1)
 commutes['home_latLon'] = [geom_utils.get_lat_lon_from_geom(geom_utils.project_to_wgs(geom, epsg=3067)) for geom in commutes['geom_home']]
@@ -75,17 +76,19 @@ for key, values in home_groups:
     #     continue
     if (key in [3873756677375, 3866256677375]):
         home_walks_g = commutes_utils.get_home_work_walks(axyind=key, work_rows=values, districts=districts, datetime=datetime, walk_speed=walk_speed, subset=True)
-        home_walks_g_to_file = home_walks_g.drop(columns=['stop_Point'])
-        home_walks_g_to_file.to_csv('outputs/YKR_commutes_output/home_walks/axyind_'+str(key)+'.csv')
+        home_walks_g_to_file = home_walks_g.drop(columns=['stop_Point', 'DT_geom'])
+        home_walks_g_to_file.to_csv('outputs/YKR_commutes_output/home_stops/axyind_'+str(key)+'.csv')
+
+#%% export to GDF for debugging
+home_walks_g_gdf = gpd.GeoDataFrame(home_walks_g, geometry='DT_geom', crs=from_epsg(4326))
+home_walks_g_gdf.drop(columns=['stop_Point']).to_file('outputs/YKR_commutes_output/test.gpkg', layer='dt_paths', driver='GPKG')
+home_walks_g_gdf = gpd.GeoDataFrame(home_walks_g, geometry='stop_Point', crs=from_epsg(4326))
+home_walks_g_gdf.drop(columns=['DT_geom']).to_file('outputs/YKR_commutes_output/test.gpkg', layer='dt_stops', driver='GPKG')
 
 #%%
-home_walks_g_gdf = gpd.GeoDataFrame(home_walks_g, geometry='stop_Point', crs=from_epsg(4326))
 # this should be exactly 100:
 print('sum prob', home_walks_g_gdf['prob'].sum())
 home_walks_g_gdf.plot()
 home_walks_g_gdf.head(50)
-        
-#%%
-home_walks_g_gdf.to_file('outputs/YKR_commutes_output/test.gpkg', layer='stops_test', driver='GPKG')
 
 #%%

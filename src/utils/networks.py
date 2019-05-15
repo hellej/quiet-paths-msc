@@ -65,9 +65,10 @@ def get_new_node_attrs(graph_proj, point):
     geom_attrs = {**geom_utils.get_xy_from_geom(point), **geom_utils.get_lat_lon_from_geom(wgs_point)}
     return { 'id': new_node_id, **geom_attrs }
 
-def add_new_node(graph_proj, point):
+def add_new_node(graph_proj, point, logging=True):
     attrs = get_new_node_attrs(graph_proj, point)
-    print('add new node:', attrs['id'])
+    if (logging == True):
+        print('add new node:', attrs['id'])
     graph_proj.add_node(attrs['id'], ref='', x=attrs['x'], y=attrs['y'], lon=attrs['lon'], lat=attrs['lat'])
     return attrs['id']
 
@@ -91,7 +92,7 @@ def get_edge_noise_cost_attrs(nts, edge_d, link_geom, b_add_noises: bool, noise_
         cost_attrs['nc_'+str(nt)] = cost
     return cost_attrs
 
-def add_linking_edges_for_new_node(graph_proj, new_node, closest_point, edge, nts, b_add_noises, noise_polys):
+def add_linking_edges_for_new_node(graph_proj, new_node, closest_point, edge, nts, b_add_noises, noise_polys=None, logging=True):
     edge_geom = edge['geometry']
     split_lines = geom_utils.split_line_at_point(edge_geom, closest_point)
     node_from = edge['uvkey'][0]
@@ -105,7 +106,8 @@ def add_linking_edges_for_new_node(graph_proj, new_node, closest_point, edge, nt
     else:
         link1 = split_lines[1]
         link2 = split_lines[0]
-    print('add linking edges between:', node_from, new_node, node_to)
+    if (logging == True):
+        print('add linking edges between:', node_from, new_node, node_to)
     graph_proj.add_edge(node_from, new_node, geometry=link1, length=round(link1.length, 3), uvkey=(node_from, new_node, 0))
     graph_proj.add_edge(new_node, node_from, geometry=link1, length=round(link1.length, 3), uvkey=(new_node, node_from, 0))
     graph_proj.add_edge(new_node, node_to, geometry=link2, length=round(link2.length, 3), uvkey=(new_node, node_to, 0))
