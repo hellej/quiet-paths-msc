@@ -88,7 +88,6 @@ def get_work_targets_gdf(geom_home, districts, axyind=None, work_rows=None, logg
     return targets
 
 def get_home_work_walks(axyind=None, work_rows=None, districts=None, datetime=None, walk_speed=None, subset=True, logging=True):
-    home_stops_all = []
     start_time = time.time()
     geom_home = work_rows['geom_home'].iloc[0]
     home_latLon = work_rows['home_latLon'].iloc[0]
@@ -99,27 +98,38 @@ def get_home_work_walks(axyind=None, work_rows=None, districts=None, datetime=No
     work_targets = work_targets[:6] if subset == True else work_targets
     # print('WORK_TARGETS', work_targets)
     # get routes to all workplaces of the route
-    for target_idx, target in work_targets.iterrows():
+    total_origin_workers_flow = work_targets['yht'].sum()
+    home_walks_all = []
+    for idx, target in work_targets.iterrows():
         # print('Target ', target_idx, 'yht:', target['yht'], target['to_latLon'])
         # utils.print_progress(target_idx, len(work_targets.index), percentages=False)
         itins = DT_routing.get_route_itineraries(home_latLon, target['to_latLon'], walk_speed, datetime, itins_count=3, max_walk_distance=6000)
         od_itins_count = len(itins)
+        od_workers_flow = target['yht']
         if (od_itins_count > 0):
             # calculate utilization of the itineraries for identifying the probability of using the itinerary from the origin
             # based on number of commuters and number of alternative itineraries to the destination
             # if only one itinerary is got for origin-destination (commute flow), utilization equals the number of commutes between the OD pair
-            od_workers_flow = target['yht']
             utilization = round(od_workers_flow/od_itins_count, 6)
             od_walk_dicts = DT_routing.parse_itin_attributes(itins, axyind, target['id_target'], utilization=utilization)
-            home_stops_all += od_walk_dicts
+            home_walks_all += od_walk_dicts
         else:
             print('Error in DT routing to target:', target)
-    # print(home_stops_all)
+            error_df = pd.DataFrame([{ 'axyind': axyind, 'target_type': target['target_type'], 'target_id': target['id_target'], 'target_yht': target['yht'] }])
+            error_df.to_csv('outputs/YKR_commutes_output/home_stops_errors/axyind_'+str(axyind)+'_to_'+str(target['id_target'])+'.csv')
+
+    # print(home_walks_all)
     # collect walks to stops/targets to GDF
-    home_walks_all = pd.DataFrame(home_stops_all)
-    home_walks_all['uniq_id'] = home_walks_all.apply(lambda row: DT_utils.get_walk_uniq_id(row), axis=1)
+    home_walks_all_df = pd.DataFrame(home_walks_all)
+    home_walks_all_df['uniq_id'] = home_walks_all_df.apply(lambda row: DT_utils.get_walk_uniq_id(row), axis=1)
     # group similar walks and calculate realtive utilization rates of them
-    home_walks_g = DT_utils.group_home_walks(home_walks_all)
+    home_walks_g = DT_utils.group_home_walks(home_walks_all_df)
+    # check that no commute data was lost in the analysis (flows match)
+    total_utilization_sum = round(home_walks_g['utilization'].sum())
+    if (total_utilization_sum != total_origin_workers_flow):
+        print('Error: utilization sum of walks does not match the total flow of commuters')
+        error_df = pd.DataFrame([{ 'axyind': axyind, 'total_origin_workers_flow': total_origin_workers_flow, 'total_utilization_sum': total_utilization_sum }])
+        error_df.to_csv('outputs/YKR_commutes_output/home_stops_errors/axyind_'+str(axyind)+'_no_flow_match.csv')
     if (logging == True):
         utils.print_duration(start_time, 'Home walks got.')
     return home_walks_g
