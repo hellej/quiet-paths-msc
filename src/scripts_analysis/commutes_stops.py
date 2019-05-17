@@ -93,8 +93,7 @@ def get_home_walk_gdf(axyind):
     utils.print_duration(start_time, 'home stops got for: '+str(axyind)+'.')
     return home_walks_g
 
-#%% process origins
-# with pool
+#%% process origins with pool
 pool = Pool(processes=4)
 all_home_walks_dfs = pool.map(get_home_walk_gdf, axyinds[:2])
 # without pool (one by one)

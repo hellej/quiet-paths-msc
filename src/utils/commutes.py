@@ -126,9 +126,10 @@ def get_home_work_walks(axyind=None, work_rows=None, districts=None, datetime=No
     home_walks_g = DT_utils.group_home_walks(home_walks_all_df)
     # check that no commute data was lost in the analysis (flows match)
     total_utilization_sum = round(home_walks_g['utilization'].sum())
-    if (total_utilization_sum != total_origin_workers_flow):
+    total_probs = round(home_walks_g['prob'].sum())
+    if (total_utilization_sum != total_origin_workers_flow or total_probs != 100):
         print('Error: utilization sum of walks does not match the total flow of commuters')
-        error_df = pd.DataFrame([{ 'axyind': axyind, 'total_origin_workers_flow': total_origin_workers_flow, 'total_utilization_sum': total_utilization_sum }])
+        error_df = pd.DataFrame([{ 'axyind': axyind, 'total_origin_workers_flow': total_origin_workers_flow, 'total_utilization_sum': total_utilization_sum, 'total_probs': total_probs }])
         error_df.to_csv('outputs/YKR_commutes_output/home_stops_errors/axyind_'+str(axyind)+'_no_flow_match.csv')
     if (logging == True):
         utils.print_duration(start_time, 'Home walks got.')
