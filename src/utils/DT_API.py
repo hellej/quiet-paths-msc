@@ -119,7 +119,7 @@ def dict_values_as_lists(dictionary):
         dict_c[key] = [dictionary[key]]
     return dict_c
 
-def parse_itin_attributes(itins, from_id, to_id, weight=1):
+def parse_itin_attributes(itins, from_id, to_id, utilization=1):
     '''
     Function for parsing route geometries got from Digitransit Routing API. 
     Coordinates are decoded from Google Encoded Polyline Algorithm Format.
@@ -130,9 +130,6 @@ def parse_itin_attributes(itins, from_id, to_id, weight=1):
     '''
     # walk_gdfs = []
     stop_dicts = []
-    # calculate itinerary weight for identifying the probability of the PT stop usage
-    # based on number of commuters and itineraries using that stop 
-    itin_weight = round(weight/len(itins), 6)
     # print('itins:', len(itins), 'weight(yht):', weight, 'itin_weight:', itin_weight)
     for itin in itins:
         walk_leg = itin['legs'][0]
@@ -146,7 +143,7 @@ def parse_itin_attributes(itins, from_id, to_id, weight=1):
         # swap coordinates (y, x) -> (x, y)
         coords = [point[::-1] for point in decoded]
         walk = {}
-        walk['weight'] = itin_weight
+        walk['utilization'] = utilization
         walk['from_axyind'] = from_id
         walk['to_id'] = to_id
         walk['to_pt_mode'] = pt_leg['mode']

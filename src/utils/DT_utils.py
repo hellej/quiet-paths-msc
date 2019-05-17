@@ -40,16 +40,19 @@ def get_target_locations():
     return target_locations[:3]
 
 def group_home_walks(df):
+    # calculate probability of taking particular walk from home location based on aggregated utilizations of walks
     grouped_dfs = []
+    # group by uniq_id (which is either axyind + PT stop id or axyind + txyind)
     grouped = df.groupby('uniq_id')
-    total_weights_sum = df['weight'].sum()
+    total_utilization_sum = df['utilization'].sum()
     for key, values in grouped:
         firstrow = values.iloc[0]
         g_gdf = pd.DataFrame([firstrow])
+        # number of walks
         g_gdf['count'] = len(values.index)
-        sum_weight = values['weight'].sum()
-        g_gdf['weight'] = round(sum_weight, 4)
-        g_gdf['prob'] = round((sum_weight/total_weights_sum)*100, 2)
+        walk_utilization = values['utilization'].sum()
+        g_gdf['utilization'] = round(walk_utilization, 2)
+        g_gdf['prob'] = round((walk_utilization/total_utilization_sum)*100, 2)
         grouped_dfs.append(g_gdf)
     origin_stop_groups = pd.concat(grouped_dfs).reset_index(drop=True)
     return origin_stop_groups

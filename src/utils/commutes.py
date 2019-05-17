@@ -103,9 +103,15 @@ def get_home_work_walks(axyind=None, work_rows=None, districts=None, datetime=No
         # print('Target ', target_idx, 'yht:', target['yht'], target['to_latLon'])
         # utils.print_progress(target_idx, len(work_targets.index), percentages=False)
         itins = DT_routing.get_route_itineraries(home_latLon, target['to_latLon'], walk_speed, datetime, itins_count=3, max_walk_distance=6000)
-        if (len(itins) > 0):
-            stop_dicts = DT_routing.parse_itin_attributes(itins, axyind, target['id_target'], weight=target['yht'])
-            home_stops_all += stop_dicts
+        od_itins_count = len(itins)
+        if (od_itins_count > 0):
+            # calculate utilization of the itineraries for identifying the probability of using the itinerary from the origin
+            # based on number of commuters and number of alternative itineraries to the destination
+            # if only one itinerary is got for origin-destination (commute flow), utilization equals the number of commutes between the OD pair
+            od_workers_flow = target['yht']
+            utilization = round(od_workers_flow/od_itins_count, 6)
+            od_walk_dicts = DT_routing.parse_itin_attributes(itins, axyind, target['id_target'], utilization=utilization)
+            home_stops_all += od_walk_dicts
         else:
             print('Error in DT routing to target:', target)
     # print(home_stops_all)
