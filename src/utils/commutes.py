@@ -97,13 +97,20 @@ def get_home_work_walks(axyind=None, work_rows=None, districts=None, datetime=No
     # filter rows of work_targets for testing
     work_targets = work_targets[:6] if subset == True else work_targets
     # print('WORK_TARGETS', work_targets)
-    # get routes to all workplaces of the route
+    # filter out target if it's the same as origin
+    work_targets = work_targets[work_targets.apply(lambda x: str(x['id_target']) != str(axyind), axis=1)]
     total_origin_workers_flow = work_targets['yht'].sum()
+    # get routes to all workplaces of the route
     home_walks_all = []
     for idx, target in work_targets.iterrows():
-        # print('Target ', target_idx, 'yht:', target['yht'], target['to_latLon'])
-        # utils.print_progress(target_idx, len(work_targets.index), percentages=False)
-        itins = DT_routing.get_route_itineraries(home_latLon, target['to_latLon'], walk_speed, datetime, itins_count=3, max_walk_distance=6000)
+        utils.print_progress(idx, len(work_targets.index), percentages=False)
+        # execute routing request to Digitransit API
+        try:
+            itins = DT_routing.get_route_itineraries(home_latLon, target['to_latLon'], walk_speed, datetime, itins_count=3, max_walk_distance=6000)
+        except Exception:
+            print('Error in DT routing request between:', axyind, 'and', target['id_target'])
+            itins = []
+
         od_itins_count = len(itins)
         od_workers_flow = target['yht']
         if (od_itins_count > 0):
@@ -114,7 +121,7 @@ def get_home_work_walks(axyind=None, work_rows=None, districts=None, datetime=No
             od_walk_dicts = DT_routing.parse_itin_attributes(itins, axyind, target['id_target'], utilization=utilization)
             home_walks_all += od_walk_dicts
         else:
-            print('Error in DT routing to target:', target)
+            print('No DT itineraries got between:', axyind, 'and', target['id_target'])
             error_df = pd.DataFrame([{ 'axyind': axyind, 'target_type': target['target_type'], 'target_id': target['id_target'], 'target_yht': target['yht'] }])
             error_df.to_csv('outputs/YKR_commutes_output/home_stops_errors/axyind_'+str(axyind)+'_to_'+str(target['id_target'])+'.csv')
 

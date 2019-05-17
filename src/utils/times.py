@@ -3,10 +3,10 @@ from datetime import datetime, date, time, timedelta
 def get_next_weekday(skipdays=1):
     weekday = datetime.weekday(date.today())
     if (weekday == 4):
-        skipdays = 3
+        weekend_days = 3
     if (weekday == 5):
-        skipdays = 2
-    next_weekday = date.today() + timedelta(days=skipdays)
+        weekend_days = 2
+    next_weekday = date.today() + timedelta(days=weekend_days + skipdays)
     return next_weekday
 
 def get_next_saturday():

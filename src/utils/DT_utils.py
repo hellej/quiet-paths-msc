@@ -72,12 +72,6 @@ def merge_origin_target_attrs_to_walks(gdf, origins, targets):
     print('\nMerged columns', list(targets_joined))
     return targets_joined
 
-def get_walk_target_point(row):
-    if (row['to_pt_mode'] == 'none'):
-        return row['to_Point']
-    else:
-        return row['stop_Point']
-
 def get_walk_uniq_id(row):
     if (row['to_pt_mode'] == 'none'):
         uniq_id = f'''{row['from_axyind']}_{row['to_id']}'''

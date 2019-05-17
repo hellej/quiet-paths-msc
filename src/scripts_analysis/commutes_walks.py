@@ -38,7 +38,7 @@ origins_stops_files
 # calculate origin-stop paths
 def get_origin_stop_paths(row):
     from_latLon = row['DT_origin_latLon']
-    to_latLon = row['stop_latLon']
+    to_latLon = row['dest_latLon']
     paths = rt.get_short_quiet_paths(graph, from_latLon, to_latLon, edge_gdf, node_gdf, nts, remove_geom_prop=False, logging=False)
     return paths
 
@@ -50,7 +50,7 @@ axyinds_not_processed
 def get_origin_stops_paths_df(home_stops_file):
     home_stops = pd.read_csv(home_stops_path+'/'+home_stops_file)
     home_stops['DT_origin_latLon'] = [ast.literal_eval(d) for d in home_stops['DT_origin_latLon']]
-    home_stops['stop_latLon'] = [ast.literal_eval(d) for d in home_stops['stop_latLon']]
+    home_stops['dest_latLon'] = [ast.literal_eval(d) for d in home_stops['dest_latLon']]
     home_paths = []
     for idx, row in home_stops.iterrows():
         paths = get_origin_stop_paths(row)

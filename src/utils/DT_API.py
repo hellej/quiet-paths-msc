@@ -151,12 +151,13 @@ def parse_itin_attributes(itins, from_id, to_id, utilization=1):
         walk['DT_walk_dist'] = round(walk_leg['distance'],2)
         walk['DT_origin_latLon'] = geom_utils.get_lat_lon_from_coords(coords[0])
         # walk['first_Point'] = Point(coords[0])
-        # walk['last_Point'] = Point(coords[len(coords)-1])
+        # walk['DT_last_Point'] = Point(coords[len(coords)-1])
         to_stop = walk_leg['to']['stop']
         walk['stop_id'] = to_stop['gtfsId'] if to_stop != None else ''
-        walk['stop_latLon'] = {'lat': to_stop['lat'], 'lon':to_stop['lon']} if to_stop != None else ''
         # walk['stop_desc'] = to_stop['desc'] if to_stop != None else ''
-        walk['stop_Point'] = geom_utils.get_point_from_lat_lon(to_stop) if to_stop != None else ''
+        DT_dest_point = geom_utils.get_point_from_lat_lon(to_stop) if to_stop != None else Point(coords[len(coords)-1])
+        walk['DT_dest_Point'] = DT_dest_point
+        walk['dest_latLon'] = geom_utils.get_lat_lon_from_geom(DT_dest_point)
         # parent_station = to_stop['parentStation'] if to_stop != None else None
         # walk['stop_p_id'] = parent_station['gtfsId'] if parent_station != None else ''
         # walk['stop_p_name'] = parent_station['name'] if parent_station != None else ''

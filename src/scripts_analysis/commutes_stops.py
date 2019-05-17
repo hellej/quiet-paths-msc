@@ -80,24 +80,25 @@ axyinds = [3803756679125, 3873756677375, 3866256677375, 3863756676625, 387625667
 walk_speed = '1.16666'
 datetime = times.get_next_weekday_datetime(8, 30, skipdays=7)
 print('Datetime for routing:', datetime)
+# Datetime for routing: 2019-05-27 08:30:00
 
-# function that returns home_walks
+#%% function that returns home_walks
 def get_home_walk_gdf(axyind):
     start_time = time.time()
     work_rows = home_groups.get_group(axyind)
-    home_walks_g = commutes_utils.get_home_work_walks(axyind=axyind, work_rows=work_rows, districts=districts, datetime=datetime, walk_speed=walk_speed, subset=True, logging=False)
+    home_walks_g = commutes_utils.get_home_work_walks(axyind=axyind, work_rows=work_rows, districts=districts, datetime=datetime, walk_speed=walk_speed, subset=False, logging=True)
     # add column that tells if the stop geometry is outside of the extent of Helsinki
-    home_walks_g['outside_hel'] = [outside_hel_extent(geom) for geom in home_walks_g['stop_Point']]
-    home_walks_g_to_file = home_walks_g.drop(columns=['stop_Point', 'DT_geom'])
+    home_walks_g['outside_hel'] = [outside_hel_extent(geom) for geom in home_walks_g['DT_dest_Point']]
+    home_walks_g_to_file = home_walks_g.drop(columns=['DT_geom', 'DT_dest_Point'])
     home_walks_g_to_file.to_csv('outputs/YKR_commutes_output/home_stops/axyind_'+str(axyind)+'.csv')
     utils.print_duration(start_time, 'home stops got for: '+str(axyind)+'.')
     return home_walks_g
 
 #%% process origins with pool
-pool = Pool(processes=4)
-all_home_walks_dfs = pool.map(get_home_walk_gdf, axyinds[:2])
+# pool = Pool(processes=4)
+# all_home_walks_dfs = pool.map(get_home_walk_gdf, axyinds[:2])
 # without pool (one by one)
-# all_home_walks_dfs = [get_home_walk_gdf(axyind) for axyind in axyinds]
+all_home_walks_dfs = [get_home_walk_gdf(axyind) for axyind in axyinds[:1]]
 
 #%% export to GDF for debugging
 all_home_walks_df = pd.concat(all_home_walks_dfs, ignore_index=True)
