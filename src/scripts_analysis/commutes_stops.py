@@ -48,7 +48,7 @@ districts = districts[['id_distr', 'geom_distr_poly', 'distr_latLon']]
 print('districts', districts['id_distr'].nunique())
 districts.head()
 
-#%% merge grid geometry to commutes by home & job xyind
+#%% merge grid geometry to commutes by home & job xyind (just to make sure that the ids work for joining)
 homes = pd.merge(commutes, grid, how='left', left_on='axyind', right_on='xyind')
 workplaces = pd.merge(commutes, grid, how='left', left_on='txyind', right_on='xyind')
 # drop rows without ykr grid cell geometry
@@ -88,7 +88,7 @@ def get_home_walk_gdf(axyind):
 #%% process origins
 # with pool
 pool = Pool(processes=4)
-all_home_walks_dfs = pool.map(get_home_walk_gdf, axyinds)
+all_home_walks_dfs = pool.map(get_home_walk_gdf, axyinds[:2])
 # without pool (one by one)
 # all_home_walks_dfs = [get_home_walk_gdf(axyind) for axyind in axyinds]
 

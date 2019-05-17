@@ -34,7 +34,7 @@ def get_home_district(geom_home, districts):
             # print('District of the origin', distr['id_distr'])
             return { 'id_distr': distr['id_distr'], 'geom_distr_poly': distr['geom_distr_poly'] }
 
-def get_work_targets_gdf(geom_home, districts, work_rows=None, logging=True):
+def get_work_targets_gdf(geom_home, districts, axyind=None, work_rows=None, logging=True, stats_path='outputs/YKR_commutes_output/home_workplaces_stats/'):
     home_distr = get_home_district(geom_home, districts)
     # turn work_rows (workplaces) into GDF
     works = gpd.GeoDataFrame(work_rows, geometry='geom_work', crs=from_epsg(3067))
@@ -70,18 +70,21 @@ def get_work_targets_gdf(geom_home, districts, work_rows=None, logging=True):
     targets = pd.concat([close_works, distr_works], ignore_index=True)
 
     # print stats about works inside and outside the districts
-    all_works_count = works['yht'].sum()
+    total_works_count = works['yht'].sum()
     if (logging == True):
-        print('all works:', all_works_count)
+        print('all works:', total_works_count)
     all_included_works_count = targets['yht'].sum()
-    # calculate reference sum of all included works
     distr_works_join = gpd.sjoin(districts, works, how='left', op='intersects')
     all_included_works_count_reference = distr_works_join['yht'].sum()
+    work_count_match = 'yes' if all_included_works_count == all_included_works_count_reference  else 'no'
+    missing_works = total_works_count - all_included_works_count
+    outside_ratio = round(((missing_works)/total_works_count)*100)
     if (logging == True):
-        print('work count match?:', 'yes' if all_included_works_count == all_included_works_count_reference else 'no')
-    outside_ratio = round(((all_works_count - all_included_works_count)/all_works_count)*100)
+        print('work count match?:', work_count_match)
     if (logging == True):
-        print('missing:', all_works_count - all_included_works_count, '-', outside_ratio, '%')
+        print('missing:', missing_works, '-', outside_ratio, '%')
+    home_work_stats = pd.DataFrame([{'axyind': axyind, 'total_dests_count': len(targets.index), 'close_dests_count': len(close_works.index), 'distr_dests_count': len(distr_works.index), 'total_works_count': total_works_count, 'dest_works_count': all_included_works_count, 'missing_works_count': missing_works, 'outside_ratio': outside_ratio, 'work_count_match': work_count_match }])
+    home_work_stats[['axyind', 'total_dests_count', 'close_dests_count', 'distr_dests_count', 'total_works_count', 'dest_works_count', 'missing_works_count', 'outside_ratio', 'work_count_match']].to_csv(stats_path+'axyind_'+str(axyind)+'.csv')
     return targets
 
 def get_home_work_walks(axyind=None, work_rows=None, districts=None, datetime=None, walk_speed=None, subset=True, logging=True):
@@ -89,7 +92,7 @@ def get_home_work_walks(axyind=None, work_rows=None, districts=None, datetime=No
     start_time = time.time()
     geom_home = work_rows['geom_home'].iloc[0]
     home_latLon = work_rows['home_latLon'].iloc[0]
-    work_targets = get_work_targets_gdf(geom_home, districts, work_rows=work_rows, logging=logging)
+    work_targets = get_work_targets_gdf(geom_home, districts, axyind=axyind, work_rows=work_rows, logging=logging)
     if (logging == True):
         print('Got', len(work_targets.index), 'targets')
     # filter rows of work_targets for testing
