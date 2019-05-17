@@ -36,6 +36,12 @@ grid['xyind'] = [int(xyind) for xyind in grid['xyind']]
 grid = grid[['xyind', 'grid_geom']]
 grid.head()
 
+# read city extent (polygon of Helsinki)
+hel_poly = files.get_hel_poly()
+hel_poly = geom_utils.project_to_wgs(hel_poly)
+def outside_hel_extent(geometry):
+    return 'no' if geometry.within(hel_poly) else 'yes'
+
 #%% read city districts
 districts = files.get_city_districts()
 districts['id_distr'] = districts.apply(lambda row: str(row['kunta'] +'_'+ row['nimi']), axis=1)
@@ -68,7 +74,7 @@ home_groups = commutes.groupby('axyind')
 axyinds = commutes['axyind'].unique()
 axyinds_processed = commutes_utils.get_processed_home_walks()
 axyinds = [axyind for axyind in axyinds if axyind not in axyinds_processed]
-axyinds = [3873756677375, 3866256677375, 3863756676625, 3876256675875, 3838756674875]
+axyinds = [3803756679125, 3873756677375, 3866256677375, 3863756676625, 3876256675875, 3838756674875]
 
 # routing params for Digitransit API
 walk_speed = '1.16666'
@@ -80,6 +86,8 @@ def get_home_walk_gdf(axyind):
     start_time = time.time()
     work_rows = home_groups.get_group(axyind)
     home_walks_g = commutes_utils.get_home_work_walks(axyind=axyind, work_rows=work_rows, districts=districts, datetime=datetime, walk_speed=walk_speed, subset=True, logging=False)
+    # add column that tells if the stop geometry is outside of the extent of Helsinki
+    home_walks_g['outside_hel'] = [outside_hel_extent(geom) for geom in home_walks_g['stop_Point']]
     home_walks_g_to_file = home_walks_g.drop(columns=['stop_Point', 'DT_geom'])
     home_walks_g_to_file.to_csv('outputs/YKR_commutes_output/home_stops/axyind_'+str(axyind)+'.csv')
     utils.print_duration(start_time, 'home stops got for: '+str(axyind)+'.')
