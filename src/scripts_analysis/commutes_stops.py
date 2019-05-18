@@ -42,29 +42,39 @@ hel_poly = geom_utils.project_to_wgs(hel_poly)
 def outside_hel_extent(geometry):
     return 'no' if geometry.within(hel_poly) else 'yes'
 
-#%% read city districts
-districts = files.get_city_districts()
-districts['id_distr'] = districts.apply(lambda row: str(row['kunta'] +'_'+ row['nimi']), axis=1)
-districts = districts.to_crs(epsg=3067)
-districts['geom_distr_poly'] = [geometry.geoms[0] for geometry in districts['geometry']]
-districts['geom_distr_point'] = [geometry.centroid for geometry in districts['geometry']]
-districts['distr_latLon'] = [geom_utils.get_lat_lon_from_geom(geom_utils.project_to_wgs(geom, epsg=3067)) for geom in districts['geom_distr_point']]
-districts = districts.set_geometry('geom_distr_poly')
-districts = districts[['id_distr', 'geom_distr_poly', 'distr_latLon']]
-print('districts', districts['id_distr'].nunique())
-districts.head()
-
 #%% merge grid geometry to commutes by home & job xyind (just to make sure that the ids work for joining)
 homes = pd.merge(commutes, grid, how='left', left_on='axyind', right_on='xyind')
 workplaces = pd.merge(commutes, grid, how='left', left_on='txyind', right_on='xyind')
+workplaces = gpd.GeoDataFrame(workplaces, geometry='geom_work', crs=from_epsg(3067))
 # drop rows without ykr grid cell geometry
 workplaces = workplaces.dropna(subset=['grid_geom'])
 homes = homes.dropna(subset=['grid_geom'])
+
+#%% read city districts
+districts = files.get_city_districts()
+districts['id_distr'] = districts.apply(lambda row: str(row['kunta'] +'_'+ row['nimi']), axis=1)
+districts['geom_distr_poly'] = [geometry.geoms[0] for geometry in districts['geometry']]
+districts = districts.set_geometry('geom_distr_poly')
+districts = districts[['id_distr','geom_distr_poly']]
+districts = districts.to_crs(epsg=3067)
+districts['geom_distr_point'] = [geometry.centroid for geometry in districts['geom_distr_poly']]
+# join district info to workplaces
+workplaces_distr_join = commutes_utils.get_workplaces_distr_join(workplaces, districts)
+
+#%% add valid district center geometries (in central workplace are of the district)
+districts_gdf = commutes_utils.get_valid_distr_geom(districts, workplaces_distr_join)
+districts_gdf.head()
+# save district work center to file
+districts_gdf.set_geometry('work_center').drop(columns=['geom_distr_poly']).to_file('outputs/YKR_commutes_output/test.gpkg', layer='district_centers', driver='GPKG')
+
+# print('districts', districts['id_distr'].nunique())
+# districts.head()
 
 #%% print data stats
 print('grid_cells:', len(grid.index))
 print('ykr_commute rows:', len(commutes.index))
 print('workplaces within area:', len(workplaces.index))
+print('workplaces with distr info:', len(workplaces_distr_join))
 print('homes within area:', len(homes.index))
 print('unique homes:', homes['axyind'].nunique())
 

@@ -8,7 +8,7 @@ import numpy as np
 import utils.utils as utils
 import utils.DT_API as DT_routing
 import utils.DT_utils as DT_utils
-
+import utils.geometry as geom_utils
 
 def get_axyind_filenames(path='outputs/YKR_commutes_output/home_stops'):
     files = [f for f in listdir(path) if isfile(join(path, f))]
@@ -27,6 +27,57 @@ def parse_axyinds_from_filenames(filenames):
 def get_processed_home_walks():
     filenames = get_axyind_filenames()
     return parse_axyinds_from_filenames(filenames)
+
+def get_workplaces_distr_join(workplaces, districts):
+    # districts['distr_latLon'] = [geom_utils.get_lat_lon_from_geom(geom_utils.project_to_wgs(geom, epsg=3067)) for geom in districts['geom_distr_point']]
+    workplaces = workplaces.reset_index(drop=True)
+    
+    print('count workplaces:', len(workplaces.index))
+    # join district id to workplaces based on point polygon intersection
+    workplaces_distr_join = gpd.sjoin(workplaces, districts, how='left', op='intersects')
+    # drop workplaces that are outside the districts
+    workplaces_distr_join = workplaces_distr_join.dropna(subset=['id_distr'])
+    print('count workplaces:', len(workplaces_distr_join.index))
+    print(workplaces_distr_join.head())
+    workplaces_distr_join = workplaces_distr_join[['txyind', 'yht', 'geom_work', 'grid_geom', 'id_distr']]
+
+    return workplaces_distr_join
+
+def get_valid_distr_geom(districts, workplaces_distr_join):
+
+    workplace_distr_g = workplaces_distr_join.groupby('id_distr')
+
+    # for key, values in workplace_distr_g:
+    #     if (key == '091_OULUNKYLÄ'):
+    #         distr_works = gpd.GeoDataFrame(values, geometry='geom_work', crs=from_epsg(3067))
+    #         print(distr_works.head())
+
+    district_dicts = []
+
+    for idx, distr in districts.iterrows():
+        # if (distr['id_distr'] != '091_OULUNKYLÄ'):
+        #     continue
+        d = { 'id_distr': distr['id_distr'], 'geom_distr_poly': distr['geom_distr_poly'] }
+        try:
+            distr_works = workplace_distr_g.get_group(distr['id_distr'])
+            distr_works = gpd.GeoDataFrame(distr_works, geometry='geom_work', crs=from_epsg(3067))
+            works_convex_poly = distr_works['geom_work'].unary_union.convex_hull
+            # print(works_convex_poly)
+            works_convex_poly_buffer = works_convex_poly.buffer(20)
+            works_center_point = works_convex_poly_buffer.centroid
+            # print(works_center_point)
+            distr_works['work_center_dist'] = [round(geom.distance(works_center_point)) for geom in distr_works['geom_work']]
+            distr_works = distr_works.sort_values(by='work_center_dist')
+            # print(distr_works.head(70))
+            center_work = distr_works.iloc[0]
+            d['work_center'] = center_work['geom_work']
+        except Exception:
+            d['work_center'] = distr['geom_distr_poly'].centroid
+        district_dicts.append(d)
+
+    districts_gdf = gpd.GeoDataFrame(district_dicts, geometry='geom_distr_poly', crs=from_epsg(3067))
+    districts_gdf['distr_latLon'] = [geom_utils.get_lat_lon_from_geom(geom_utils.project_to_wgs(geom, epsg=3067)) for geom in districts_gdf['work_center']]
+    return districts_gdf
 
 def get_home_district(geom_home, districts):
     for idx, distr in districts.iterrows():
