@@ -34,7 +34,7 @@ def get_home_district(geom_home, districts):
             # print('District of the origin', distr['id_distr'])
             return { 'id_distr': distr['id_distr'], 'geom_distr_poly': distr['geom_distr_poly'] }
 
-def get_work_targets_gdf(geom_home, districts, axyind=None, work_rows=None, logging=True, stats_path='outputs/YKR_commutes_output/home_workplaces_stats/'):
+def get_work_targets_gdf(geom_home, districts, axyind=None, work_rows=None, logging=True):
     home_distr = get_home_district(geom_home, districts)
     # turn work_rows (workplaces) into GDF
     works = gpd.GeoDataFrame(work_rows, geometry='geom_work', crs=from_epsg(3067))
@@ -84,18 +84,20 @@ def get_work_targets_gdf(geom_home, districts, axyind=None, work_rows=None, logg
     if (logging == True):
         print('missing:', missing_works, '-', outside_ratio, '%')
     home_work_stats = pd.DataFrame([{'axyind': axyind, 'total_dests_count': len(targets.index), 'close_dests_count': len(close_works.index), 'distr_dests_count': len(distr_works.index), 'total_works_count': total_works_count, 'dest_works_count': all_included_works_count, 'missing_works_count': missing_works, 'outside_ratio': outside_ratio, 'work_count_match': work_count_match }])
-    home_work_stats[['axyind', 'total_dests_count', 'close_dests_count', 'distr_dests_count', 'total_works_count', 'dest_works_count', 'missing_works_count', 'outside_ratio', 'work_count_match']].to_csv(stats_path+'axyind_'+str(axyind)+'.csv')
-    return targets
+    home_work_stats[['axyind', 'total_dests_count', 'close_dests_count', 'distr_dests_count', 'total_works_count', 'dest_works_count', 'missing_works_count', 'outside_ratio', 'work_count_match']]
+    return { 'targets': targets, 'home_work_stats': home_work_stats }
 
-def get_home_work_walks(axyind=None, work_rows=None, districts=None, datetime=None, walk_speed=None, subset=True, logging=True):
+def get_home_work_walks(axyind=None, work_rows=None, districts=None, datetime=None, walk_speed=None, subset=True, logging=True, stats_path='outputs/YKR_commutes_output/home_workplaces_stats/'):
     start_time = time.time()
     geom_home = work_rows['geom_home'].iloc[0]
     home_latLon = work_rows['home_latLon'].iloc[0]
-    work_targets = get_work_targets_gdf(geom_home, districts, axyind=axyind, work_rows=work_rows, logging=logging)
+    targets = get_work_targets_gdf(geom_home, districts, axyind=axyind, work_rows=work_rows, logging=logging)
+    work_targets = targets['targets']
+    home_work_stats = targets['home_work_stats']
     if (logging == True):
         print('Got', len(work_targets.index), 'targets')
     # filter rows of work_targets for testing
-    work_targets = work_targets[:6] if subset == True else work_targets
+    work_targets = work_targets[:14] if subset == True else work_targets
     # print('WORK_TARGETS', work_targets)
     # filter out target if it's the same as origin
     work_targets = work_targets[work_targets.apply(lambda x: str(x['id_target']) != str(axyind), axis=1)]
@@ -134,10 +136,20 @@ def get_home_work_walks(axyind=None, work_rows=None, districts=None, datetime=No
     # check that no commute data was lost in the analysis (flows match)
     total_utilization_sum = round(home_walks_g['utilization'].sum())
     total_probs = round(home_walks_g['prob'].sum())
-    if (total_utilization_sum != total_origin_workers_flow or total_probs != 100):
+    works_misings_routing = total_origin_workers_flow - total_utilization_sum
+    if (works_misings_routing != 0 or total_probs != 100):
         print('Error: utilization sum of walks does not match the total flow of commuters')
         error_df = pd.DataFrame([{ 'axyind': axyind, 'total_origin_workers_flow': total_origin_workers_flow, 'total_utilization_sum': total_utilization_sum, 'total_probs': total_probs }])
         error_df.to_csv('outputs/YKR_commutes_output/home_stops_errors/axyind_'+str(axyind)+'_no_flow_match.csv')
-    if (logging == True):
-        utils.print_duration(start_time, 'Home walks got.')
+    home_work_stats['works_misings_routing'] = works_misings_routing
+    home_work_stats['works_misings_routing_rat'] = round((works_misings_routing/total_origin_workers_flow)*100, 1)
+    home_work_stats['total_probs'] = total_probs
+    home_work_stats.to_csv(stats_path+'axyind_'+str(axyind)+'.csv')
     return home_walks_g
+
+def validate_home_stops(home_walks_g):
+    df = home_walks_g.dropna(subset=['DT_origin_latLon'])
+    df = df.reset_index(drop=True)
+    stops_count = len(df.index)
+    if (stops_count < 1):
+        return '\nNo stops found!!'

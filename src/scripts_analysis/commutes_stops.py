@@ -62,11 +62,11 @@ workplaces = workplaces.dropna(subset=['grid_geom'])
 homes = homes.dropna(subset=['grid_geom'])
 
 #%% print data stats
-print('ykr_commute rows:', len(commutes.index))
 print('grid_cells:', len(grid.index))
-print('workplaces', len(workplaces.index))
-print('homes', len(homes.index))
-print('unique homes', homes['axyind'].nunique())
+print('ykr_commute rows:', len(commutes.index))
+print('workplaces within area:', len(workplaces.index))
+print('homes within area:', len(homes.index))
+print('unique homes:', homes['axyind'].nunique())
 
 #%% group workplaces by homes
 home_groups = commutes.groupby('axyind')
@@ -86,7 +86,10 @@ print('Datetime for routing:', datetime)
 def get_home_walk_gdf(axyind):
     start_time = time.time()
     work_rows = home_groups.get_group(axyind)
-    home_walks_g = commutes_utils.get_home_work_walks(axyind=axyind, work_rows=work_rows, districts=districts, datetime=datetime, walk_speed=walk_speed, subset=False, logging=True)
+    home_walks_g = commutes_utils.get_home_work_walks(axyind=axyind, work_rows=work_rows, districts=districts, datetime=datetime, walk_speed=walk_speed, subset=True, logging=True)
+    error = commutes_utils.validate_home_stops(home_walks_g)
+    if (error != None):
+        print(error)
     # add column that tells if the stop geometry is outside of the extent of Helsinki
     home_walks_g['outside_hel'] = [outside_hel_extent(geom) for geom in home_walks_g['DT_dest_Point']]
     home_walks_g_to_file = home_walks_g.drop(columns=['DT_geom', 'DT_dest_Point'])
@@ -94,11 +97,12 @@ def get_home_walk_gdf(axyind):
     utils.print_duration(start_time, 'home stops got for: '+str(axyind)+'.')
     return home_walks_g
 
-#%% process origins with pool
+#%% process origins 
+# one by one
+all_home_walks_dfs = [get_home_walk_gdf(axyind) for axyind in axyinds[:1]]
+# with multiprocessing
 # pool = Pool(processes=4)
 # all_home_walks_dfs = pool.map(get_home_walk_gdf, axyinds[:2])
-# without pool (one by one)
-all_home_walks_dfs = [get_home_walk_gdf(axyind) for axyind in axyinds[:1]]
 
 #%% export to GDF for debugging
 all_home_walks_df = pd.concat(all_home_walks_dfs, ignore_index=True)
