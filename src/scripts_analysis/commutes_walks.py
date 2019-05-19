@@ -28,23 +28,23 @@ nodes_sind = node_gdf.sindex
 print('Spatial index built.')
 utils.print_duration(start_time, 'Network initialized.')
 
-#%% read commutes stops
+#%% prepare for path calculation loop
+# read commutes stops
 home_stops_path = 'outputs/YKR_commutes_output/home_stops'
 origins_stops_files = commutes_utils.get_axyind_filenames(path=home_stops_path)
 origins_paths_files = commutes_utils.get_axyind_filenames(path='outputs/YKR_commutes_output/home_paths')
 origins_stops_files
+# find non processed axyinds for path calculations
+print('Previously processed', len(origins_paths_files), 'axyinds')
+axyinds_not_processed = [filename for filename in origins_stops_files if filename not in origins_paths_files]
+print('Start processing', len(axyinds_not_processed), 'axyinds')
 
-#%% prepare for path calculation loop
-# calculate origin-stop paths
+#%% calculate origin-stop paths
 def get_origin_stop_paths(row):
     from_latLon = row['DT_origin_latLon']
     to_latLon = row['dest_latLon']
     paths = rt.get_short_quiet_paths(graph, from_latLon, to_latLon, edge_gdf, node_gdf, nts, remove_geom_prop=False, logging=False)
     return paths
-
-# find non processed axyinds for path calculations
-axyinds_not_processed = [file for file in origins_stops_files if file not in origins_paths_files]
-axyinds_not_processed
 
 #%% function for calculating short & quiet paths
 def get_origin_stops_paths_df(home_stops_file):
