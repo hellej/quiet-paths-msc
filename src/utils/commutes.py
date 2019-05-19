@@ -114,29 +114,38 @@ def get_work_targets_gdf(geom_home, districts, axyind=None, work_rows=None, logg
     works['within_home_distr'] = [geom.within(home_distr['geom_distr_poly']) for geom in works['geom_work']]
     close_works = works.query('within_home_distr == True or home_dist < 3000')
     remote_works = works.query('within_home_distr == False and home_dist >= 3000')
-    # join remote workplaces to distrcits by spatial intersection
-    distr_works_join = gpd.sjoin(districts, remote_works, how='left', op='intersects')
-    # count works per district
-    distr_works_grps = pd.pivot_table(distr_works_join, index='id_distr', values='yht', aggfunc=np.sum)
-    # filter out districts without works
-    distr_works_grps = distr_works_grps.loc[distr_works_grps['yht'] > 0]
-    # join district geometry back to works per districts table
-    distr_works = pd.merge(distr_works_grps, districts, how='left', on='id_distr')
-    distr_works['yht'] = [int(round(yht)) for yht in distr_works['yht']]
-    # rename work_latLon and distr_latLon to "to_latLon"
-    close_works = close_works.rename(index=str, columns={'work_latLon': 'to_latLon', 'txyind': 'id_target'})
-    distr_works = distr_works.rename(index=str, columns={'distr_latLon': 'to_latLon', 'id_distr': 'id_target'})
-    # filter out unused columns
-    close_works = close_works[['yht', 'to_latLon', 'id_target']]
-    distr_works = distr_works[['yht', 'to_latLon', 'id_target']]
-    close_works['target_type'] = 'gridcell'
-    distr_works['target_type'] = 'district'
+    if (close_works.empty == False):
+        # rename work_latLon to "to_latLon"
+        close_works = close_works.rename(index=str, columns={'work_latLon': 'to_latLon', 'txyind': 'id_target'})
+        # filter out unused columns
+        close_works = close_works[['yht', 'to_latLon', 'id_target']]
+        close_works['target_type'] = 'gridcell'
+        if (remote_works.empty == False):
+            # join remote workplaces to distrcits by spatial intersection
+            distr_works_join = gpd.sjoin(districts, remote_works, how='left', op='intersects')
+            # count works per district
+            distr_works_grps = pd.pivot_table(distr_works_join, index='id_distr', values='yht', aggfunc=np.sum)
+            # filter out districts without works
+            distr_works_grps = distr_works_grps.loc[distr_works_grps['yht'] > 0]
+            # join district geometry back to works per districts table
+            distr_works = pd.merge(distr_works_grps, districts, how='left', on='id_distr')
+            distr_works['yht'] = [int(round(yht)) for yht in distr_works['yht']]
+            # rename work_latLon and distr_latLon to "to_latLon"
+            distr_works = distr_works.rename(index=str, columns={'distr_latLon': 'to_latLon', 'id_distr': 'id_target'})
+            # filter out unused columns
+            distr_works = distr_works[['yht', 'to_latLon', 'id_target']]
+            distr_works['target_type'] = 'district'
+            # combine dataframes
+            targets = pd.concat([close_works, distr_works], ignore_index=True)
+            distr_dests_count = len(distr_works.index)
+        else: 
+            print('found only close works as targets')
+            distr_dests_count = 0
+            targets = close_works.reset_index(drop=True)
+            
     if (logging == True):
         print('found', len(close_works.index), 'close work locations')
-        print('found', len(distr_works.index), 'remote work locations')
-    # combine dataframes
-    targets = pd.concat([close_works, distr_works], ignore_index=True)
-
+        print('found', distr_dests_count, 'remote work locations')
     # print stats about works inside and outside the districts
     total_works_count = works['yht'].sum()
     if (logging == True):
@@ -151,7 +160,7 @@ def get_work_targets_gdf(geom_home, districts, axyind=None, work_rows=None, logg
         print('work count match?:', work_count_match)
     if (logging == True):
         print('missing:', missing_works, '-', outside_ratio, '%')
-    home_work_stats = pd.DataFrame([{'axyind': axyind, 'total_dests_count': len(targets.index), 'close_dests_count': len(close_works.index), 'distr_dests_count': len(distr_works.index), 'total_works_count': total_works_count, 'dest_works_count': all_included_works_count, 'missing_works_count': missing_works, 'outside_ratio': outside_ratio, 'work_count_match': work_count_match }])
+    home_work_stats = pd.DataFrame([{'axyind': axyind, 'total_dests_count': len(targets.index), 'close_dests_count': len(close_works.index), 'distr_dests_count': distr_dests_count, 'total_works_count': total_works_count, 'dest_works_count': all_included_works_count, 'missing_works_count': missing_works, 'outside_ratio': outside_ratio, 'work_count_match': work_count_match }])
     home_work_stats[['axyind', 'total_dests_count', 'close_dests_count', 'distr_dests_count', 'total_works_count', 'dest_works_count', 'missing_works_count', 'outside_ratio', 'work_count_match']]
     return { 'targets': targets, 'home_work_stats': home_work_stats }
 

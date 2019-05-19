@@ -102,7 +102,7 @@ print('Datetime for routing:', datetime)
 def get_home_walk_gdf(axyind):
     start_time = time.time()
     work_rows = home_groups.get_group(axyind)
-    home_walks_g = commutes_utils.get_home_work_walks(axyind=axyind, work_rows=work_rows, districts=districts_gdf, datetime=datetime, walk_speed=walk_speed, subset=False, logging=False, graph=graph, edge_gdf=edge_gdf, node_gdf=node_gdf)
+    home_walks_g = commutes_utils.get_home_work_walks(axyind=axyind, work_rows=work_rows, districts=districts_gdf, datetime=datetime, walk_speed=walk_speed, subset=False, logging=True, graph=graph, edge_gdf=edge_gdf, node_gdf=node_gdf)
     error = commutes_utils.validate_home_stops(home_walks_g)
     if (error != None):
         print(error)
@@ -120,7 +120,7 @@ axyinds = commutes['axyind'].unique()
 axyinds_processed = commutes_utils.get_processed_home_walks()
 print('Previously processed', len(axyinds_processed), 'axyinds')
 axyinds = [axyind for axyind in axyinds if axyind not in axyinds_processed]
-axyinds = axyinds[:40]
+axyinds = axyinds[:2]
 print('Start processing', len(axyinds), 'axyinds')
 
 #%% one by one
