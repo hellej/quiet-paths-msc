@@ -123,7 +123,13 @@ axyinds = [axyind for axyind in axyinds if axyind not in axyinds_processed]
 print('Start processing', len(axyinds), 'axyinds')
 
 #%% one by one
+start_time = time.time()
 all_home_walks_dfs = [get_home_walk_gdf(axyind) for axyind in axyinds]
+# print time stats
+time_elapsed = round(time.time() - start_time)
+avg_origin_time = round(time_elapsed/len(axyinds))
+print('--- %s s --- %s' % (time_elapsed, 'processed: '+ str(len(axyinds)) +' origins'))
+print('Average origin processing time:', avg_origin_time, 's')
 # with multiprocessing
 # pool = Pool(processes=4)
 # all_home_walks_dfs = pool.map(get_home_walk_gdf, axyinds[:2])
