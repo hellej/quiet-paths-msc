@@ -75,9 +75,9 @@ workplaces_distr_join = commutes_utils.get_workplaces_distr_join(workplaces, dis
 #%% add valid district center geometries (in central workplace are of the district)
 districts_gdf = commutes_utils.get_valid_distr_geom(districts, workplaces_distr_join)
 districts_gdf.head()
-#%% validate district center points with DT Api
+# validate district center points with DT Api
 # districts_gdf = commutes_utils.test_distr_centers_with_DT(districts_gdf)
-#%% save district work center to file
+# save district work center to file
 # districts_gdf.set_geometry('work_center').drop(columns=['geom_distr_poly']).to_file('outputs/YKR_commutes_output/test.gpkg', layer='district_centers', driver='GPKG')
 
 #%% print data stats
@@ -113,7 +113,7 @@ def get_home_walk_gdf(axyind):
     utils.print_duration(start_time, str(len(home_walks_g)) +' home stops got for: '+str(axyind)+'.')
     return home_walks_g
 
-#%% process origins 
+#%% process origins
 # collect axyinds to process
 axyinds = commutes['axyind'].unique()
 axyinds = [3803756679125, 3873756677375, 3866256677375, 3863756676625, 3876256675875, 3838756674875]
@@ -123,17 +123,18 @@ axyinds = [axyind for axyind in axyinds if axyind not in axyinds_processed]
 print('Start processing', len(axyinds), 'axyinds')
 
 #%% one by one
-all_home_walks_dfs = [get_home_walk_gdf(axyind) for axyind in axyinds[:2]]
+all_home_walks_dfs = [get_home_walk_gdf(axyind) for axyind in axyinds]
 # with multiprocessing
 # pool = Pool(processes=4)
 # all_home_walks_dfs = pool.map(get_home_walk_gdf, axyinds[:2])
 
 #%% export to GDF for debugging
-# all_home_walks_df = pd.concat(all_home_walks_dfs, ignore_index=True)
-# all_home_walks_gdf = gpd.GeoDataFrame(all_home_walks_df, geometry='DT_geom', crs=from_epsg(4326))
-# all_home_walks_gdf.drop(columns=['stop_Point']).to_file('outputs/YKR_commutes_output/test.gpkg', layer='dt_paths', driver='GPKG')
-# all_home_walks_gdf = gpd.GeoDataFrame(all_home_walks_df, geometry='stop_Point', crs=from_epsg(4326))
-# all_home_walks_gdf.drop(columns=['DT_geom']).to_file('outputs/YKR_commutes_output/test.gpkg', layer='dt_stops', driver='GPKG')
+all_home_walks_df = pd.concat(all_home_walks_dfs, ignore_index=True)
+print(all_home_walks_df.head(1))
+all_home_walks_gdf = gpd.GeoDataFrame(all_home_walks_df, geometry='DT_geom', crs=from_epsg(4326))
+all_home_walks_gdf.drop(columns=['DT_dest_Point']).to_file('outputs/YKR_commutes_output/test.gpkg', layer='dt_paths', driver='GPKG')
+all_home_walks_gdf = gpd.GeoDataFrame(all_home_walks_df, geometry='DT_dest_Point', crs=from_epsg(4326))
+all_home_walks_gdf.drop(columns=['DT_geom']).to_file('outputs/YKR_commutes_output/test.gpkg', layer='dt_stops', driver='GPKG')
 
 #%%
 # this should be exactly 100:

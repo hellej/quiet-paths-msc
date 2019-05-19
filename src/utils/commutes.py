@@ -192,7 +192,7 @@ def get_home_work_walks(axyind=None, work_rows=None, districts=None, datetime=No
         utils.print_progress(idx, len(work_targets.index)+1, percentages=False)
         # execute routing request to Digitransit API
         try:
-            itins = DT_routing.get_route_itineraries(home_latLon, target['to_latLon'], walk_speed, datetime, itins_count=3, max_walk_distance=6000)
+            itins = DT_routing.get_route_itineraries(home_latLon, target['to_latLon'], walk_speed, datetime, itins_count=3, max_walk_distance=2500)
         except Exception:
             print('Error in DT routing request between:', axyind, 'and', target['id_target'])
             itins = []
@@ -202,7 +202,7 @@ def get_home_work_walks(axyind=None, work_rows=None, districts=None, datetime=No
             adj_origin = get_adjusted_routing_location(home_latLon, graph=graph, edge_gdf=edge_gdf, node_gdf=node_gdf)
             adj_target = get_adjusted_routing_location(target['to_latLon'], graph=graph, edge_gdf=edge_gdf, node_gdf=node_gdf)
             try:
-                itins = DT_routing.get_route_itineraries(adj_origin, adj_target, walk_speed, datetime, itins_count=3, max_walk_distance=6000)
+                itins = DT_routing.get_route_itineraries(adj_origin, adj_target, walk_speed, datetime, itins_count=3, max_walk_distance=2500)
                 print('Found', len(itins), 'with adjusted origin & target locations')
             except Exception:
                 itins = []
