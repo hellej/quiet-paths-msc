@@ -10,6 +10,8 @@ import utils.DT_API as DT_routing
 import utils.DT_utils as DT_utils
 import utils.geometry as geom_utils
 import utils.times as times
+import utils.routing as rt
+import utils.networks as nw
 
 def get_axyind_filenames(path='outputs/YKR_commutes_output/home_stops'):
     files = [f for f in listdir(path) if isfile(join(path, f))]
@@ -153,8 +155,24 @@ def get_work_targets_gdf(geom_home, districts, axyind=None, work_rows=None, logg
     home_work_stats[['axyind', 'total_dests_count', 'close_dests_count', 'distr_dests_count', 'total_works_count', 'dest_works_count', 'missing_works_count', 'outside_ratio', 'work_count_match']]
     return { 'targets': targets, 'home_work_stats': home_work_stats }
 
-def get_home_work_walks(axyind=None, work_rows=None, districts=None, datetime=None, walk_speed=None, subset=True, logging=True, stats_path='outputs/YKR_commutes_output/home_workplaces_stats/'):
-    start_time = time.time()
+def get_adjusted_routing_location(latLon, graph=None, edge_gdf=None, node_gdf=None):
+    wgs_point = geom_utils.get_point_from_lat_lon(latLon)
+    etrs_point = geom_utils.project_to_etrs(wgs_point)
+    point_xy = geom_utils.get_xy_from_geom(etrs_point)
+    try:
+        node = rt.get_nearest_node(graph, point_xy, edge_gdf, node_gdf, [], False, logging=False)
+        node_geom = nw.get_node_geom(graph, node['node'])
+        node_distance = round(node_geom.distance(etrs_point))
+        node_geom_wgs = geom_utils.project_to_wgs(node_geom)
+        node_latLon = geom_utils.get_lat_lon_from_geom(node_geom_wgs)
+        if (node_distance < 300):
+            return node_latLon
+    except Exception:
+        return latLon
+    return latLon
+
+def get_home_work_walks(axyind=None, work_rows=None, districts=None, datetime=None, walk_speed=None, subset=True, logging=True, graph=None, edge_gdf=None, node_gdf=None):
+    stats_path='outputs/YKR_commutes_output/home_workplaces_stats/'
     geom_home = work_rows['geom_home'].iloc[0]
     home_latLon = work_rows['home_latLon'].iloc[0]
     targets = get_work_targets_gdf(geom_home, districts, axyind=axyind, work_rows=work_rows, logging=logging)
@@ -178,6 +196,16 @@ def get_home_work_walks(axyind=None, work_rows=None, districts=None, datetime=No
         except Exception:
             print('Error in DT routing request between:', axyind, 'and', target['id_target'])
             itins = []
+        # if no itineraries got, try adjusting the origin & target by snapping them to network
+        if (len(itins) == 0):
+            print('No itineraries got -> try adjusting origin & target')
+            adj_origin = get_adjusted_routing_location(home_latLon, graph=graph, edge_gdf=edge_gdf, node_gdf=node_gdf)
+            adj_target = get_adjusted_routing_location(target['to_latLon'], graph=graph, edge_gdf=edge_gdf, node_gdf=node_gdf)
+            try:
+                itins = DT_routing.get_route_itineraries(adj_origin, adj_target, walk_speed, datetime, itins_count=3, max_walk_distance=6000)
+                print('Found', len(itins), 'with adjusted origin & target locations')
+            except Exception:
+                itins = []
 
         od_itins_count = len(itins)
         od_workers_flow = target['yht']

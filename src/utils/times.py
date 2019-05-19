@@ -1,11 +1,13 @@
 from datetime import datetime, date, time, timedelta
 
-def get_next_weekday(skipdays=1):
+def get_next_weekday(skipdays=None, weekend_days=0):
     weekday = datetime.weekday(date.today())
     if (weekday == 4):
         weekend_days = 3
     if (weekday == 5):
         weekend_days = 2
+    if (weekday == 6):
+        weekend_days = 1
     next_weekday = date.today() + timedelta(days=weekend_days + skipdays)
     return next_weekday
 

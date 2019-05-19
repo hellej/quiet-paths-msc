@@ -12,6 +12,18 @@ import utils.times as times
 import utils.files as files
 import utils.utils as utils
 import utils.commutes as commutes_utils
+import utils.networks as nw
+
+#%% INITIALIZE GRAPH
+graph = files.get_network_full_noise()
+print('Graph of', graph.size(), 'edges read.')
+edge_gdf = nw.get_edge_gdf(graph)
+node_gdf = nw.get_node_gdf(graph)
+print('Network features extracted.')
+edge_gdf = edge_gdf[['uvkey', 'geometry', 'noises']]
+edges_sind = edge_gdf.sindex
+nodes_sind = node_gdf.sindex
+print('Spatial index built.')
 
 #%% read YKR work commute data
 commutes = pd.read_csv('data/input/T06_tma_e_TOL2008_2016_hel.csv')
@@ -60,17 +72,16 @@ districts = districts.to_crs(epsg=3067)
 districts['geom_distr_point'] = [geometry.centroid for geometry in districts['geom_distr_poly']]
 # join district info to workplaces
 workplaces_distr_join = commutes_utils.get_workplaces_distr_join(workplaces, districts)
-
 #%% add valid district center geometries (in central workplace are of the district)
 districts_gdf = commutes_utils.get_valid_distr_geom(districts, workplaces_distr_join)
 districts_gdf.head()
 #%% validate district center points with DT Api
-districts_gdf = commutes_utils.test_distr_centers_with_DT(districts_gdf)
-districts_gdf.head()
+# districts_gdf = commutes_utils.test_distr_centers_with_DT(districts_gdf)
 #%% save district work center to file
-districts_gdf.set_geometry('work_center').drop(columns=['geom_distr_poly']).to_file('outputs/YKR_commutes_output/test.gpkg', layer='district_centers', driver='GPKG')
+# districts_gdf.set_geometry('work_center').drop(columns=['geom_distr_poly']).to_file('outputs/YKR_commutes_output/test.gpkg', layer='district_centers', driver='GPKG')
 
 #%% print data stats
+print('districts:', len(districts_gdf))
 print('grid_cells:', len(grid.index))
 print('ykr_commute rows:', len(commutes.index))
 print('workplaces within area:', len(workplaces.index))
@@ -96,7 +107,7 @@ print('Datetime for routing:', datetime)
 def get_home_walk_gdf(axyind):
     start_time = time.time()
     work_rows = home_groups.get_group(axyind)
-    home_walks_g = commutes_utils.get_home_work_walks(axyind=axyind, work_rows=work_rows, districts=districts, datetime=datetime, walk_speed=walk_speed, subset=True, logging=True)
+    home_walks_g = commutes_utils.get_home_work_walks(axyind=axyind, work_rows=work_rows, districts=districts_gdf, datetime=datetime, walk_speed=walk_speed, subset=True, logging=True, graph=graph, edge_gdf=edge_gdf, node_gdf=node_gdf)
     error = commutes_utils.validate_home_stops(home_walks_g)
     if (error != None):
         print(error)
