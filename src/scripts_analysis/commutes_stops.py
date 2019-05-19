@@ -102,7 +102,7 @@ print('Datetime for routing:', datetime)
 def get_home_walk_gdf(axyind):
     start_time = time.time()
     work_rows = home_groups.get_group(axyind)
-    home_walks_g = commutes_utils.get_home_work_walks(axyind=axyind, work_rows=work_rows, districts=districts_gdf, datetime=datetime, walk_speed=walk_speed, subset=False, logging=True, graph=graph, edge_gdf=edge_gdf, node_gdf=node_gdf)
+    home_walks_g = commutes_utils.get_home_work_walks(axyind=axyind, work_rows=work_rows, districts=districts_gdf, datetime=datetime, walk_speed=walk_speed, subset=False, logging=False, graph=graph, edge_gdf=edge_gdf, node_gdf=node_gdf)
     error = commutes_utils.validate_home_stops(home_walks_g)
     if (error != None):
         print(error)
@@ -116,19 +116,23 @@ def get_home_walk_gdf(axyind):
 #%% process origins
 # collect axyinds to process
 axyinds = commutes['axyind'].unique()
-axyinds = [3803756679125, 3873756677375, 3866256677375, 3863756676625, 3876256675875, 3838756674875]
+# axyinds = [3803756679125, 3873756677375, 3866256677375, 3863756676625, 3876256675875, 3838756674875]
 axyinds_processed = commutes_utils.get_processed_home_walks()
 print('Previously processed', len(axyinds_processed), 'axyinds')
 axyinds = [axyind for axyind in axyinds if axyind not in axyinds_processed]
+axyinds = axyinds[:40]
 print('Start processing', len(axyinds), 'axyinds')
 
 #%% one by one
 start_time = time.time()
-all_home_walks_dfs = [get_home_walk_gdf(axyind) for axyind in axyinds]
+all_home_walks_dfs = []
+for idx, axyind in enumerate(axyinds):
+    utils.print_progress(idx, len(axyinds), False)
+    all_home_walks_dfs.append(get_home_walk_gdf(axyind))
 # print time stats
 time_elapsed = round(time.time() - start_time)
 avg_origin_time = round(time_elapsed/len(axyinds))
-print('--- %s s --- %s' % (time_elapsed, 'processed: '+ str(len(axyinds)) +' origins'))
+print('--- %s min --- %s' % (round(time_elapsed/60,1), 'processed: '+ str(len(axyinds)) +' origins'))
 print('Average origin processing time:', avg_origin_time, 's')
 # with multiprocessing
 # pool = Pool(processes=4)
