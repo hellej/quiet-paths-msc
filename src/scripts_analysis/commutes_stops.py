@@ -64,11 +64,11 @@ workplaces_distr_join = commutes_utils.get_workplaces_distr_join(workplaces, dis
 #%% add valid district center geometries (in central workplace are of the district)
 districts_gdf = commutes_utils.get_valid_distr_geom(districts, workplaces_distr_join)
 districts_gdf.head()
-# save district work center to file
+#%% validate district center points with DT Api
+districts_gdf = commutes_utils.test_distr_centers_with_DT(districts_gdf)
+districts_gdf.head()
+#%% save district work center to file
 districts_gdf.set_geometry('work_center').drop(columns=['geom_distr_poly']).to_file('outputs/YKR_commutes_output/test.gpkg', layer='district_centers', driver='GPKG')
-
-# print('districts', districts['id_distr'].nunique())
-# districts.head()
 
 #%% print data stats
 print('grid_cells:', len(grid.index))

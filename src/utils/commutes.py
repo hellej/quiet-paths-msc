@@ -9,6 +9,7 @@ import utils.utils as utils
 import utils.DT_API as DT_routing
 import utils.DT_utils as DT_utils
 import utils.geometry as geom_utils
+import utils.times as times
 
 def get_axyind_filenames(path='outputs/YKR_commutes_output/home_stops'):
     files = [f for f in listdir(path) if isfile(join(path, f))]
@@ -44,13 +45,7 @@ def get_workplaces_distr_join(workplaces, districts):
     return workplaces_distr_join
 
 def get_valid_distr_geom(districts, workplaces_distr_join):
-
     workplace_distr_g = workplaces_distr_join.groupby('id_distr')
-
-    # for key, values in workplace_distr_g:
-    #     if (key == '091_OULUNKYLÄ'):
-    #         distr_works = gpd.GeoDataFrame(values, geometry='geom_work', crs=from_epsg(3067))
-    #         print(distr_works.head())
 
     district_dicts = []
 
@@ -71,8 +66,10 @@ def get_valid_distr_geom(districts, workplaces_distr_join):
             # print(distr_works.head(70))
             center_work = distr_works.iloc[0]
             d['work_center'] = center_work['geom_work']
+            d['has_works'] = 'yes'
         except Exception:
             d['work_center'] = distr['geom_distr_poly'].centroid
+            d['has_works'] = 'no'
         district_dicts.append(d)
 
     districts_gdf = gpd.GeoDataFrame(district_dicts, geometry='geom_distr_poly', crs=from_epsg(3067))
@@ -84,6 +81,24 @@ def get_home_district(geom_home, districts):
         if (geom_home.within(distr['geom_distr_poly'])):
             # print('District of the origin', distr['id_distr'])
             return { 'id_distr': distr['id_distr'], 'geom_distr_poly': distr['geom_distr_poly'] }
+
+def test_distr_centers_with_DT(districts_gdf):
+    datetime = times.get_next_weekday_datetime(8, 30, skipdays=7)
+    test_latLon = {'lat': 60.23122, 'lon': 24.83998}
+
+    distr_valids = {}
+    districts_gdf = districts_gdf.copy()
+    for idx, distr in districts_gdf.iterrows():
+        utils.print_progress(idx, len(districts_gdf), percentages=False)
+        try:
+            itins = DT_routing.get_route_itineraries(test_latLon, distr['distr_latLon'], '1.6666', datetime, itins_count=3, max_walk_distance=6000)
+        except Exception:
+            itins = []
+        valid = 'yes' if (len(itins) > 0) else 'no'
+        distr_valids[distr['id_distr']] = valid
+
+    districts_gdf['DT_valid'] = [distr_valids[id_distr] for id_distr in districts_gdf['id_distr']]
+    return districts_gdf
 
 def get_work_targets_gdf(geom_home, districts, axyind=None, work_rows=None, logging=True):
     home_distr = get_home_district(geom_home, districts)
