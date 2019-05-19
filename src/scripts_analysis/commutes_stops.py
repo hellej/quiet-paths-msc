@@ -14,7 +14,7 @@ import utils.utils as utils
 import utils.commutes as commutes_utils
 import utils.networks as nw
 
-#%% INITIALIZE GRAPH
+#%% read graph
 graph = files.get_network_full_noise()
 print('Graph of', graph.size(), 'edges read.')
 edge_gdf = nw.get_edge_gdf(graph)
@@ -48,7 +48,7 @@ grid['xyind'] = [int(xyind) for xyind in grid['xyind']]
 grid = grid[['xyind', 'grid_geom']]
 grid.head()
 
-# read city extent (polygon of Helsinki)
+#%% read city extent (polygon of Helsinki)
 hel_poly = files.get_hel_poly()
 hel_poly = geom_utils.project_to_wgs(hel_poly)
 def outside_hel_extent(geometry):
@@ -91,11 +91,6 @@ print('unique homes:', homes['axyind'].nunique())
 
 #%% group workplaces by homes
 home_groups = commutes.groupby('axyind')
-# collect axyinds to process
-axyinds = commutes['axyind'].unique()
-axyinds_processed = commutes_utils.get_processed_home_walks()
-axyinds = [axyind for axyind in axyinds if axyind not in axyinds_processed]
-axyinds = [3803756679125, 3873756677375, 3866256677375, 3863756676625, 3876256675875, 3838756674875]
 
 # routing params for Digitransit API
 walk_speed = '1.16666'
@@ -107,7 +102,7 @@ print('Datetime for routing:', datetime)
 def get_home_walk_gdf(axyind):
     start_time = time.time()
     work_rows = home_groups.get_group(axyind)
-    home_walks_g = commutes_utils.get_home_work_walks(axyind=axyind, work_rows=work_rows, districts=districts_gdf, datetime=datetime, walk_speed=walk_speed, subset=True, logging=True, graph=graph, edge_gdf=edge_gdf, node_gdf=node_gdf)
+    home_walks_g = commutes_utils.get_home_work_walks(axyind=axyind, work_rows=work_rows, districts=districts_gdf, datetime=datetime, walk_speed=walk_speed, subset=False, logging=True, graph=graph, edge_gdf=edge_gdf, node_gdf=node_gdf)
     error = commutes_utils.validate_home_stops(home_walks_g)
     if (error != None):
         print(error)
@@ -115,27 +110,33 @@ def get_home_walk_gdf(axyind):
     home_walks_g['outside_hel'] = [outside_hel_extent(geom) for geom in home_walks_g['DT_dest_Point']]
     home_walks_g_to_file = home_walks_g.drop(columns=['DT_geom', 'DT_dest_Point'])
     home_walks_g_to_file.to_csv('outputs/YKR_commutes_output/home_stops/axyind_'+str(axyind)+'.csv')
-    utils.print_duration(start_time, 'home stops got for: '+str(axyind)+'.')
+    utils.print_duration(start_time, str(len(home_walks_g)) +' home stops got for: '+str(axyind)+'.')
     return home_walks_g
 
 #%% process origins 
-# one by one
-all_home_walks_dfs = [get_home_walk_gdf(axyind) for axyind in axyinds[:1]]
+# collect axyinds to process
+axyinds = commutes['axyind'].unique()
+axyinds = [3803756679125, 3873756677375, 3866256677375, 3863756676625, 3876256675875, 3838756674875]
+axyinds_processed = commutes_utils.get_processed_home_walks()
+print('Previously processed', len(axyinds_processed), 'axyinds')
+axyinds = [axyind for axyind in axyinds if axyind not in axyinds_processed]
+print('Start processing', len(axyinds), 'axyinds')
+
+#%% one by one
+all_home_walks_dfs = [get_home_walk_gdf(axyind) for axyind in axyinds[:2]]
 # with multiprocessing
 # pool = Pool(processes=4)
 # all_home_walks_dfs = pool.map(get_home_walk_gdf, axyinds[:2])
 
 #%% export to GDF for debugging
-all_home_walks_df = pd.concat(all_home_walks_dfs, ignore_index=True)
-all_home_walks_gdf = gpd.GeoDataFrame(all_home_walks_df, geometry='DT_geom', crs=from_epsg(4326))
+# all_home_walks_df = pd.concat(all_home_walks_dfs, ignore_index=True)
+# all_home_walks_gdf = gpd.GeoDataFrame(all_home_walks_df, geometry='DT_geom', crs=from_epsg(4326))
 # all_home_walks_gdf.drop(columns=['stop_Point']).to_file('outputs/YKR_commutes_output/test.gpkg', layer='dt_paths', driver='GPKG')
-all_home_walks_gdf = gpd.GeoDataFrame(all_home_walks_df, geometry='stop_Point', crs=from_epsg(4326))
+# all_home_walks_gdf = gpd.GeoDataFrame(all_home_walks_df, geometry='stop_Point', crs=from_epsg(4326))
 # all_home_walks_gdf.drop(columns=['DT_geom']).to_file('outputs/YKR_commutes_output/test.gpkg', layer='dt_stops', driver='GPKG')
 
 #%%
 # this should be exactly 100:
-print('sum prob', all_home_walks_gdf['prob'].sum())
-all_home_walks_gdf.plot()
-all_home_walks_gdf.head(50)
-
-#%%
+# print('sum prob', all_home_walks_gdf['prob'].sum())
+# all_home_walks_gdf.plot()
+# all_home_walks_gdf.head(50)

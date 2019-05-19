@@ -179,7 +179,7 @@ def get_home_work_walks(axyind=None, work_rows=None, districts=None, datetime=No
     work_targets = targets['targets']
     home_work_stats = targets['home_work_stats']
     if (logging == True):
-        print('Got', len(work_targets.index), 'targets')
+        print('Routing to', len(work_targets.index), 'targets')
     # filter rows of work_targets for testing
     work_targets = work_targets[:14] if subset == True else work_targets
     # print('WORK_TARGETS', work_targets)
@@ -189,7 +189,7 @@ def get_home_work_walks(axyind=None, work_rows=None, districts=None, datetime=No
     # get routes to all workplaces of the route
     home_walks_all = []
     for idx, target in work_targets.iterrows():
-        utils.print_progress(idx, len(work_targets.index), percentages=False)
+        utils.print_progress(idx, len(work_targets.index)+1, percentages=False)
         # execute routing request to Digitransit API
         try:
             itins = DT_routing.get_route_itineraries(home_latLon, target['to_latLon'], walk_speed, datetime, itins_count=3, max_walk_distance=6000)
