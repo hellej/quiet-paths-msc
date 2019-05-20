@@ -121,10 +121,12 @@ def get_home_walk_gdf(axyind):
 # collect axyinds to process
 axyinds = commutes['axyind'].unique()
 # axyinds = [3803756679125, 3873756677375, 3866256677375, 3863756676625, 3876256675875, 3838756674875]
+axyinds_toskip = [4026256685375, 9999999999999, 3841256675125]
 axyinds_processed = commutes_utils.get_processed_home_walks()
 print('Previously processed', len(axyinds_processed), 'axyinds')
-axyinds = [axyind for axyind in axyinds if axyind not in axyinds_processed]
-axyinds = axyinds[:2]
+axyinds = [axy for axy in axyinds if axy not in axyinds_processed]
+axyinds = [axy for axy in axyinds if axy not in axyinds_toskip]
+axyinds = axyinds[:50]
 print('Start processing', len(axyinds), 'axyinds')
 
 #%% one by one
