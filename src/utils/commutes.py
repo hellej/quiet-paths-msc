@@ -36,13 +36,13 @@ def get_workplaces_distr_join(workplaces, districts):
     # districts['distr_latLon'] = [geom_utils.get_lat_lon_from_geom(geom_utils.project_to_wgs(geom, epsg=3067)) for geom in districts['geom_distr_point']]
     workplaces = workplaces.reset_index(drop=True)
     
-    print('count workplaces:', len(workplaces.index))
+    # print('count workplaces:', len(workplaces.index))
     # join district id to workplaces based on point polygon intersection
     workplaces_distr_join = gpd.sjoin(workplaces, districts, how='left', op='intersects')
     # drop workplaces that are outside the districts
     workplaces_distr_join = workplaces_distr_join.dropna(subset=['id_distr'])
-    print('count workplaces:', len(workplaces_distr_join.index))
-    print(workplaces_distr_join.head())
+    # print('count workplaces:', len(workplaces_distr_join.index))
+    # print(workplaces_distr_join.head())
     workplaces_distr_join = workplaces_distr_join[['txyind', 'yht', 'geom_work', 'grid_geom', 'id_distr']]
 
     return workplaces_distr_join
