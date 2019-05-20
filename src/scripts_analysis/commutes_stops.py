@@ -126,7 +126,7 @@ axyinds_processed = commutes_utils.get_processed_home_walks()
 print('Previously processed', len(axyinds_processed), 'axyinds')
 axyinds = [axy for axy in axyinds if axy not in axyinds_processed]
 axyinds = [axy for axy in axyinds if axy not in axyinds_toskip]
-axyinds = axyinds[:50]
+axyinds = axyinds[:5]
 print('Start processing', len(axyinds), 'axyinds')
 
 #%% one by one
@@ -147,11 +147,11 @@ print('Average origin processing time:', avg_origin_time, 's')
 
 
 #%% export to GDF for debugging
-all_home_walks_df = pd.concat(all_home_walks_dfs, ignore_index=True)
-all_home_walks_gdf = gpd.GeoDataFrame(all_home_walks_df, geometry='DT_geom', crs=from_epsg(4326))
-all_home_walks_gdf.drop(columns=['DT_dest_Point']).to_file('outputs/YKR_commutes_output/test.gpkg', layer='dt_paths', driver='GPKG')
-all_home_walks_gdf = gpd.GeoDataFrame(all_home_walks_df, geometry='DT_dest_Point', crs=from_epsg(4326))
-all_home_walks_gdf.drop(columns=['DT_geom']).to_file('outputs/YKR_commutes_output/test.gpkg', layer='dt_stops', driver='GPKG')
+# all_home_walks_df = pd.concat(all_home_walks_dfs, ignore_index=True)
+# all_home_walks_gdf = gpd.GeoDataFrame(all_home_walks_df, geometry='DT_geom', crs=from_epsg(4326))
+# all_home_walks_gdf.drop(columns=['DT_dest_Point']).to_file('outputs/YKR_commutes_output/test.gpkg', layer='dt_paths', driver='GPKG')
+# all_home_walks_gdf = gpd.GeoDataFrame(all_home_walks_df, geometry='DT_dest_Point', crs=from_epsg(4326))
+# all_home_walks_gdf.drop(columns=['DT_geom']).to_file('outputs/YKR_commutes_output/test.gpkg', layer='dt_stops', driver='GPKG')
 
 #%%
 # this should be exactly 100:
