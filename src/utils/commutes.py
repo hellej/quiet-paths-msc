@@ -1,6 +1,7 @@
 import pandas as pd
 import geopandas as gpd
 import time
+from shapely.geometry import Point
 from os import listdir
 from os.path import isfile, join
 from fiona.crs import from_epsg
@@ -166,7 +167,7 @@ def get_work_targets_gdf(geom_home, districts, axyind=None, work_rows=None, logg
     if (logging == True):
         print('work count match:', work_count_match)
         print('sum of all works:', total_works_count)
-        print('works outside analysis:', missing_works, '-', outside_ratio, '%')
+        print('of which outside analysis:', missing_works, '-', outside_ratio, '%')
     home_work_stats = pd.DataFrame([{'axyind': axyind, 'total_dests_count': total_dests_count, 'close_dests_count': close_dests_count, 'distr_dests_count': distr_dests_count, 'total_works_count': total_works_count, 'dest_works_count': all_included_works_count, 'missing_works_count': missing_works, 'outside_ratio': outside_ratio, 'work_count_match': work_count_match }])
     home_work_stats[['axyind', 'total_dests_count', 'close_dests_count', 'distr_dests_count', 'total_works_count', 'dest_works_count', 'missing_works_count', 'outside_ratio', 'work_count_match']]
     return { 'targets': targets, 'home_work_stats': home_work_stats, 'total_dests_count': total_dests_count }
@@ -174,7 +175,10 @@ def get_work_targets_gdf(geom_home, districts, axyind=None, work_rows=None, logg
 def get_adjusted_routing_location(latLon, graph=None, edge_gdf=None, node_gdf=None):
     wgs_point = geom_utils.get_point_from_lat_lon(latLon)
     etrs_point = geom_utils.project_to_etrs(wgs_point)
-    point_xy = geom_utils.get_xy_from_geom(etrs_point)
+    point_buffer = etrs_point.buffer(100)
+    buffer_random_coords = point_buffer.exterior.coords[0]
+    new_point = Point(buffer_random_coords)
+    point_xy = geom_utils.get_xy_from_geom(new_point)
     try:
         node = rt.get_nearest_node(graph, point_xy, edge_gdf, node_gdf, [], False, logging=False)
         node_geom = nw.get_node_geom(graph, node['node'])
@@ -184,7 +188,9 @@ def get_adjusted_routing_location(latLon, graph=None, edge_gdf=None, node_gdf=No
         if (node_distance < 300):
             return node_latLon
     except Exception:
+        print('no adjusted origin/target found')
         return latLon
+    print('no adjusted origin/target found')
     return latLon
 
 def get_home_work_walks(axyind=None, work_rows=None, districts=None, datetime=None, walk_speed=None, subset=True, logging=True, graph=None, edge_gdf=None, node_gdf=None):
