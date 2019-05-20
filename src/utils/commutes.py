@@ -145,13 +145,22 @@ def get_work_targets_gdf(geom_home, districts, axyind=None, work_rows=None, logg
         print('no remote works found')
         distr_dests_count = 0
 
-    # combine destination dataframes if at least one of them exists
-    if (close_works.empty == False or remote_works.empty == False):
+    # set only close works as targets
+    if (close_works.empty == False and remote_works.empty == True):
+        targets = close_works.reset_index(drop=True)
+    # set only remote works as targets
+    if (close_works.empty == True and remote_works.empty == False):
+        targets = distr_works.reset_index(drop=True)
+    # combine destination dataframes if at both exist
+    if (close_works.empty == False and remote_works.empty == False):
         targets = pd.concat([close_works, distr_works], ignore_index=True, sort=True)
-        all_included_works_count = targets['yht'].sum()
-        total_dests_count = len(targets.index)
-    else:
+    # no targets found
+    if (close_works.empty == True and remote_works.empty == True):
         total_dests_count = 0
+        all_included_works_count = 0
+    else:
+        total_dests_count = len(targets.index)
+        all_included_works_count = targets['yht'].sum()
 
     if (logging == True):
         print('found total:', total_dests_count, 'destinations')
