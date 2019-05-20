@@ -120,49 +120,56 @@ def get_work_targets_gdf(geom_home, districts, axyind=None, work_rows=None, logg
         # filter out unused columns
         close_works = close_works[['yht', 'to_latLon', 'id_target']]
         close_works['target_type'] = 'gridcell'
-        if (remote_works.empty == False):
-            # join remote workplaces to distrcits by spatial intersection
-            distr_works_join = gpd.sjoin(districts, remote_works, how='left', op='intersects')
-            # count works per district
-            distr_works_grps = pd.pivot_table(distr_works_join, index='id_distr', values='yht', aggfunc=np.sum)
-            # filter out districts without works
-            distr_works_grps = distr_works_grps.loc[distr_works_grps['yht'] > 0]
-            # join district geometry back to works per districts table
-            distr_works = pd.merge(distr_works_grps, districts, how='left', on='id_distr')
-            distr_works['yht'] = [int(round(yht)) for yht in distr_works['yht']]
-            # rename work_latLon and distr_latLon to "to_latLon"
-            distr_works = distr_works.rename(index=str, columns={'distr_latLon': 'to_latLon', 'id_distr': 'id_target'})
-            # filter out unused columns
-            distr_works = distr_works[['yht', 'to_latLon', 'id_target']]
-            distr_works['target_type'] = 'district'
-            # combine dataframes
-            targets = pd.concat([close_works, distr_works], ignore_index=True)
-            distr_dests_count = len(distr_works.index)
-        else: 
-            print('found only close works as targets')
-            distr_dests_count = 0
-            targets = close_works.reset_index(drop=True)
-            
+        close_dests_count = len(close_works.index)
+    else: 
+        print('no close works found')
+        close_dests_count = 0
+    if (remote_works.empty == False):
+        # join remote workplaces to distrcits by spatial intersection
+        distr_works_join = gpd.sjoin(districts, remote_works, how='left', op='intersects')
+        # count works per district
+        distr_works_grps = pd.pivot_table(distr_works_join, index='id_distr', values='yht', aggfunc=np.sum)
+        # filter out districts without works
+        distr_works_grps = distr_works_grps.loc[distr_works_grps['yht'] > 0]
+        # join district geometry back to works per districts table
+        distr_works = pd.merge(distr_works_grps, districts, how='left', on='id_distr')
+        distr_works['yht'] = [int(round(yht)) for yht in distr_works['yht']]
+        # rename work_latLon and distr_latLon to "to_latLon"
+        distr_works = distr_works.rename(index=str, columns={'distr_latLon': 'to_latLon', 'id_distr': 'id_target'})
+        # filter out unused columns
+        distr_works = distr_works[['yht', 'to_latLon', 'id_target']]
+        distr_works['target_type'] = 'district'
+        distr_dests_count = len(distr_works.index)
+    else: 
+        print('no remote works found')
+        distr_dests_count = 0
+
+    # combine destination dataframes if at least one of them exists
+    if (close_works.empty == False or remote_works.empty == False):
+        targets = pd.concat([close_works, distr_works], ignore_index=True, sort=True)
+        all_included_works_count = targets['yht'].sum()
+        total_dests_count = len(targets.index)
+    else:
+        total_dests_count = 0
+
     if (logging == True):
-        print('found', len(close_works.index), 'close work locations')
-        print('found', distr_dests_count, 'remote work locations')
+        print('found total:', total_dests_count, 'destinations')
+        print('of which:', close_dests_count, 'close destinations')
+        print('of which:', distr_dests_count, 'remote destinations')
     # print stats about works inside and outside the districts
     total_works_count = works['yht'].sum()
-    if (logging == True):
-        print('all works:', total_works_count)
-    all_included_works_count = targets['yht'].sum()
     distr_works_join = gpd.sjoin(districts, works, how='left', op='intersects')
     all_included_works_count_reference = distr_works_join['yht'].sum()
     work_count_match = 'yes' if all_included_works_count == all_included_works_count_reference  else 'no'
     missing_works = total_works_count - all_included_works_count
     outside_ratio = round(((missing_works)/total_works_count)*100)
     if (logging == True):
-        print('work count match?:', work_count_match)
-    if (logging == True):
-        print('missing:', missing_works, '-', outside_ratio, '%')
-    home_work_stats = pd.DataFrame([{'axyind': axyind, 'total_dests_count': len(targets.index), 'close_dests_count': len(close_works.index), 'distr_dests_count': distr_dests_count, 'total_works_count': total_works_count, 'dest_works_count': all_included_works_count, 'missing_works_count': missing_works, 'outside_ratio': outside_ratio, 'work_count_match': work_count_match }])
+        print('work count match:', work_count_match)
+        print('sum of all works:', total_works_count)
+        print('works outside analysis:', missing_works, '-', outside_ratio, '%')
+    home_work_stats = pd.DataFrame([{'axyind': axyind, 'total_dests_count': total_dests_count, 'close_dests_count': close_dests_count, 'distr_dests_count': distr_dests_count, 'total_works_count': total_works_count, 'dest_works_count': all_included_works_count, 'missing_works_count': missing_works, 'outside_ratio': outside_ratio, 'work_count_match': work_count_match }])
     home_work_stats[['axyind', 'total_dests_count', 'close_dests_count', 'distr_dests_count', 'total_works_count', 'dest_works_count', 'missing_works_count', 'outside_ratio', 'work_count_match']]
-    return { 'targets': targets, 'home_work_stats': home_work_stats }
+    return { 'targets': targets, 'home_work_stats': home_work_stats, 'total_dests_count': total_dests_count }
 
 def get_adjusted_routing_location(latLon, graph=None, edge_gdf=None, node_gdf=None):
     wgs_point = geom_utils.get_point_from_lat_lon(latLon)
@@ -188,7 +195,7 @@ def get_home_work_walks(axyind=None, work_rows=None, districts=None, datetime=No
     work_targets = targets['targets']
     home_work_stats = targets['home_work_stats']
     if (logging == True):
-        print('Routing to', len(work_targets.index), 'targets')
+        print('Routing to', len(work_targets.index), 'destinations:')
     # filter rows of work_targets for testing
     work_targets = work_targets[:14] if subset == True else work_targets
     # print('WORK_TARGETS', work_targets)
@@ -198,7 +205,7 @@ def get_home_work_walks(axyind=None, work_rows=None, districts=None, datetime=No
     # get routes to all workplaces of the route
     home_walks_all = []
     for idx, target in work_targets.iterrows():
-        utils.print_progress(idx, len(work_targets.index)+1, percentages=False)
+        utils.print_progress(idx, targets['total_dests_count'], percentages=False)
         # execute routing request to Digitransit API
         try:
             itins = DT_routing.get_route_itineraries(home_latLon, target['to_latLon'], walk_speed, datetime, itins_count=3, max_walk_distance=2500)

@@ -96,7 +96,7 @@ home_groups = commutes.groupby('axyind')
 walk_speed = '1.16666'
 datetime = times.get_next_weekday_datetime(8, 30, skipdays=7)
 print('Datetime for routing:', datetime)
-# Datetime for routing: 2019-05-27 08:30:00
+# Datetime for routing: 2019-05-27 08:30:00 !!!!
 
 #%% function that returns home_walks
 def get_home_walk_gdf(axyind):
@@ -110,7 +110,7 @@ def get_home_walk_gdf(axyind):
     home_walks_g['outside_hel'] = [outside_hel_extent(geom) for geom in home_walks_g['DT_dest_Point']]
     home_walks_g_to_file = home_walks_g.drop(columns=['DT_geom', 'DT_dest_Point'])
     home_walks_g_to_file.to_csv('outputs/YKR_commutes_output/home_stops/axyind_'+str(axyind)+'.csv')
-    utils.print_duration(start_time, str(len(home_walks_g)) +' home stops got for: '+str(axyind)+'.')
+    utils.print_duration(start_time, str(len(home_walks_g)) +' home stops got for: '+str(axyind)+'.\n')
     return home_walks_g
 
 #%% process origins
@@ -128,19 +128,17 @@ start_time = time.time()
 all_home_walks_dfs = []
 for idx, axyind in enumerate(axyinds):
     utils.print_progress(idx, len(axyinds), False)
+    print('\nStart processing:', axyind)
     all_home_walks_dfs.append(get_home_walk_gdf(axyind))
 # print time stats
 time_elapsed = round(time.time() - start_time)
 avg_origin_time = round(time_elapsed/len(axyinds))
 print('--- %s min --- %s' % (round(time_elapsed/60,1), 'processed: '+ str(len(axyinds)) +' origins'))
 print('Average origin processing time:', avg_origin_time, 's')
-# with multiprocessing
-# pool = Pool(processes=4)
-# all_home_walks_dfs = pool.map(get_home_walk_gdf, axyinds[:2])
+
 
 #%% export to GDF for debugging
 all_home_walks_df = pd.concat(all_home_walks_dfs, ignore_index=True)
-print(all_home_walks_df.head(1))
 all_home_walks_gdf = gpd.GeoDataFrame(all_home_walks_df, geometry='DT_geom', crs=from_epsg(4326))
 all_home_walks_gdf.drop(columns=['DT_dest_Point']).to_file('outputs/YKR_commutes_output/test.gpkg', layer='dt_paths', driver='GPKG')
 all_home_walks_gdf = gpd.GeoDataFrame(all_home_walks_df, geometry='DT_dest_Point', crs=from_epsg(4326))
