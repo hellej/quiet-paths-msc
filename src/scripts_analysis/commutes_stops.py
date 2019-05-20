@@ -103,6 +103,10 @@ def get_home_walk_gdf(axyind):
     start_time = time.time()
     work_rows = home_groups.get_group(axyind)
     home_walks_g = commutes_utils.get_home_work_walks(axyind=axyind, work_rows=work_rows, districts=districts_gdf, datetime=datetime, walk_speed=walk_speed, subset=False, logging=True, graph=graph, edge_gdf=edge_gdf, node_gdf=node_gdf)
+    if (not isinstance(home_walks_g, pd.DataFrame)):
+        if (home_walks_g == None):
+            print('No work destinations found for:', axyind, 'skipping...')
+            return None
     error = commutes_utils.validate_home_stops(home_walks_g)
     if (error != None):
         print(error)

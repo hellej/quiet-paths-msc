@@ -166,6 +166,8 @@ def get_work_targets_gdf(geom_home, districts, axyind=None, work_rows=None, logg
         print('found total:', total_dests_count, 'destinations')
         print('of which:', close_dests_count, 'close destinations')
         print('of which:', distr_dests_count, 'remote destinations')
+    if (total_dests_count == 0):
+        return None
     # print stats about works inside and outside the districts
     total_works_count = works['yht'].sum()
     distr_works_join = gpd.sjoin(districts, works, how='left', op='intersects')
@@ -207,6 +209,8 @@ def get_home_work_walks(axyind=None, work_rows=None, districts=None, datetime=No
     geom_home = work_rows['geom_home'].iloc[0]
     home_latLon = work_rows['home_latLon'].iloc[0]
     targets = get_work_targets_gdf(geom_home, districts, axyind=axyind, work_rows=work_rows, logging=logging)
+    if (targets == None):
+        return None
     work_targets = targets['targets']
     home_work_stats = targets['home_work_stats']
     if (logging == True):
