@@ -133,6 +133,9 @@ all_home_walks_dfs = []
 for idx, axyind in enumerate(axyinds):
     utils.print_progress(idx, len(axyinds), False)
     print('\nStart processing:', axyind)
+    if (axyind == 9999999999999):
+        print('skip 9999999999999')
+        continue
     all_home_walks_dfs.append(get_home_walk_gdf(axyind))
 # print time stats
 time_elapsed = round(time.time() - start_time)

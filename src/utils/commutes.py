@@ -213,14 +213,14 @@ def get_home_work_walks(axyind=None, work_rows=None, districts=None, datetime=No
         return None
     work_targets = targets['targets']
     home_work_stats = targets['home_work_stats']
-    if (logging == True):
-        print('Routing to', len(work_targets.index), 'destinations:')
     # filter rows of work_targets for testing
     work_targets = work_targets[:14] if subset == True else work_targets
     # print('WORK_TARGETS', work_targets)
     # filter out target if it's the same as origin
     work_targets = work_targets[work_targets.apply(lambda x: str(x['id_target']) != str(axyind), axis=1)]
     total_origin_workers_flow = work_targets['yht'].sum()
+    if (logging == True):
+        print('Routing to', len(work_targets.index), 'destinations:')
     # get routes to all workplaces of the route
     home_walks_all = []
     for idx, target in work_targets.iterrows():
@@ -258,6 +258,8 @@ def get_home_work_walks(axyind=None, work_rows=None, districts=None, datetime=No
 
     # print(home_walks_all)
     # collect walks to stops/targets to GDF
+    if (len(home_walks_all) == 0):
+        return None
     home_walks_all_df = pd.DataFrame(home_walks_all)
     home_walks_all_df['uniq_id'] = home_walks_all_df.apply(lambda row: DT_utils.get_walk_uniq_id(row), axis=1)
     # group similar walks and calculate realtive utilization rates of them
