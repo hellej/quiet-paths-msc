@@ -233,13 +233,15 @@ def get_home_work_walks(axyind=None, work_rows=None, districts=None, datetime=No
             itins = []
         # if no itineraries got, try adjusting the origin & target by snapping them to network
         if (len(itins) == 0):
-            print('No itineraries got -> try adjusting origin & target')
+            print('no itineraries got -> try adjusting origin & target')
             adj_origin = get_adjusted_routing_location(home_latLon, graph=graph, edge_gdf=edge_gdf, node_gdf=node_gdf)
             adj_target = get_adjusted_routing_location(target['to_latLon'], graph=graph, edge_gdf=edge_gdf, node_gdf=node_gdf)
+            time.sleep(1)
             try:
                 itins = DT_routing.get_route_itineraries(adj_origin, adj_target, walk_speed, datetime, itins_count=3, max_walk_distance=2500)
-                print('Found', len(itins), 'with adjusted origin & target locations')
+                print('found', len(itins), 'with adjusted origin & target locations')
             except Exception:
+                print('error in DT routing with adjusted origin & target')
                 itins = []
 
         od_itins_count = len(itins)

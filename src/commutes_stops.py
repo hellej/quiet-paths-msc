@@ -94,7 +94,7 @@ home_groups = commutes.groupby('axyind')
 
 # routing params for Digitransit API
 walk_speed = '1.16666'
-datetime = times.get_next_weekday_datetime(8, 30, skipdays=7)
+datetime = times.get_next_weekday_datetime(8, 30, skipdays=6)
 print('Datetime for routing:', datetime)
 # Datetime for routing: 2019-05-27 08:30:00 !!!!
 
