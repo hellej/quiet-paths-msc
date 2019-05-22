@@ -17,7 +17,7 @@ import utils.networks as nw
 #%% read graph
 graph = files.get_network_full_noise()
 print('Graph of', graph.size(), 'edges read.')
-edge_gdf = nw.get_edge_gdf(graph)
+edge_gdf = nw.get_edge_gdf(graph, attrs=['geometry', 'length', 'noises'])
 node_gdf = nw.get_node_gdf(graph)
 print('Network features extracted.')
 edge_gdf = edge_gdf[['uvkey', 'geometry', 'noises']]
@@ -94,7 +94,7 @@ home_groups = commutes.groupby('axyind')
 
 # routing params for Digitransit API
 walk_speed = '1.16666'
-datetime = times.get_next_weekday_datetime(8, 30, skipdays=6)
+datetime = times.get_next_weekday_datetime(8, 30, skipdays=5)
 print('Datetime for routing:', datetime)
 # Datetime for routing: 2019-05-27 08:30:00 !!!!
 

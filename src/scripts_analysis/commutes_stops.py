@@ -17,7 +17,7 @@ import utils.networks as nw
 #%% read graph
 graph = files.get_network_full_noise()
 print('Graph of', graph.size(), 'edges read.')
-edge_gdf = nw.get_edge_gdf(graph)
+edge_gdf = nw.get_edge_gdf(graph, attrs=['geometry', 'length', 'noises'])
 node_gdf = nw.get_node_gdf(graph)
 print('Network features extracted.')
 edge_gdf = edge_gdf[['uvkey', 'geometry', 'noises']]
