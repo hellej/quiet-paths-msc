@@ -186,7 +186,7 @@ def get_work_targets_gdf(geom_home, districts, axyind=None, work_rows=None, logg
 def get_adjusted_routing_location(latLon, graph=None, edge_gdf=None, node_gdf=None):
     wgs_point = geom_utils.get_point_from_lat_lon(latLon)
     etrs_point = geom_utils.project_to_etrs(wgs_point)
-    point_buffer = etrs_point.buffer(100)
+    point_buffer = etrs_point.buffer(90)
     buffer_random_coords = point_buffer.exterior.coords[0]
     new_point = Point(buffer_random_coords)
     point_xy = geom_utils.get_xy_from_geom(new_point)
@@ -196,7 +196,7 @@ def get_adjusted_routing_location(latLon, graph=None, edge_gdf=None, node_gdf=No
         node_distance = round(node_geom.distance(etrs_point))
         node_geom_wgs = geom_utils.project_to_wgs(node_geom)
         node_latLon = geom_utils.get_lat_lon_from_geom(node_geom_wgs)
-        if (node_distance < 300):
+        if (node_distance < 130):
             return node_latLon
     except Exception:
         print('no adjusted origin/target found')
