@@ -17,7 +17,7 @@ start_time = time.time()
 nts = [0.1, 0.15, 0.25, 0.5, 1, 1.5, 2, 4, 6, 10, 20, 40]
 graph = files.get_network_full_noise()
 print('Graph of', graph.size(), 'edges read.')
-edge_gdf = nw.get_edge_gdf(graph)
+edge_gdf = nw.get_edge_gdf(graph, attrs=['geometry', 'length', 'noises'])
 node_gdf = nw.get_node_gdf(graph)
 print('Network features extracted.')
 nw.set_graph_noise_costs(edge_gdf, graph, nts)
@@ -31,13 +31,13 @@ utils.print_duration(start_time, 'Network initialized.')
 #%% prepare for path calculation loop
 # read commutes stops
 home_stops_path = 'outputs/YKR_commutes_output/home_stops'
-origins_stops_files = commutes_utils.get_axyind_filenames(path=home_stops_path)
-origins_paths_files = commutes_utils.get_axyind_filenames(path='outputs/YKR_commutes_output/home_paths')
-origins_stops_files
+axyinds = commutes_utils.get_axyind_filenames(path=home_stops_path)
+processed = commutes_utils.get_axyind_filenames(path='outputs/YKR_commutes_output/home_paths')
+processed
 # find non processed axyinds for path calculations
-print('Previously processed', len(origins_paths_files), 'axyinds')
-axyinds_not_processed = [filename for filename in origins_stops_files if filename not in origins_paths_files]
-print('Start processing', len(axyinds_not_processed), 'axyinds')
+print('Previously processed', len(processed), 'axyinds')
+to_process = [filename for filename in axyinds if filename not in processed]
+print('Start processing', len(to_process), 'axyinds')
 
 #%% calculate origin-stop paths
 def get_origin_stop_paths(row):
@@ -72,7 +72,7 @@ def get_origin_stops_paths_df(home_stops_file):
 
 #%% process origins with pool
 pool = Pool(processes=4)
-home_paths_dfs = pool.map(get_origin_stops_paths_df, origins_stops_files)
+home_paths_dfs = pool.map(get_origin_stops_paths_df, to_process)
 all_home_paths_df = gpd.GeoDataFrame(pd.concat(home_paths_dfs, ignore_index=True), crs=from_epsg(3879))
 
 #%% check path GDFs

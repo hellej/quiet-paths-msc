@@ -3,6 +3,7 @@ src/__pycache__/
 src/utils/__pycache__/
 src/.pytest_cache/
 src/.vscode
+src/temp/
 .vscode/
 .DS_Store
 src/batch_jobs/csc_examples

@@ -23,7 +23,7 @@ nts = [0.1, 0.15, 0.25, 0.5, 1, 1.5, 2, 4, 6, 10, 20, 40]
 # INITIALIZE GRAPH
 graph = files.get_network_kumpula_noise()
 print('Graph of', graph.size(), 'edges read.')
-edge_gdf = nw.get_edge_gdf(graph)
+edge_gdf = nw.get_edge_gdf(graph, attrs=['geometry', 'length', 'noises'])
 node_gdf = nw.get_node_gdf(graph)
 print('Network features extracted.')
 nw.set_graph_noise_costs(edge_gdf, graph, nts)

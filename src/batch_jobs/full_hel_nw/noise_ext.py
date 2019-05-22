@@ -3,6 +3,7 @@ import pandas as pd
 import geopandas as gpd
 import osmnx as ox
 import networkx as nx
+from fiona.crs import from_epsg
 from multiprocessing import current_process, Pool
 import time
 import utils.geometry as geom_utils
@@ -15,16 +16,16 @@ import utils.utils as utils
 noise_polys = files.get_noise_polygons()
 
 # READ NETWORK
-graph = files.get_full_network()
+graph = files.get_network_full()
 print('Nodes in the graph:', len(graph))
 # get all edges as list of dicts
-edge_dicts = nw.get_all_edge_dicts(graph)
+edge_dicts = nw.get_all_edge_dicts(graph, attrs=['geometry', 'length'])
 edge_count = len(edge_dicts)
 print('Edges in the graph:', edge_count)
 
 # FUNCTION FOR EXTRACTING NOISES TO EDGES QUICKLY
 def get_edge_noises_df(edge_dicts):
-    edge_gdf_sub = nw.get_edge_gdf(edge_dicts, ['geometry', 'length', 'uvkey'])
+    edge_gdf_sub = gpd.GeoDataFrame(edge_dicts, crs=from_epsg(3879))[['geometry', 'length', 'uvkey']]
     # add noise split lines as list
     edge_gdf_sub['split_lines'] = [geom_utils.get_split_lines_list(line_geom, noise_polys) for line_geom in edge_gdf_sub['geometry']]
     # explode new rows from split lines column
