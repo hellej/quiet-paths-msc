@@ -1,6 +1,8 @@
 import pandas as pd
 import geopandas as gpd
 import time
+import math
+import ast
 from shapely.geometry import Point
 from os import listdir
 from os.path import isfile, join
@@ -14,23 +16,27 @@ import utils.times as times
 import utils.routing as rt
 import utils.networks as nw
 
-def get_axyind_filenames(path='outputs/YKR_commutes_output/home_stops'):
+def get_xyind_filenames(path='outputs/YKR_commutes_output/home_stops'):
     files = [f for f in listdir(path) if isfile(join(path, f))]
     files_filtered = [f for f in files if 'DS_Store' not in f]
     return files_filtered
 
-def parse_axyinds_from_filenames(filenames):
-    axyinds = []
-    for filename in filenames:
-        name = filename.replace('axyind_', '')
-        name = name.replace('.csv', '')
-        xyind = int(name)
-        axyinds.append(xyind)
-    return axyinds
+def get_xyind_from_filename(filename):
+    name = filename.replace('axyind_', '')
+    name = name.replace('.csv', '')
+    xyind = int(name)
+    return xyind
 
-def get_processed_home_walks():
-    filenames = get_axyind_filenames()
-    return parse_axyinds_from_filenames(filenames)
+def parse_xyinds_from_filenames(filenames):
+    xyinds = []
+    for filename in filenames:
+        xyind = get_xyind_from_filename(filename)
+        xyinds.append(xyind)
+    return xyinds
+
+def get_processed_home_walks(path='outputs/YKR_commutes_output/home_stops'):
+    filenames = get_xyind_filenames(path=path)
+    return parse_xyinds_from_filenames(filenames)
 
 def get_workplaces_distr_join(workplaces, districts):
     # districts['distr_latLon'] = [geom_utils.get_lat_lon_from_geom(geom_utils.project_to_wgs(geom, epsg=3067)) for geom in districts['geom_distr_point']]
@@ -46,6 +52,35 @@ def get_workplaces_distr_join(workplaces, districts):
     workplaces_distr_join = workplaces_distr_join[['txyind', 'yht', 'geom_work', 'grid_geom', 'id_distr']]
 
     return workplaces_distr_join
+
+def get_axyinds_to_reprocess(grid, reprocessed):
+    stops_files = 'outputs/YKR_commutes_output/home_stops'
+    axyfiles = get_xyind_filenames(path=stops_files)
+    axyinds_to_reprocess = []
+    for axyfile in axyfiles:
+        # if idx > 5:
+        #     continue
+        axyind = get_xyind_from_filename(axyfile)
+        grid_centr = list(grid.loc[grid['xyind'] == axyind]['grid_centr'])[0]
+        home_stops = pd.read_csv(stops_files+'/'+axyfile)
+        latLons = home_stops['DT_origin_latLon'].unique()
+        for key in latLons:
+            latLon = ast.literal_eval(key)
+            latLon_point = geom_utils.get_point_from_lat_lon(latLon)
+            point = geom_utils.project_to_etrs(latLon_point, epsg=3067)
+            origin_grid_dist = point.distance(grid_centr)
+            # print('origin_grid_centr_dist', origin_grid_dist)
+            if (origin_grid_dist > 50):
+                if (axyind not in axyinds_to_reprocess):
+                    axyinds_to_reprocess.append(axyind)
+                if (origin_grid_dist > 100):
+                    print(axyind, 'origin_grid_dist', origin_grid_dist, 'm')
+
+    print('found to reprocess:', len(axyinds_to_reprocess))
+    print('of which reprocessed before:', len(reprocessed))
+    to_reprocess = [axyind for axyind in axyinds_to_reprocess if axyind not in reprocessed]
+    print('to reprocess (filtered):', len(to_reprocess))
+    return to_reprocess
 
 def get_valid_distr_geom(districts, workplaces_distr_join):
     workplace_distr_g = workplaces_distr_join.groupby('id_distr')
@@ -204,10 +239,61 @@ def get_adjusted_routing_location(latLon, graph=None, edge_gdf=None, node_gdf=No
     print('no adjusted origin/target found')
     return latLon
 
+def get_valid_latLon_for_DT(latLon, distance=60, datetime=None, graph=None, edge_gdf=None, node_gdf=None):
+    # try if initial latLon works
+    try:
+        itins = DT_routing.get_route_itineraries(latLon, {'lat': 60.278320, 'lon': 24.853545}, '1.16666', datetime, itins_count=3, max_walk_distance=2500)
+        if (len(itins) > 0):
+            print('initial latLon works wiht DT')
+            return latLon
+    except Exception:
+        print('proceed to finding altenative latLon for DT')
+    # if original latLon did not work, proceed to finding alternative latLon
+    wgs_point = geom_utils.get_point_from_lat_lon(latLon)
+    etrs_point = geom_utils.project_to_etrs(wgs_point)
+    # create a circle for finding alternative points within a distanece from the original point
+    point_buffer = etrs_point.buffer(distance)
+    circle_coords = point_buffer.exterior.coords
+    # find four points at the buffer distance to try as alternative points in routing
+    for n in [0, 1, 2, 3]:
+        circle_quarter = len(circle_coords)/4
+        circle_place = math.floor(n * circle_quarter)
+        circle_point_coords = circle_coords[circle_place]
+        circle_point = Point(circle_point_coords)
+        point_xy = geom_utils.get_xy_from_geom(circle_point)
+        try:
+            # find nearest node in the network
+            node = rt.get_nearest_node(graph, point_xy, edge_gdf, node_gdf, [], False, logging=False)
+            node_geom = nw.get_node_geom(graph, node['node'])
+            node_distance = round(node_geom.distance(etrs_point))
+            node_geom_wgs = geom_utils.project_to_wgs(node_geom)
+            node_latLon = geom_utils.get_lat_lon_from_geom(node_geom_wgs)
+            # try DT routing to node location
+            if (node_distance < 90):
+                time.sleep(0.2)
+                try:
+                    itins = DT_routing.get_route_itineraries(node_latLon, {'lat': 60.278320, 'lon': 24.853545}, '1.16666', datetime, itins_count=3, max_walk_distance=2500)
+                    if (len(itins) > 0):
+                        print('found DT valid latLon at distance:', node_distance,'-', node_latLon)
+                        return node_latLon
+                    else:
+                        continue
+                except Exception:
+                    continue
+        except Exception:
+            print('no node/edge found')
+            continue
+    print('no DT valid latLon found')
+    return None
+
 def get_home_work_walks(axyind=None, work_rows=None, districts=None, datetime=None, walk_speed=None, subset=True, logging=True, graph=None, edge_gdf=None, node_gdf=None):
     stats_path='outputs/YKR_commutes_output/home_workplaces_stats/'
     geom_home = work_rows['geom_home'].iloc[0]
     home_latLon = work_rows['home_latLon'].iloc[0]
+    # adjust origin if necessary to work with DT routing requests
+    valid_home_latLon = get_valid_latLon_for_DT(home_latLon, distance=45, datetime=datetime, graph=graph, edge_gdf=edge_gdf, node_gdf=node_gdf)
+    if (valid_home_latLon == None):
+        return None
     targets = get_work_targets_gdf(geom_home, districts, axyind=axyind, work_rows=work_rows, logging=logging)
     if (targets == None):
         return None
@@ -227,18 +313,17 @@ def get_home_work_walks(axyind=None, work_rows=None, districts=None, datetime=No
         utils.print_progress(idx, targets['total_dests_count'], percentages=False)
         # execute routing request to Digitransit API
         try:
-            itins = DT_routing.get_route_itineraries(home_latLon, target['to_latLon'], walk_speed, datetime, itins_count=3, max_walk_distance=2500)
+            itins = DT_routing.get_route_itineraries(valid_home_latLon, target['to_latLon'], walk_speed, datetime, itins_count=3, max_walk_distance=2500)
         except Exception:
             print('Error in DT routing request between:', axyind, 'and', target['id_target'])
             itins = []
         # if no itineraries got, try adjusting the origin & target by snapping them to network
         if (len(itins) == 0):
-            print('no itineraries got -> try adjusting origin & target')
-            adj_origin = get_adjusted_routing_location(home_latLon, graph=graph, edge_gdf=edge_gdf, node_gdf=node_gdf)
-            adj_target = get_adjusted_routing_location(target['to_latLon'], graph=graph, edge_gdf=edge_gdf, node_gdf=node_gdf)
-            time.sleep(1)
+            print('no itineraries got -> try adjusting target')
+            adj_target = get_valid_latLon_for_DT(target['to_latLon'], datetime=datetime, graph=graph, edge_gdf=edge_gdf, node_gdf=node_gdf)
+            time.sleep(0.3)
             try:
-                itins = DT_routing.get_route_itineraries(adj_origin, adj_target, walk_speed, datetime, itins_count=3, max_walk_distance=2500)
+                itins = DT_routing.get_route_itineraries(valid_home_latLon, adj_target, walk_speed, datetime, itins_count=3, max_walk_distance=2500)
                 print('found', len(itins), 'with adjusted origin & target locations')
             except Exception:
                 print('error in DT routing with adjusted origin & target')

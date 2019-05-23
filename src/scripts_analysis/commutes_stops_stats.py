@@ -2,6 +2,7 @@
 import pandas as pd
 import geopandas as gpd
 import time
+import ast
 from fiona.crs import from_epsg
 from shapely.geometry import Point
 from multiprocessing import current_process, Pool
@@ -27,11 +28,6 @@ print('Spatial index built.')
 
 #%% read YKR work commute data
 commutes = pd.read_csv('data/input/T06_tma_e_TOL2008_2016_hel.csv')
-# commutes['axyind'] = [int(xyind) for xyind in commutes['axyind']]
-# commutes['txyind'] = [int(xyind) for xyind in commutes['txyind']]
-# commutes = commutes.loc[commutes['akunta'] == 91]
-# commutes = commutes.loc[commutes['sp'] == 0]
-# commutes.to_csv('data/input/T06_tma_e_TOL2008_2016_hel.csv')
 commutes['geom_home'] = commutes.apply(lambda row: Point(row['ax'], row['ay']), axis=1)
 commutes['geom_work'] = commutes.apply(lambda row: Point(row['tx'], row['ty']), axis=1)
 commutes['home_latLon'] = [geom_utils.get_lat_lon_from_geom(geom_utils.project_to_wgs(geom, epsg=3067)) for geom in commutes['geom_home']]
@@ -76,10 +72,6 @@ workplaces_distr_join = commutes_utils.get_workplaces_distr_join(workplaces, dis
 #%% add valid district center geometries (in central workplace are of the district)
 districts_gdf = commutes_utils.get_valid_distr_geom(districts, workplaces_distr_join)
 districts_gdf.head()
-# validate district center points with DT Api
-# districts_gdf = commutes_utils.test_distr_centers_with_DT(districts_gdf)
-# save district work center to file
-# districts_gdf.set_geometry('work_center').drop(columns=['geom_distr_poly']).to_file('outputs/YKR_commutes_output/test.gpkg', layer='district_centers', driver='GPKG')
 
 #%% print data stats
 print('districts:', len(districts_gdf))
@@ -90,7 +82,7 @@ print('workplaces with distr info:', len(workplaces_distr_join))
 print('homes within area:', len(homes.index))
 print('unique homes:', homes['axyind'].nunique())
 
-#%% group workplaces by homes
+#%% group commutes by homes
 home_groups = commutes.groupby('axyind')
 
 # routing params for Digitransit API
@@ -99,67 +91,20 @@ datetime = times.get_next_weekday_datetime(8, 30, skipdays=4)
 print('Datetime for routing:', datetime)
 # Datetime for routing: 2019-05-27 08:30:00 !!!!
 
-#%% function that returns home_walks
-def get_home_walk_gdf(axyind):
-    start_time = time.time()
-    work_rows = home_groups.get_group(axyind)
-    home_walks_g = commutes_utils.get_home_work_walks(axyind=axyind, work_rows=work_rows, districts=districts_gdf, datetime=datetime, walk_speed=walk_speed, subset=False, logging=True, graph=graph, edge_gdf=edge_gdf, node_gdf=node_gdf)
-    if (not isinstance(home_walks_g, pd.DataFrame)):
-        if (home_walks_g == None):
-            print('No work destinations found for:', axyind, 'skipping...')
-            return None
-    error = commutes_utils.validate_home_stops(home_walks_g)
-    if (error != None):
-        print(error)
-    # add column that tells if the stop geometry is outside of the extent of Helsinki
-    home_walks_g['outside_hel'] = [outside_hel_extent(geom) for geom in home_walks_g['DT_dest_Point']]
-    home_walks_g_to_file = home_walks_g.drop(columns=['DT_geom', 'DT_dest_Point'])
-    home_walks_g_to_file.to_csv('outputs/YKR_commutes_output/home_stops/axyind_'+str(axyind)+'.csv')
-    utils.print_duration(start_time, str(len(home_walks_g)) +' home stops got for: '+str(axyind)+'.\n')
-    return home_walks_g
-
-#%% process origins
-# collect axyinds to process
-axyinds = commutes['axyind'].unique()
-# axyinds = [3803756679125, 3873756677375, 3866256677375, 3863756676625, 3876256675875, 3838756674875]
-axyinds_toskip = [4026256685375, 9999999999999, 3841256675125]
-axyinds_processed = commutes_utils.get_processed_home_walks()
-print('Previously processed', len(axyinds_processed), 'axyinds')
-axyinds = [axy for axy in axyinds if axy not in axyinds_processed]
-axyinds = [axy for axy in axyinds if axy not in axyinds_toskip]
-reprocessed = []
-print('Unprocessed:', len(axyinds))
-#%% get axyinds to reprocess
-axyinds_to_reprocess = commutes_utils.get_axyinds_to_reprocess(grid, reprocessed)
-#%% take subset of axyinds to process
-axyinds = [axyind for axyind in axyinds_to_reprocess if axyind not in reprocessed]
-print('Unprocessed', len(axyinds), 'axyinds')
-axyinds = axyinds_to_reprocess[:30]
-print('Start processing', len(axyinds), 'axyinds')
-
-#%% one by one
-start_time = time.time()
-all_home_walks_dfs = []
-for idx, axyind in enumerate(axyinds):
-    utils.print_progress(idx, len(axyinds), False)
-    print('\nStart processing:', axyind)
-    all_home_walks_dfs.append(get_home_walk_gdf(axyind))
-    reprocessed.append(axyind)
-# print time stats
-time_elapsed = round(time.time() - start_time)
-avg_origin_time = round(time_elapsed/len(axyinds))
-print('--- %s min --- %s' % (round(time_elapsed/60,1), 'processed: '+ str(len(axyinds)) +' origins'))
-print('Average origin processing time:', avg_origin_time, 's')
-
-#%% export to GDF for debugging
-# all_home_walks_df = pd.concat(all_home_walks_dfs, ignore_index=True)
-# all_home_walks_gdf = gpd.GeoDataFrame(all_home_walks_df, geometry='DT_geom', crs=from_epsg(4326))
-# all_home_walks_gdf.drop(columns=['DT_dest_Point']).to_file('outputs/YKR_commutes_output/test.gpkg', layer='dt_paths', driver='GPKG')
-# all_home_walks_gdf = gpd.GeoDataFrame(all_home_walks_df, geometry='DT_dest_Point', crs=from_epsg(4326))
-# all_home_walks_gdf.drop(columns=['DT_geom']).to_file('outputs/YKR_commutes_output/test.gpkg', layer='dt_stops', driver='GPKG')
+#%%
+stats_files = 'outputs/YKR_commutes_output/home_workplaces_stats'
+stops_files = 'outputs/YKR_commutes_output/home_stops'
+axyfiles = commutes_utils.get_xyind_filenames(path=stops_files)
+print(axyfiles[:1])
 
 #%%
-# this should be exactly 100:
-# print('sum prob', all_home_walks_gdf['prob'].sum())
-# all_home_walks_gdf.plot()
-# all_home_walks_gdf.head(50)
+axyfiles_to_reprocess = commutes_utils.get_axyinds_to_reprocess(grid)
+
+#%%
+
+
+#%%
+test_latLon = {'lat': 60.21168, 'lon': 24.87754}
+adjusted_latLon = commutes_utils.get_valid_latLon_for_DT(test_latLon, distance=45, datetime=datetime, graph=graph, edge_gdf=edge_gdf, node_gdf=node_gdf)
+
+#%%
