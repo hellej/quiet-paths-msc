@@ -44,6 +44,7 @@ grid = files.get_statfi_grid()
 # add centroid point geometry to grid
 grid['grid_geom'] = [geometry.geoms[0] for geometry in grid['geometry']]
 grid = grid.set_geometry('grid_geom')
+grid['grid_centr'] = grid.apply(lambda row: geom_utils.get_point_from_xy({'x': row['x'], 'y': row['y']}), axis=1)
 grid['xyind'] = [int(xyind) for xyind in grid['xyind']]
 grid = grid[['xyind', 'grid_geom']]
 grid.head()
@@ -94,7 +95,7 @@ home_groups = commutes.groupby('axyind')
 
 # routing params for Digitransit API
 walk_speed = '1.16666'
-datetime = times.get_next_weekday_datetime(8, 30, skipdays=7)
+datetime = times.get_next_weekday_datetime(8, 30, skipdays=4)
 print('Datetime for routing:', datetime)
 # Datetime for routing: 2019-05-27 08:30:00 !!!!
 
@@ -126,7 +127,11 @@ axyinds_processed = commutes_utils.get_processed_home_walks()
 print('Previously processed', len(axyinds_processed), 'axyinds')
 axyinds = [axy for axy in axyinds if axy not in axyinds_processed]
 axyinds = [axy for axy in axyinds if axy not in axyinds_toskip]
-axyinds = axyinds[:5]
+print('Unprocessed:', len(axyinds))
+#%% get axyinds to reprocess
+axyinds = commutes_utils.get_axyinds_to_reprocess(grid)
+#%% take subset of axyinds to process
+axyinds = axyinds[:2]
 print('Start processing', len(axyinds), 'axyinds')
 
 #%% one by one
@@ -135,9 +140,6 @@ all_home_walks_dfs = []
 for idx, axyind in enumerate(axyinds):
     utils.print_progress(idx, len(axyinds), False)
     print('\nStart processing:', axyind)
-    if (axyind == 9999999999999):
-        print('skip 9999999999999')
-        continue
     all_home_walks_dfs.append(get_home_walk_gdf(axyind))
 # print time stats
 time_elapsed = round(time.time() - start_time)

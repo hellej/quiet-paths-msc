@@ -31,11 +31,12 @@ def get_coords_from_xy(xy):
 def get_point_from_xy(xy):
     return Point(get_coords_from_xy(xy))
 
-def project_to_etrs(geom):
+def project_to_etrs(geom, epsg=3879):
+    to_epsg = 'epsg:'+ str(epsg)
     project = partial(
         pyproj.transform,
         pyproj.Proj(init='epsg:4326'), # source coordinate system
-        pyproj.Proj(init='epsg:3879')) # destination coordinate system
+        pyproj.Proj(init=to_epsg)) # destination coordinate system
     geom_proj = transform(project, geom)
     return geom_proj
 
