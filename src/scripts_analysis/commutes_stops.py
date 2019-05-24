@@ -3,7 +3,7 @@ import pandas as pd
 import geopandas as gpd
 import time
 from fiona.crs import from_epsg
-from shapely.geometry import Point
+from shapely.geometry import Point  
 from multiprocessing import current_process, Pool
 import utils.DT_API as DT_routing
 import utils.DT_utils as DT_utils
@@ -122,7 +122,8 @@ def get_home_walk_gdf(axyind):
 # collect axyinds to process
 axyinds = commutes['axyind'].unique()
 # axyinds = [3803756679125, 3873756677375, 3866256677375, 3863756676625, 3876256675875, 3838756674875]
-axyinds_toskip = [4026256685375, 9999999999999, 3841256675125]
+# axyinds_toskip = [4026256685375, 9999999999999, 3841256675125]
+axyinds_toskip = [9999999999999]
 axyinds_processed = commutes_utils.get_processed_home_walks()
 print('Previously processed', len(axyinds_processed), 'axyinds')
 axyinds = [axy for axy in axyinds if axy not in axyinds_processed]
@@ -130,12 +131,14 @@ axyinds = [axy for axy in axyinds if axy not in axyinds_toskip]
 reprocessed = []
 print('Unprocessed:', len(axyinds))
 #%% get axyinds to reprocess
-axyinds_to_reprocess = commutes_utils.get_axyinds_to_reprocess(grid, reprocessed)
+axyinds = commutes_utils.get_axyinds_to_reprocess(grid, reprocessed)
+axyinds = [axyind for axyind in axyinds if axyind not in reprocessed]
+print('Processed:', len(reprocessed), 'axyinds')
+print('Unprocessed:', len(axyinds), 'axyinds')
 #%% take subset of axyinds to process
-axyinds = [axyind for axyind in axyinds_to_reprocess if axyind not in reprocessed]
-print('Unprocessed', len(axyinds), 'axyinds')
-axyinds = axyinds_to_reprocess[:30]
-print('Start processing', len(axyinds), 'axyinds')
+#%% 
+axyinds = axyinds[:10]
+print('Start processing:', len(axyinds), 'axyinds')
 
 #%% one by one
 start_time = time.time()
