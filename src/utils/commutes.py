@@ -15,6 +15,10 @@ import utils.geometry as geom_utils
 import utils.times as times
 import utils.routing as rt
 import utils.networks as nw
+from matplotlib import rcParams
+rcParams['font.family'] = 'sans-serif'
+rcParams['font.sans-serif'] = ['Arial']
+import matplotlib.pyplot as plt
 
 def get_xyind_filenames(path='outputs/YKR_commutes_output/home_stops'):
     files = [f for f in listdir(path) if isfile(join(path, f))]
@@ -371,3 +375,26 @@ def validate_home_stops(home_walks_g):
     stops_count = len(df.index)
     if (stops_count < 1):
         return '\nNo stops found!!'
+
+def plot_walk_stats(walks_comms_join):
+
+    plt.style.use('default')
+    rcParams['font.family'] = 'sans-serif'
+    rcParams['font.sans-serif'] = ['Arial']
+
+    fig, ax = plt.subplots(figsize=(8,5))
+
+    ax.scatter(walks_comms_join['commutes_sum'], walks_comms_join['comms_inclusion'], c='black', s=6)
+
+    ax.set_ylabel('Commutes used in routing (%)')
+    ax.set_xlabel('Commutes per origin')
+
+    ax.xaxis.label.set_size(18)
+    ax.yaxis.label.set_size(18)
+    ax.tick_params(axis='both', which='major', labelsize=15)
+
+    ax.xaxis.labelpad = 10
+    ax.yaxis.labelpad = 10
+
+    fig.tight_layout()
+    return fig
