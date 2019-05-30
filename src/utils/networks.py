@@ -150,6 +150,7 @@ def remove_linking_edges_of_new_node(graph, new_node_d):
         graph.remove_edge(link_edges['new_node'], link_edges['node_from'])
         graph.remove_edge(link_edges['new_node'], link_edges['node_to'])
         graph.remove_edge(link_edges['node_to'], link_edges['new_node'])
+        graph.remove_node(link_edges['new_node'])
 
 def get_shortest_edge(edges, weight):
     if (len(edges) == 1):

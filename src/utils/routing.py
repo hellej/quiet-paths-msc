@@ -46,19 +46,18 @@ def get_nearest_node(graph_proj, xy, edge_gdf, node_gdf, nts, add_new_edge_noise
     point = Point(coords)
     near_edge = find_nearest_edge(xy, edge_gdf)
     edge_geom = near_edge['geometry']
-    point_edge_distance = near_edge['distance']
     nearest_node = find_nearest_node(xy, node_gdf)
     nearest_node_geom = geom_utils.get_point_from_xy(graph_proj.nodes[nearest_node])
-    point_node_distance = point.distance(nearest_node_geom)
-    if (point_node_distance - point_edge_distance > 5):
-        # create a new node on the nearest edge nearest to the origin
-        closest_line_point = geom_utils.get_closest_point_on_line(edge_geom, point)
-        new_node = nw.add_new_node(graph_proj, closest_line_point, logging=logging)
-        link_edges = nw.add_linking_edges_for_new_node(graph_proj, new_node, closest_line_point, near_edge, nts, add_new_edge_noises, noise_polys=noise_polys, logging=logging)
-        return {'node': new_node, 'link_edges': link_edges }
-    else:
-        # print('Nearby node exists:', nearest_node)
+    # create a new node on the nearest edge nearest to the origin
+    closest_line_point = geom_utils.get_closest_point_on_line(edge_geom, point)
+    # if nearest node is same as closest point on closest edge, return nearest node
+    near_edge_near_node_dist_diff = closest_line_point.distance(nearest_node_geom) 
+    if (near_edge_near_node_dist_diff < 1):
+        print('nearest node is at end of the nearest edge at distance:', round(near_edge_near_node_dist_diff, 5))
         return {'node': nearest_node }
+    new_node = nw.add_new_node(graph_proj, closest_line_point, logging=logging)
+    link_edges = nw.add_linking_edges_for_new_node(graph_proj, new_node, closest_line_point, near_edge, nts, add_new_edge_noises, noise_polys=noise_polys, logging=logging)
+    return {'node': new_node, 'link_edges': link_edges }
 
 def get_shortest_path(graph_proj, orig_node, target_node, weight: str):
     if (orig_node != target_node):
