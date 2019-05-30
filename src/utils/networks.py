@@ -22,6 +22,24 @@ def get_walk_network(extent_polygon):
     #fig, ax = ox.plot_graph(graph_proj)
     return graph_proj
 
+def get_unwalkable_network(extent_polygon):
+    cust_filter_no_tunnels = '["area"!~"yes"]["highway"!~"trunk_link|motor|proposed|construction|abandoned|platform|raceway"]["foot"!~"no"]["service"!~"private"]["access"!~"private"]["highway"~"service"]["layer"~"-1|-2|-3|-4|-5|-6|-7"]'
+    # GET NETWORK GRAPH
+    graph = ox.graph_from_polygon(extent_polygon, custom_filter=cust_filter_no_tunnels, retain_all=True)
+    # GRAPH TO PROJECTED GRAPH
+    graph_proj = ox.project_graph(graph, from_epsg(3879))
+    #fig, ax = ox.plot_graph(graph_proj)
+    return ox.get_undirected(graph_proj)
+
+def osmid_to_string(osmid):
+    if isinstance(osmid, list):
+        osm_str = ''
+        for osm_id in osmid:
+            osm_str += str(osm_id)+'_'
+    else:
+        osm_str = str(osmid)
+    return osm_str
+
 def delete_unused_edge_attrs(graph_proj):
     save_attrs = ['uvkey', 'length', 'geometry', 'noises']
     for node_from in list(graph_proj.nodes):

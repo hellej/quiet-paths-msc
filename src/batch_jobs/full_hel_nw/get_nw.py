@@ -10,7 +10,7 @@ import time
 
 # READ EXTENT
 hel_poly = files.get_hel_poly()
-hel_poly_buff = hel_poly.buffer(2000)
+hel_poly_buff = hel_poly.buffer(1500)
 extent = geom_utils.project_to_wgs(hel_poly_buff)
 
 # GET GRAPH

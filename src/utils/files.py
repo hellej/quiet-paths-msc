@@ -70,7 +70,7 @@ def get_network_full():
     return graph
 
 def get_network_full_noise():
-    return load_graphml('hel_u_g_n_s.graphml', folder='graphs')
+    return load_graphml('hel_u_g_n_f_s.graphml', folder='graphs')
 
 def get_network_full_noise_costs(nts):
     graph_undir = load_graphml('hel_u_g_n_c_s.graphml', folder='graphs', nts=nts)

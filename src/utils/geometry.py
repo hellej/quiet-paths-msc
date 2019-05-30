@@ -204,3 +204,34 @@ def get_geojson_from_geom(geom):
         'geometry': mapping(geom_wgs)
         }
     return feature
+
+def lines_overlap(geom1, geom2):
+    '''
+    Function for testing if two lines overlap. Multiple geometrical tests can be made:
+    1) Other line should be within a small buffer around the other line and vice versa.
+    2) First points of the lines should be close.
+    3) Distance between the lines should be small.
+    4) Length of the lines should be almost the same.
+    Args:
+        geom1: <LineString>
+        geom2: <LineString>
+    Returns:
+        <bool>
+    '''
+    point1 = Point(geom1.coords[0])
+    point2 = Point(geom2.coords[0])
+    point2_last = Point(geom2.coords[len(geom2.coords)-1])
+    buffer1 = geom1.buffer(3)
+    buffer2 = geom2.buffer(3)
+    if ((geom1.within(buffer2) == True) and (geom2.within(buffer1) == True)):
+        # print ('line is within')
+        return True
+    dist1 = geom1.distance(geom2)
+    dist2 = point1.distance(point2)
+    dist3 = point1.distance(point2_last)
+    len_diff = geom1.length - geom2.length
+    # print(dist1, dist2, dist3, len_diff)
+    if (dist1 < 1 and len_diff < 10 and (dist2 < 1 or dist3 < 1)):
+        return True
+    return False
+    

@@ -3,5 +3,5 @@ e.g. kumpula_u_g_n_t.graphml
 u/d = unidrected / directed
 g = missing edge geometries added
 n = noise exposures added (as edge attributes)
-c = noise cost attributes added
+f = unwalkable edges filtered out from the graph (service tunnels etc)
 s = subset of the edge attributes
