@@ -29,7 +29,7 @@ nodes_sind = node_gdf.sindex
 print('Spatial index built.')
 utils.print_duration(start_time, 'Network initialized.')
 
-#%% prepare for path calculation loop
+#%% find unprocessed axyinds for path calculation loop
 # read commutes stops
 home_stops_path = 'outputs/YKR_commutes_output/home_stops'
 axyinds = commutes_utils.get_xyind_filenames(path=home_stops_path)
@@ -88,10 +88,10 @@ utils.print_duration(start_time, 'Got paths.')
 axyind_time = round((time.time() - start_time)/len(to_process),2)
 print('axyind_time (s):', axyind_time)
 
-#%% check path GDFs
-all_home_paths_df.head(20)
+#%% check paths GDF
+all_home_paths_df.head(4)
 
-#%%
-all_home_paths_df.to_file('outputs/YKR_commutes_output/home_paths.gpkg', layer='set_1', driver='GPKG')
+#%% export paths GDF
+all_home_paths_df.to_file('outputs/YKR_commutes_output/home_paths.gpkg', layer='set_3', driver='GPKG')
 
 #%%
