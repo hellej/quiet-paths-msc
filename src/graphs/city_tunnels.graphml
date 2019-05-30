@@ -3972,7 +3972,7 @@
 <edge id="0" source="277401804" target="5770348790">
   <data key="d9">[609208662, 609208665, 609208669, 609208670, 609208671]</data>
   <data key="d10">yes</data>
-  <data key="d22">['2', '1']</data>
+  <data key="d22">['1', '2']</data>
   <data key="d11">service</data>
   <data key="d20">10</data>
   <data key="d12">destination</data>

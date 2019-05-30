@@ -69,22 +69,25 @@ def get_network_full():
     graph = ox.load_graphml('hel_u_g.graphml', folder='graphs')
     return graph
 
-def get_network_full_noise():
-    return load_graphml('hel_u_g_n_f_s.graphml', folder='graphs')
-
-def get_network_full_noise_costs(nts):
-    graph_undir = load_graphml('hel_u_g_n_c_s.graphml', folder='graphs', nts=nts)
-    return graph_undir
+def get_network_full_noise(directed=True):
+    return load_graphml('hel_u_g_n_f_s.graphml', folder='graphs', directed=directed)
 
 def get_pois():
     pois = gpd.read_file('data/input/target_locations.geojson')
     pois = pois.to_crs(from_epsg(3879))
     return pois
 
-def load_graphml(filename, folder=None, nts=[], node_type=int):
+def load_graphml(filename, folder=None, nts=[], node_type=int, directed=None):
     # read the graph from disk
     path = os.path.join(folder, filename)
-    G = nx.MultiDiGraph(nx.read_graphml(path, node_type=node_type))
+
+    # read as directed or undirected graph
+    if (directed == True):
+        print('loading directed graph')
+        G = nx.MultiDiGraph(nx.read_graphml(path, node_type=node_type))
+    else:
+        print('loading undirected graph')
+        G = nx.MultiGraph(nx.read_graphml(path, node_type=node_type))
 
     # convert graph crs attribute from saved string to correct dict data type
     G.graph['crs'] = ast.literal_eval(G.graph['crs'])
