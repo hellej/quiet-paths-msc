@@ -1,6 +1,7 @@
 #%%
 import geopandas as gpd
 import osmnx as ox
+import networkx as nx
 import time
 import utils.files as files
 import utils.routing as rt
@@ -34,8 +35,9 @@ filt_edges_file.to_file('data/networks.gpkg', layer='tunnel_edges', driver="GPKG
 # export graph of unwalkable edges
 ox.save_graphml(graph_filt, filename='city_tunnels.graphml', folder='graphs', gephi=False)
 
-#%% read full graph 
-graph_hel = ox.load_graphml('hel_u_g_n.graphml', folder='graphs')
+#%% read full graph
+graph_hel = files.load_graphml('hel_u_g_n.graphml', folder='graphs', directed=True)
+print('loaded graph of type:', type(graph_hel))
 #%% get edge gdf
 edge_gdf = nw.get_edge_gdf(graph_hel, attrs=['geometry', 'length', 'osmid'])
 #%% add osmid as string to edge gdfs
@@ -75,7 +77,40 @@ print('could not remove', errors, 'edges')
 #%% remove unnecessary attributes from the graph 
 nw.delete_unused_edge_attrs(graph_hel)
 
+#%% remove isolated nodes from the graph
+isolate_nodes = list(nx.isolates(graph_hel))
+graph_hel.remove_nodes_from(isolate_nodes)
+print('removed', len(isolate_nodes), 'isolated nodes')
+
+#%% convert graph to udirected graph
+print('graph type:', type(graph_hel))
+#%% if type is directed, convert to undirected
+graph_hel_u = graph_hel.to_undirected()
+print('graph type after conversion:', type(graph_hel_u))
+#%% find subgraphs and remove them
+sub_graphs = nx.connected_component_subgraphs(graph_hel_u)
+# find subgraphs (nodes) to remove
+rm_nodes = []
+for sb in sub_graphs:
+    sub_graph = sb.copy()
+    print(f'subgraph has {sub_graph.number_of_nodes()} nodes')
+    if (len(sub_graph.nodes) < 30):
+        rm_nodes += list(sub_graph.nodes)
+print('nodes to remove:', len(rm_nodes))
+#%% remove subgraphs (by nodes)
+for rm_node in rm_nodes:
+    try:
+        graph_hel_u.remove_node(rm_node)
+        print('removed node', rm_node)
+        removed += 1
+    except Exception:
+        print('removed node before', rm_node)
+
 #%% export filtered graph to file
-ox.save_graphml(graph_hel, filename='hel_u_g_n_f_s.graphml', folder='graphs', gephi=False)
+ox.save_graphml(graph_hel_u, filename='hel_u_g_n_f_s.graphml', folder='graphs', gephi=False)
+
+#%% try if the saved undirected graph loads as undirected
+graph_hel_test = files.get_network_full_noise(directed=False)
+print('loaded graph should be undirected multigraph:', type(graph_hel_test))
 
 #%%
