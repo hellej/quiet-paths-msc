@@ -8,6 +8,7 @@ from multiprocessing import current_process, Pool
 import utils.commutes as commutes_utils
 import utils.geometry as geom_utils
 import utils.files as files
+import utils.times as times
 import utils.networks as nw
 import utils.utils as utils
 import utils.routing as rt
@@ -15,7 +16,7 @@ import utils.routing as rt
 #%% initialize graph
 start_time = time.time()
 nts = [0.1, 0.15, 0.25, 0.5, 1, 1.5, 2, 4, 6, 10, 20, 40]
-graph = files.get_network_full_noise()
+graph = files.get_network_full_noise(directed=False)
 print('Graph of', graph.size(), 'edges read.')
 edge_gdf = nw.get_edge_gdf(graph, attrs=['geometry', 'length', 'noises'])
 node_gdf = nw.get_node_gdf(graph)
@@ -31,8 +32,8 @@ utils.print_duration(start_time, 'Network initialized.')
 #%% prepare for path calculation loop
 # read commutes stops
 home_stops_path = 'outputs/YKR_commutes_output/home_stops'
-axyinds = commutes_utils.get_axyind_filenames(path=home_stops_path)
-processed = commutes_utils.get_axyind_filenames(path='outputs/YKR_commutes_output/home_paths')
+axyinds = commutes_utils.get_xyind_filenames(path=home_stops_path)
+processed = commutes_utils.get_xyind_filenames(path='outputs/YKR_commutes_output/home_paths')
 processed
 # find non processed axyinds for path calculations
 print('Previously processed', len(processed), 'axyinds')
@@ -71,13 +72,19 @@ def get_origin_stops_paths_df(home_stops_file):
     return home_paths_df
 
 #%% process origins with pool
+# select subset of axyinds to process
+to_process = to_process[:10]
+start_time = time.time()
 pool = Pool(processes=4)
 home_paths_dfs = pool.map(get_origin_stops_paths_df, to_process)
 all_home_paths_df = gpd.GeoDataFrame(pd.concat(home_paths_dfs, ignore_index=True), crs=from_epsg(3879))
+utils.print_duration(start_time, 'Got paths.')
+axyind_time = round((time.time() - start_time)/len(to_process),2)
+print('axyind_time (s):', axyind_time)
 
 #%% check path GDFs
 all_home_paths_df.plot()
-all_home_paths_df.head(100)
+all_home_paths_df.head(20)
 
 #%%
 all_home_paths_df.to_file('outputs/YKR_commutes_output/test.gpkg', layer='paths_test', driver='GPKG')

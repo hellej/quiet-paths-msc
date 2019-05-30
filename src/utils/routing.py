@@ -53,7 +53,7 @@ def get_nearest_node(graph_proj, xy, edge_gdf, node_gdf, nts, add_new_edge_noise
     # if nearest node is same as closest point on closest edge, return nearest node
     near_edge_near_node_dist_diff = closest_line_point.distance(nearest_node_geom) 
     if (near_edge_near_node_dist_diff < 1):
-        print('nearest node is at end of the nearest edge at distance:', round(near_edge_near_node_dist_diff, 5))
+        # print('nearest node is at end of the nearest edge at distance:', round(near_edge_near_node_dist_diff, 5))
         return {'node': nearest_node }
     new_node = nw.add_new_node(graph_proj, closest_line_point, logging=logging)
     link_edges = nw.add_linking_edges_for_new_node(graph_proj, new_node, closest_line_point, near_edge, nts, add_new_edge_noises, noise_polys=noise_polys, logging=logging)
