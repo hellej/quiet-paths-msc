@@ -49,11 +49,13 @@ def remove_duplicate_geom_paths(paths, tolerance=None, remove_geom_prop=True, lo
     shortest_quiet_path = filtered_paths[0]
     if (shortest_quiet_path['properties']['length'] - shortest_path['properties']['length'] > 10):
         # print('set shortest path as shortest')
-        filtered_paths.append(shortest_path)
+        if ('short_p' not in filtered_paths_ids):
+            filtered_paths.append(shortest_path)
     else:
         # print('set shortest quiet path as shortest')
-        filtered_paths[0]['properties']['type'] = 'short'
-        filtered_paths[0]['properties']['id'] = 'short_p'
+        if ('short_p' not in filtered_paths_ids):
+            filtered_paths[0]['properties']['type'] = 'short'
+            filtered_paths[0]['properties']['id'] = 'short_p'
     if (logging == True):
         print('found', len(paths), 'of which returned', len(filtered_paths), 'unique paths.')
     # delete shapely geometries from path dicts
