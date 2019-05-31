@@ -40,6 +40,7 @@ def get_koskela_kumpula_box():
     return box(*bounds)
 
 def get_hel_poly():
+    # return polygon of Helsinki in epsg:3879
     poly = list(hel['geometry'])[0]
     return poly
 
