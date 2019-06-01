@@ -57,7 +57,7 @@ def test_get_edge_dicts():
 def test_add_exposures_to_edges():
     graph_proj = files.get_network_kumpula()
     edge_dicts = nw.get_all_edge_dicts(graph_proj)
-    edge_gdf = nw.get_edge_gdf(edge_dicts[:5], ['geometry', 'length', 'uvkey'])
+    edge_gdf = nw.get_edge_gdf(graph_proj, attrs=['geometry', 'length', 'uvkey'], subset=5)
     edge_gdf['split_lines'] = [geom_utils.get_split_lines_list(line_geom, noise_polys) for line_geom in edge_gdf['geometry']]
     split_lines = geom_utils.explode_lines_to_split_lines(edge_gdf, 'uvkey')
     split_line_noises = exps.get_noise_attrs_to_split_lines(split_lines, noise_polys)
@@ -68,22 +68,6 @@ def test_add_exposures_to_edges():
     print(edge_d)
     exp_len_sum = sum(edge_d['noises'].values())
     assert (edge_d['noises'], round(exp_len_sum,1)) == ({65: 107.025, 70: 20.027}, round(edge_d['length'],1))
-
-def test_shortest_path():
-    graph_proj = files.get_network_kumpula()
-    edge_dicts = nw.get_all_edge_dicts(graph_proj)
-    edge_gdf = nw.get_edge_gdf(edge_dicts, ['uvkey', 'geometry'])
-    node_gdf = nw.get_node_gdf(graph_proj)
-    pois = files.get_pois()
-    koskela = pois.loc[pois['name'] == 'Koskela']
-    kumpula = pois.loc[pois['name'] == 'Kumpulan kampus']
-    from_xy = geom_utils.get_xy_from_geom(list(koskela['geometry'])[0])
-    to_xy = geom_utils.get_xy_from_geom(list(kumpula['geometry'])[0])
-    orig_node = rt.get_nearest_node(graph_proj, from_xy, edge_gdf, node_gdf, [], False, noise_polys)
-    target_node = rt.get_nearest_node(graph_proj, to_xy, edge_gdf, node_gdf, [], False, noise_polys)
-    shortest_path = rt.get_shortest_path(graph_proj, orig_node['node'], target_node['node'], 'length')
-    path_geom = nw.get_edge_geoms_attrs(graph_proj, shortest_path, 'length', True, False)
-    assert (len(shortest_path), path_geom['total_length']) == (45, 1764.38)
 
 def test_aggregate_exposures():
     exp_list = [{55: 21.5, 60: 12}, {55: 3.5, 60: 1.5}, {60: 2.5, 70: 200}]

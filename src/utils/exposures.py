@@ -6,11 +6,15 @@ import ast
 import utils.geometry as geom_utils
 
 def add_noises_to_split_lines(noise_polygons, split_lines):
+    split_lines['split_line_index'] = split_lines.index
     split_lines['geom_line'] = split_lines['geometry']
     split_lines['geom_point'] = [geom_utils.get_line_middle_point(geom) for geom in split_lines['geometry']]
     split_lines['geometry'] = split_lines['geom_point']
-    line_noises = gpd.sjoin(split_lines, noise_polygons, how='left', op='within')
+    line_noises = gpd.sjoin(split_lines, noise_polygons, how='left', op='intersects')
     line_noises['geometry'] = line_noises['geom_line']
+    if (len(line_noises.index) > len(split_lines.index)):
+        line_noises = line_noises.sort_values('db_lo', ascending=False)
+        line_noises = line_noises.drop_duplicates(subset=['split_line_index'], keep='first')
     return line_noises[['geometry', 'length', 'db_lo', 'db_hi', 'index_right']]
 
 def get_exposure_lines(line_geom, noise_polys):
@@ -19,6 +23,11 @@ def get_exposure_lines(line_geom, noise_polys):
         return gpd.GeoDataFrame()
     line_noises = add_noises_to_split_lines(noise_polys, split_lines)
     line_noises = line_noises.fillna(40)
+    len_error = abs(line_geom.length - line_noises['length'].sum())
+    if (len_error > 0.1):
+        print('len_error:', len_error)
+        print(' orig geom len:', line_geom.length)
+        print(' line noises sum len:', line_noises['length'].sum())
     return line_noises
 
 def get_exposures(line_noises):
@@ -177,3 +186,18 @@ def get_noises_diff(s_noises, q_noises, full_db_range=True):
         noise_diff = q_noise - s_noise
         diff_dict[db] = round(noise_diff, 2)
     return diff_dict
+
+def get_total_noises_len(noises):
+    totlen = 0
+    for key in noises.keys():
+        totlen += noises[key]
+    return totlen
+
+def compare_lens_noises_lens(edge_gdf, subset=500):
+    gdf = edge_gdf.copy()
+    print(gdf.columns)
+    gdf['node_from'] = [uvkey[0] for uvkey in gdf['uvkey']]
+    gdf['length'] = [geom.length for geom in gdf['geometry']]
+    gdf['len_from_noises'] = [get_total_noises_len(noises) for noises in gdf['noises']]
+    gdf['len_noise_error'] = gdf.apply(lambda row: row['length'] - row['len_from_noises'], axis=1)
+    return gdf
