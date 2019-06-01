@@ -22,7 +22,6 @@ def add_bool_within_hel_poly(gdf):
     
 def extract_th_db_cols(paths_gdf, ths=[60, 65]):
     gdf = paths_gdf.copy()
-    print(gdf.columns)
     for th in ths:
         th_key = str(th)
         th_col = str(th)+'dB_len'
@@ -31,6 +30,12 @@ def extract_th_db_cols(paths_gdf, ths=[60, 65]):
         th_len_col = str(th)+'dB_len'
         th_rat_col = str(th)+'dB_rat'
         gdf[th_rat_col] = gdf.apply(lambda row: round((row[th_len_col]/row['length'])*100,2), axis=1)
+    return gdf
+
+def add_dt_length_diff_cols(paths_gdf):
+    gdf = paths_gdf.copy()
+    gdf['DT_len_diff'] = [-1 * diff for diff in gdf['DT_len_diff']]
+    gdf['DT_len_diff_rat'] = gdf.apply(lambda row: round((row['DT_len_diff']/row['length'])*100,2), axis=1)
     return gdf
 
 def explode_array_by_weights(df, var_col, weight_col):
@@ -43,22 +48,25 @@ def explode_array_by_weights(df, var_col, weight_col):
         expl_array += [val] * int(round(weight*10))
     return expl_array
 
-def calc_basic_stats(gdf, var_col, weight=None, col_prefix='len', printing=False):
+def calc_basic_stats(gdf, var_col, weight=None, percs=None, col_prefix='', printing=False):
     var_array = []
     if (weight is not None):
-        # print('calculating weighted stats')
+        if (printing == True): print('calculating weighted stats')
         var_array = explode_array_by_weights(gdf, var_col, weight)
     else:
-        # print('calculating basic stats')
+        if (printing == True): print('calculating basic stats')
         var_array = gdf[var_col]
 
     mean = round(np.mean(var_array), 3)
     std = round(np.std(var_array), 3)
     median = round(np.median(var_array), 3)
+    d = { col_prefix+'_mean': mean, col_prefix+'_median': median, col_prefix+'_std': std }
+
+    if (percs is not None):
+        for per in percs:
+            d['p'+str(per)] = np.percentile(var_array, per)
 
     if (printing == True):
-        print(var_col, 'mean:', mean)
-        print(var_col, 'std:', std)
-        print(var_col, 'median:', median)
+        print(d)
 
-    return { col_prefix+'_mean': mean, col_prefix+'_median': median, col_prefix+'_std': std}
+    return d

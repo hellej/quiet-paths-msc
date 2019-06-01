@@ -10,6 +10,7 @@ from statsmodels.stats.weightstats import DescrStatsW
 from fiona.crs import from_epsg
 import utils.geometry as geom_utils
 import utils.files as files
+import utils.plots as plots
 
 #%% read grid for adding grid geometry to axyind level statistics
 grid = files.get_statfi_grid()
@@ -21,7 +22,7 @@ grid['xyind'] = [int(xyind) for xyind in grid['xyind']]
 grid = grid[['xyind', 'grid_geom', 'grid_centr']]
 grid.head()
 
-#%% read data
+#%% read paths
 paths =  gpd.read_file('outputs/YKR_commutes_output/home_paths_all.gpkg', layer='paths')
 paths['noises'] = [ast.literal_eval(noises) for noises in paths['noises']]
 paths['th_noises'] = [ast.literal_eval(th_noises) for th_noises in paths['th_noises']]
@@ -30,16 +31,19 @@ print('read', len(paths.index), 'paths')
 print('cols:', paths.columns)
 
 #%% subset of short paths (filter out quiet paths)
+# filter out paths that are actually PT legs (origin happened to be at the PT stop)
+print('invalid walk paths', len(paths.query("to_pt_mode == 'WALK'")))
+paths = paths.query("to_pt_mode != 'WALK'")
 s_paths = paths.query("type == 'short'")
-print('short paths:', len(s_paths.index))
-s_paths.head()
+print('filtered short paths:', len(s_paths.index))
 
-#%% add & extract th dB columns to gdf
-s_paths = pstats.extract_th_db_cols(s_paths, ths=[55, 60, 65, 70])
-s_paths.head()
+#%% add & extract statistic columnds (DB & DT length diff) to gdf
+# s_paths = pstats.extract_th_db_cols(s_paths, ths=[55, 60, 65, 70])
+s_paths = pstats.add_dt_length_diff_cols(s_paths)
+s_paths.head(2)
 
 #%% select paths to PT (filter out paths to destinations)
-s_paths_to_pt = s_paths.query("to_pt_mode != 'WALK' and to_pt_mode != 'none'")
+s_paths_to_pt = s_paths.query("to_pt_mode != 'none'")
 print('short paths to pt count:', len(s_paths_to_pt.index))
 
 #%% reproject paths to epsg 3879 (to match epsg of Helsinki polygon)
@@ -48,7 +52,7 @@ s_paths_to_pt = s_paths_to_pt.to_crs(from_epsg(3879))
 s_paths_to_pt = pstats.add_bool_within_hel_poly(s_paths_to_pt)
 s_paths_to_pt.head(2)
 
-#%% print simple statistics of shortest paths to PT
+#%% print unweighted statistics of shortest paths to PT
 # s short
 # p path
 # pt public transport (PT)
@@ -73,8 +77,17 @@ print(quants)
 
 #%% print weighted statistics of all short paths to PT
 pstats.calc_basic_stats(s_paths_to_pt, 'length', weight='prob', printing=True)
+pstats.calc_basic_stats(s_paths, 'DT_len_diff', weight=None, percs=[5, 10, 15, 25, 75, 85, 90, 95], col_prefix='DT_lendiff', printing=True)
+pstats.calc_basic_stats(s_paths, 'DT_len_diff_rat', weight=None, percs=[5, 10, 15, 25, 75, 85, 90, 95], col_prefix='DT_lendiff_rat', printing=True)
+#%% plot DT len diff stats
+fig = plots.scatterplot(s_paths, xcol='length', ycol='DT_len_diff', xlabel='Length (m)', ylabel='DT length diff. (m)')
+# fig.savefig('plots/paths_DT_len_diff_scatter.png', format='png', dpi=300)
+fig = plots.boxplot(s_paths, col='DT_len_diff', label='DT length diff. (m)')
+# fig.savefig('plots/paths_DT_len_diff_boxplot.png', format='png', dpi=300)
+fig = plots.scatterplot(s_paths, xcol='length', ycol='DT_len_diff_rat', xlabel='Length (m)', ylabel='DT length diff. (%)')
+# fig.savefig('plots/paths_DT_len_diff_rat_scatter.png', format='png', dpi=300)
 
-#%% group paths by origin (axyind)
+#%% #### group paths by origin (axyind) ####
 axy_groups = s_paths_to_pt.groupby('from_axyind')
 
 #%% calculate stats per origin (paths from axyind)

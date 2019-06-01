@@ -386,7 +386,7 @@ def plot_walk_stats(walks_comms_join):
 
     ax.scatter(walks_comms_join['commutes_sum'], walks_comms_join['comms_inclusion'], c='black', s=6)
 
-    ax.set_ylabel('Commutes used in routing (%)')
+    ax.set_ylabel('Commutes routed (%)')
     ax.set_xlabel('Commutes per origin')
 
     ax.xaxis.label.set_size(18)
