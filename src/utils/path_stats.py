@@ -24,11 +24,11 @@ def extract_th_db_cols(paths_gdf, ths=[60, 65]):
     gdf = paths_gdf.copy()
     for th in ths:
         th_key = str(th)
-        th_col = str(th)+'dB_len'
+        th_col = str(th)+'dBl'
         gdf[th_col] = [th_noises[th_key] for th_noises in gdf['th_noises']]
     for th in ths:
-        th_len_col = str(th)+'dB_len'
-        th_rat_col = str(th)+'dB_rat'
+        th_len_col = str(th)+'dBl'
+        th_rat_col = str(th)+'dBr'
         gdf[th_rat_col] = gdf.apply(lambda row: round((row[th_len_col]/row['length'])*100,2), axis=1)
     return gdf
 

@@ -38,7 +38,7 @@ s_paths = paths.query("type == 'short'")
 print('filtered short paths:', len(s_paths.index))
 
 #%% add & extract statistic columnds (DB & DT length diff) to gdf
-# s_paths = pstats.extract_th_db_cols(s_paths, ths=[55, 60, 65, 70])
+s_paths = pstats.extract_th_db_cols(s_paths, ths=[55, 60, 65, 70])
 s_paths = pstats.add_dt_length_diff_cols(s_paths)
 s_paths.head(2)
 
@@ -88,6 +88,7 @@ fig = plots.scatterplot(s_paths, xcol='length', ycol='DT_len_diff_rat', xlabel='
 # fig.savefig('plots/paths_DT_len_diff_rat_scatter.png', format='png', dpi=300)
 
 #%% #### group paths by origin (axyind) ####
+print(s_paths_to_pt.columns)
 axy_groups = s_paths_to_pt.groupby('from_axyind')
 
 #%% calculate stats per origin (paths from axyind)
@@ -102,14 +103,22 @@ for key, group in axy_groups:
     if (len(in_paths) != 0):
         d = { 'axyind': key }
         # calculate stats of path lengths
-        len_stats = pstats.calc_basic_stats(group, 'length', weight='prob', col_prefix='len')
-        d = { **d, **len_stats }
+        probsum = group['prob'].sum()
+        len_stats = pstats.calc_basic_stats(in_paths, 'length', weight='prob', col_prefix='len')
+        db55l_stats = pstats.calc_basic_stats(in_paths, '55dBl', weight='prob', col_prefix='dB55l')
+        db60l_stats = pstats.calc_basic_stats(in_paths, '60dBl', weight='prob', col_prefix='dB60l')
+        db65l_stats = pstats.calc_basic_stats(in_paths, '65dBl', weight='prob', col_prefix='dB65l')
+        db55r_stats = pstats.calc_basic_stats(in_paths, '55dBr', weight='prob', col_prefix='dB55r')
+        db60r_stats = pstats.calc_basic_stats(in_paths, '60dBr', weight='prob', col_prefix='dB60r')
+        db65r_stats = pstats.calc_basic_stats(in_paths, '65dBr', weight='prob', col_prefix='dB65r')
+        d = { **d, **len_stats, **db55l_stats, **db60l_stats, **db65l_stats, **db55r_stats, **db60r_stats, **db65r_stats }
         # calculate stats of path exposures
         d['paths_in_rat'] = paths_in_rat
+        d['probsum'] = probsum
         stats.append(d)
     else:
         errors.append(key)
-print('paths outside for:', len(errors), 'axyinds')
+print('all paths outside for:', len(errors), 'axyinds')
 
 #%% combine stats to DF
 stats_df = pd.DataFrame(stats, columns=stats[0].keys())
@@ -119,8 +128,8 @@ stats_df.head()
 grid_stats = pd.merge(stats_df, grid, how='left', left_on='axyind', right_on='xyind')
 print('merged:', len(grid_stats))
 # drop rows without ykr grid cell geometry
-grid_stats = grid_stats.dropna(subset=['grid_geom'])
-print('after na drop:', len(grid_stats))
+# grid_stats = grid_stats.dropna(subset=['grid_geom'])
+# print('after na drop:', len(grid_stats))
 # convert to GeoDataFrame
 grid_stats = gpd.GeoDataFrame(grid_stats, geometry='grid_geom', crs=from_epsg(3067))
 
