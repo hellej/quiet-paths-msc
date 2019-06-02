@@ -108,6 +108,9 @@ def get_edge_noise_cost_attrs(nts, edge_d, link_geom, b_add_noises: bool, noise_
     for nt in nts:
         cost = get_noise_cost_from_noises_dict(link_geom, cost_attrs['noises'], nt)
         cost_attrs['nc_'+str(nt)] = cost
+    noises_sum_len = exps.get_total_noises_len(cost_attrs['noises'])
+    if ((noises_sum_len - link_geom.length) > 0.1):
+        print('link length unmatch:', noises_sum_len, link_geom.length)
     return cost_attrs
 
 def add_linking_edges_for_new_node(graph_proj, new_node, split_point, edge, nts, b_add_noises, noise_polys=None, logging=True):
@@ -193,6 +196,14 @@ def get_edge_geoms_attrs(graph_proj, path, weight, geoms: bool, noises: bool):
                 edge_lengths.append(edge_line.length)
                 edge_coords = edge_line.coords
             path_coords += edge_coords
+            edge_noise_len_diff = (edge_d['length'] - exps.get_total_noises_len(edge_d['noises']))
+            if (edge_noise_len_diff < -0.05):
+                print('idx:', idx, 'from:', node_1, 'to:', node_2)
+                print(' problems with edge:', edge_d['uvkey'], edge_d['noises'])
+                print(' edge lens vs noise lens:', edge_d['length'], exps.get_total_noises_len(edge_d['noises']))
+                # fixed_noises = exps.get_exposures_for_geom(edge_d['geometry'], noise_polys)
+                # print(' fixed noises:', fixed_noises)
+                # print(' fixed noises len:', exps.get_total_noises_len(fixed_noises))
         if noises:
             if ('noises' in edge_d):
                 edge_exps.append(edge_d['noises'])
@@ -203,6 +214,12 @@ def get_edge_geoms_attrs(graph_proj, path, weight, geoms: bool, noises: bool):
         result['total_length'] = total_length
     if noises:
         result['noises'] = exps.aggregate_exposures(edge_exps)
+    if (abs(result['total_length'] - path_line.length) > 0.2):
+        print('Result total len:', result['total_length'], 'should be:', path_line.length)
+    if (path_line.length - exps.get_total_noises_len(result['noises']) < -0.1):
+        print('geom len vs noises len:', path_line.length, exps.get_total_noises_len(result['noises']))
+    if (result['total_length'] - exps.get_total_noises_len(result['noises']) < -0.1):
+        print('total len vs noises len:', result['total_length'], exps.get_total_noises_len(result['noises']))
     return result
 
 def get_all_edge_dicts(graph_proj, attrs=None):
