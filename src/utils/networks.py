@@ -110,9 +110,9 @@ def get_edge_noise_cost_attrs(nts, edge_d, link_geom, b_add_noises: bool, noise_
         cost_attrs['nc_'+str(nt)] = cost
     return cost_attrs
 
-def add_linking_edges_for_new_node(graph_proj, new_node, closest_point, edge, nts, b_add_noises, noise_polys=None, logging=True):
+def add_linking_edges_for_new_node(graph_proj, new_node, split_point, edge, nts, b_add_noises, noise_polys=None, logging=True):
     edge_geom = edge['geometry']
-    split_lines = geom_utils.split_line_at_point(edge_geom, closest_point)
+    split_lines = geom_utils.split_line_at_point(edge_geom, split_point)
     node_from = edge['uvkey'][0]
     node_to = edge['uvkey'][1]
     node_from_p = get_node_geom(graph_proj, node_from)
@@ -126,18 +126,18 @@ def add_linking_edges_for_new_node(graph_proj, new_node, closest_point, edge, nt
         link2 = split_lines[0]
     if (logging == True):
         print('add linking edges between:', node_from, new_node, node_to)
-    graph_proj.add_edge(node_from, new_node, geometry=link1, length=round(link1.length, 3), uvkey=(node_from, new_node, 0))
-    graph_proj.add_edge(new_node, node_from, geometry=link1, length=round(link1.length, 3), uvkey=(new_node, node_from, 0))
-    graph_proj.add_edge(new_node, node_to, geometry=link2, length=round(link2.length, 3), uvkey=(new_node, node_to, 0))
-    graph_proj.add_edge(node_to, new_node, geometry=link2, length=round(link2.length, 3), uvkey=(node_to, new_node, 0))
+    graph_proj.add_edge(node_from, new_node, geometry=link1, length=round(link1.length, 3), uvkey=str((node_from, new_node, 0)))
+    graph_proj.add_edge(new_node, node_from, geometry=link1, length=round(link1.length, 3), uvkey=str((new_node, node_from, 0)))
+    graph_proj.add_edge(new_node, node_to, geometry=link2, length=round(link2.length, 3), uvkey=str((new_node, node_to, 0)))
+    graph_proj.add_edge(node_to, new_node, geometry=link2, length=round(link2.length, 3), uvkey=str((node_to, new_node, 0)))
     # set noise cost attributes for new edges if they will be used in quiet path routing
     if (len(nts) > 0):
         link1_noise_costs = get_edge_noise_cost_attrs(nts, edge, link1, b_add_noises, noise_polys)
         link2_noise_costs = get_edge_noise_cost_attrs(nts, edge, link2, b_add_noises, noise_polys)
         attrs = {
-            (node_from, new_node, 0): link1_noise_costs,
+            (node_from, new_node, 0): link2_noise_costs,
             (new_node, node_from, 0): link1_noise_costs,
-            (new_node, node_to, 0): link2_noise_costs,
+            (new_node, node_to, 0): link1_noise_costs,
             (node_to, new_node, 0): link2_noise_costs
         }
         nx.set_edge_attributes(graph_proj, attrs)
