@@ -129,31 +129,43 @@ def add_linking_edges_for_new_node(graph_proj, new_node, split_point, edge, nts,
         link2 = split_lines[0]
     if (logging == True):
         print('add linking edges between:', node_from, new_node, node_to)
-    graph_proj.add_edge(node_from, new_node, geometry=link1, length=round(link1.length, 3), uvkey=str((node_from, new_node, 0)))
-    graph_proj.add_edge(new_node, node_from, geometry=link1, length=round(link1.length, 3), uvkey=str((new_node, node_from, 0)))
-    graph_proj.add_edge(new_node, node_to, geometry=link2, length=round(link2.length, 3), uvkey=str((new_node, node_to, 0)))
-    graph_proj.add_edge(node_to, new_node, geometry=link2, length=round(link2.length, 3), uvkey=str((node_to, new_node, 0)))
+    graph_proj.add_edge(node_from, new_node, geometry=link1, length=round(link1.length, 3), uvkey=(node_from, new_node, 0))
+    graph_proj.add_edge(new_node, node_from, geometry=link1, length=round(link1.length, 3), uvkey=(new_node, node_from, 0))
+    graph_proj.add_edge(new_node, node_to, key=1, geometry=link2, length=round(link2.length, 3), uvkey=(new_node, node_to, 1))
+    graph_proj.add_edge(node_to, new_node, key=1, geometry=link2, length=round(link2.length, 3), uvkey=(node_to, new_node, 1))
     # set noise cost attributes for new edges if they will be used in quiet path routing
     if (len(nts) > 0):
         link1_noise_costs = get_edge_noise_cost_attrs(nts, edge, link1, b_add_noises, noise_polys)
         link2_noise_costs = get_edge_noise_cost_attrs(nts, edge, link2, b_add_noises, noise_polys)
         attrs = {
-            (node_from, new_node, 0): link2_noise_costs,
+            (node_from, new_node, 0): link1_noise_costs,
             (new_node, node_from, 0): link1_noise_costs,
-            (new_node, node_to, 0): link1_noise_costs,
-            (node_to, new_node, 0): link2_noise_costs
+            (new_node, node_to, 1): link2_noise_costs,
+            (node_to, new_node, 1): link2_noise_costs
         }
         nx.set_edge_attributes(graph_proj, attrs)
-    return {'node_from': node_from, 'new_node': new_node, 'node_to': node_to}
+    link1_d = { 'geometry': link1, 'noises': link1_noise_costs['noises'], 'uvkey': (new_node, node_from, 0) }
+    link2_d = { 'geometry': link2, 'noises': link2_noise_costs['noises'], 'uvkey': (node_to, new_node, 0) }
+    return {'node_from': node_from, 'new_node': new_node, 'node_to': node_to, 'link1': link1_d, 'link2': link2_d }
 
 def remove_linking_edges_of_new_node(graph, new_node_d):
     if ('link_edges' in new_node_d.keys()):
         link_edges = new_node_d['link_edges']
-        graph.remove_edge(link_edges['node_from'], link_edges['new_node'])
-        graph.remove_edge(link_edges['new_node'], link_edges['node_from'])
-        graph.remove_edge(link_edges['new_node'], link_edges['node_to'])
-        graph.remove_edge(link_edges['node_to'], link_edges['new_node'])
-        graph.remove_node(link_edges['new_node'])
+        edges = [
+            (link_edges['node_from'], link_edges['new_node']),
+            (link_edges['new_node'], link_edges['node_from']),
+            (link_edges['new_node'], link_edges['node_to']),
+            (link_edges['node_to'], link_edges['new_node'])
+            ]
+        for edge in edges:
+            try:
+                graph.remove_edge(*edge)
+            except Exception:
+                continue
+        try:
+            graph.remove_node(link_edges['new_node'])
+        except Exception:
+            pass
 
 def get_shortest_edge(edges, weight):
     if (len(edges) == 1):
@@ -285,9 +297,12 @@ def get_edge_noise_exps(edge_dict, noise_polys, graph_proj):
         edge_d['noises'] = noise_dict
         return edge_d
 
-def get_edge_gdf(graph, attrs=None):
+def get_edge_gdf(graph, attrs=None, subset=None):
     edge_dicts = get_all_edge_dicts(graph, attrs=attrs)
-    return gpd.GeoDataFrame(edge_dicts, crs=from_epsg(3879))
+    if (subset is not None):
+        return gpd.GeoDataFrame(edge_dicts, crs=from_epsg(3879))[:subset]
+    else:
+        return gpd.GeoDataFrame(edge_dicts, crs=from_epsg(3879))
 
 def update_edge_noises(edge_gdf, graph_proj):
     for edge in edge_gdf.itertuples():

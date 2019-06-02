@@ -41,7 +41,7 @@ def find_nearest_node(xy, node_gdf):
     # utils.print_duration(start_time, 'found nearest node')
     return nearest_node
 
-def get_nearest_node(graph_proj, xy, edge_gdf, node_gdf, nts, add_new_edge_noises: bool, noise_polys=None, logging=True):
+def get_nearest_node(graph_proj, xy, edge_gdf, node_gdf, nts, add_new_edge_noises: bool, noise_polys=None, orig_node=None, logging=True):
     coords = geom_utils.get_coords_from_xy(xy)
     point = Point(coords)
     near_edge = find_nearest_edge(xy, edge_gdf)
@@ -55,9 +55,14 @@ def get_nearest_node(graph_proj, xy, edge_gdf, node_gdf, nts, add_new_edge_noise
     if (near_edge_near_node_dist_diff < 1):
         # print('nearest node is at end of the nearest edge at distance:', round(near_edge_near_node_dist_diff, 5))
         return {'node': nearest_node }
+    if (orig_node is not None and 'link_edges' in orig_node):
+        if (closest_line_point.distance(orig_node['link_edges']['link1']['geometry']) < 0.2):
+            near_edge = orig_node['link_edges']['link1']
+        if (closest_line_point.distance(orig_node['link_edges']['link2']['geometry']) < 0.2):
+            near_edge = orig_node['link_edges']['link2']
     new_node = nw.add_new_node(graph_proj, closest_line_point, logging=logging)
     link_edges = nw.add_linking_edges_for_new_node(graph_proj, new_node, closest_line_point, near_edge, nts, add_new_edge_noises, noise_polys=noise_polys, logging=logging)
-    return {'node': new_node, 'link_edges': link_edges }
+    return { 'node': new_node, 'link_edges': link_edges }
 
 def get_shortest_path(graph_proj, orig_node, target_node, weight: str):
     if (orig_node != target_node):
@@ -128,7 +133,7 @@ def get_short_quiet_paths(graph, from_latLon, to_latLon, edge_gdf, node_gdf, nts
     to_xy = geom_utils.get_xy_from_lat_lon(to_latLon)
     # find origin and target nodes from closest edges
     orig_node = get_nearest_node(graph, from_xy, edge_gdf, node_gdf, nts, False, logging=logging)
-    target_node = get_nearest_node(graph, to_xy, edge_gdf, node_gdf, nts, False, logging=logging)
+    target_node = get_nearest_node(graph, to_xy, edge_gdf, node_gdf, nts, False, orig_node=orig_node, logging=logging)
     if (logging == True):
         utils.print_duration(start_time, 'Got params for routing.')
     start_time = time.time()

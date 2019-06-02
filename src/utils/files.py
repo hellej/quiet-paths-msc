@@ -59,12 +59,8 @@ def get_network_kumpula():
     graph_undir = ox.load_graphml('kumpula_u_g.graphml', folder='graphs')
     return graph_undir
 
-def get_network_kumpula_noise():
-    return load_graphml('kumpula_u_g_n_s.graphml', folder='graphs', nts=[])
-
-def get_network_kumpula_noise_costs(nts):
-    graph_undir = load_graphml('kumpula_u_g_n_c_s.graphml', folder='graphs', nts=nts)
-    return graph_undir
+def get_network_kumpula_noise(directed=None):
+    return load_graphml('kumpula_u_g_n_s.graphml', folder='graphs', directed=directed)
 
 def get_network_full():
     graph = ox.load_graphml('hel_u_g.graphml', folder='graphs')
@@ -78,7 +74,7 @@ def get_pois():
     pois = pois.to_crs(from_epsg(3879))
     return pois
 
-def load_graphml(filename, folder=None, nts=[], node_type=int, directed=None):
+def load_graphml(filename, folder=None, node_type=int, directed=None):
     # read the graph from disk
     path = os.path.join(folder, filename)
 
@@ -112,10 +108,6 @@ def load_graphml(filename, folder=None, nts=[], node_type=int, directed=None):
         # if geometry attribute exists, load the string as well-known text to
         # shapely LineString
         data['geometry'] = wkt.loads(data['geometry'])
-
-        # convert string noise cost attributes to float
-        for attr in ['nc_'+str(nt) for nt in nts]:
-            data[attr] = float(data[attr])
 
     # remove node_default and edge_default metadata keys if they exist
     if 'node_default' in G.graph:
