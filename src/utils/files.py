@@ -69,6 +69,9 @@ def get_network_full():
 def get_network_full_noise(directed=True):
     return load_graphml('hel_u_g_n_f_s.graphml', folder='graphs', directed=directed)
 
+def get_network_full_noise_v2(directed=True):
+    return load_graphml('hel_u_g_n2_f_s.graphml', folder='graphs', directed=directed)
+
 def get_pois():
     pois = gpd.read_file('data/input/target_locations.geojson')
     pois = pois.to_crs(from_epsg(3879))

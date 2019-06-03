@@ -297,13 +297,16 @@ def get_edge_noise_exps(edge_dict, noise_polys, graph_proj):
         edge_d['noises'] = noise_dict
         return edge_d
 
-def get_edge_gdf(graph, attrs=None, subset=None):
+def get_edge_gdf(graph, attrs=None, subset=None, dicts=False):
     edge_dicts = get_all_edge_dicts(graph, attrs=attrs)
+    gdf = gpd.GeoDataFrame(edge_dicts, crs=from_epsg(3879))
     if (subset is not None):
-        return gpd.GeoDataFrame(edge_dicts, crs=from_epsg(3879))[:subset]
+        gdf = gdf[:subset]
+    if (dicts == True):
+        return gdf, edge_dicts
     else:
-        return gpd.GeoDataFrame(edge_dicts, crs=from_epsg(3879))
-
+        return gdf
+    
 def update_edge_noises(edge_gdf, graph_proj):
     for edge in edge_gdf.itertuples():
         nx.set_edge_attributes(graph_proj, { getattr(edge, 'uvkey'): { 'noises': getattr(edge, 'noises')}})

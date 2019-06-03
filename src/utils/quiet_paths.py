@@ -1,4 +1,5 @@
 import utils.geometry as geom_utils
+import utils.exposures as exps
 
 def get_similar_length_paths(paths, path):
     path_len = path['properties']['length']
@@ -71,6 +72,7 @@ def get_geojson_from_q_path_gdf(gdf):
         feature_d['properties']['type'] = getattr(path, 'type')
         feature_d['properties']['id'] = getattr(path, 'id')
         feature_d['properties']['length'] = getattr(path, 'total_length')
+        feature_d['properties']['sum_noise_len'] = exps.get_total_noises_len(getattr(path, 'noises'))
         feature_d['properties']['min_nt'] = getattr(path, 'min_nt')
         feature_d['properties']['max_nt'] = getattr(path, 'max_nt')
         # feature_d['properties']['len_diff'] = getattr(path, 'len_diff')

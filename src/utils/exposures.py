@@ -31,8 +31,10 @@ def get_exposure_lines(line_geom, noise_polys):
     return line_noises
 
 def get_exposures(line_noises):
-    noise_groups = line_noises.groupby('db_lo')
+    if (len(line_noises.index) == 0):
+        return {}
     noise_dict = {}
+    noise_groups = line_noises.groupby('db_lo')
     for key, values in noise_groups:
         tot_len = round(values['length'].sum(),3)
         noise_dict[int(key)] = tot_len
@@ -129,8 +131,12 @@ def plot_exposure_times(exp_times):
     return fig
 
 def get_noise_attrs_to_split_lines(gdf, noise_polys):
+    gdf['split_line_index'] = gdf.index
     gdf['geometry'] = gdf['mid_point']
-    split_line_noises = gpd.sjoin(gdf, noise_polys, how='left', op='within')
+    split_line_noises = gpd.sjoin(gdf, noise_polys, how='left', op='intersects')
+    if (len(split_line_noises.index) > len(gdf.index)):
+        split_line_noises = split_line_noises.sort_values('db_lo', ascending=False)
+        split_line_noises = split_line_noises.drop_duplicates(subset=['split_line_index'], keep='first')
     return split_line_noises
 
 def get_noise_dict_for_geom(geom, noise_polys):
@@ -191,11 +197,12 @@ def get_total_noises_len(noises):
     totlen = 0
     for key in noises.keys():
         totlen += noises[key]
-    return totlen
+    return round(totlen, 3)
 
 def compare_lens_noises_lens(edge_gdf, subset=500):
     gdf = edge_gdf.copy()
-    print(gdf.columns)
+    print('Edge GDF cols:', gdf.columns)
+    gdf['uvkey_str'] = [str(uvkey[0])+'_'+str(uvkey[1]) for uvkey in gdf['uvkey']]
     gdf['node_from'] = [uvkey[0] for uvkey in gdf['uvkey']]
     gdf['length'] = [geom.length for geom in gdf['geometry']]
     gdf['len_from_noises'] = [get_total_noises_len(noises) for noises in gdf['noises']]

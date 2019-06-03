@@ -114,8 +114,11 @@ def filter_duplicate_split_points(split_points):
     return gpd.GeoDataFrame(geometry=point_geoms, crs=from_epsg(3879))
 
 def get_polygons_under_line(line_geom, polygons):
-    intersects_mask = polygons.intersects(line_geom)
-    polygons_under_line = polygons.loc[intersects_mask]
+    polygons_sindex = polygons.sindex
+    close_polygons_idxs = list(polygons_sindex.intersection(line_geom.buffer(200).bounds))
+    close_polygons = polygons.iloc[close_polygons_idxs].copy()
+    intersects_mask = close_polygons.intersects(line_geom)
+    polygons_under_line = close_polygons.loc[intersects_mask]
     return polygons_under_line
 
 def get_multipolygon_under_line(line_geom, polygons):
