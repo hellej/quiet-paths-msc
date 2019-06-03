@@ -16,7 +16,13 @@ def find_nearest_edge(xy, edge_gdf):
     # start_time = time.time()
     edges_sind = edge_gdf.sindex
     point_geom = geom_utils.get_point_from_xy(xy)
-    possible_matches_index = list(edges_sind.intersection(point_geom.buffer(120).bounds))
+    possible_matches_index = list(edges_sind.intersection(point_geom.buffer(40).bounds))
+    if (len(possible_matches_index) == 0):
+        print('no near edges found -> extend search radius')
+        possible_matches_index = list(edges_sind.intersection(point_geom.buffer(90).bounds))
+        if (len(possible_matches_index) == 0):
+            possible_matches_index = list(edges_sind.intersection(point_geom.buffer(250).bounds))
+            print('found', len(possible_matches_index), 'with extended search')
     possible_matches = edge_gdf.iloc[possible_matches_index].copy()
     possible_matches['distance'] = [geom.distance(point_geom) for geom in possible_matches['geometry']]
     shortest_dist = possible_matches['distance'].min()
@@ -41,7 +47,7 @@ def find_nearest_node(xy, node_gdf):
     # utils.print_duration(start_time, 'found nearest node')
     return nearest_node
 
-def get_nearest_node(graph_proj, xy, edge_gdf, node_gdf, nts, add_new_edge_noises: bool, noise_polys=None, orig_node=None, logging=True):
+def get_nearest_node(graph_proj, xy, edge_gdf, node_gdf, nts, add_new_edge_noises: bool, noise_polys=None, orig_node=None, logging=False):
     coords = geom_utils.get_coords_from_xy(xy)
     point = Point(coords)
     near_edge = find_nearest_edge(xy, edge_gdf)

@@ -16,7 +16,7 @@ import utils.routing as rt
 #%% initialize graph
 start_time = time.time()
 nts = [0.1, 0.15, 0.25, 0.5, 1, 1.5, 2, 4, 6, 10, 20, 40]
-graph = files.get_network_full_noise(directed=False)
+graph = files.get_network_full_noise_v2(directed=False)
 print('Graph of', graph.size(), 'edges read.')
 edge_gdf = nw.get_edge_gdf(graph, attrs=['geometry', 'length', 'noises'])
 node_gdf = nw.get_node_gdf(graph)
@@ -33,14 +33,11 @@ utils.print_duration(start_time, 'Network initialized.')
 # read commutes stops
 home_stops_path = 'outputs/YKR_commutes_output/home_stops'
 axyinds = commutes_utils.get_xyind_filenames(path=home_stops_path)
-processed = commutes_utils.get_xyind_filenames(path='outputs/YKR_commutes_output/home_paths')
-processed
-# find non processed axyinds for path calculations
-print('Previously processed', len(processed), 'axyinds')
-to_process = [filename for filename in axyinds if filename not in processed]
+to_process = axyinds #[:5]
+# to_process = [filename for filename in axyinds if filename not in processed]
 print('Start processing', len(to_process), 'axyinds')
 
-#%% calculate origin-stop paths
+#%% functions for calculating origin-stop paths
 def get_origin_stop_paths(from_latLon=None, to_latLon=None):
     return rt.get_short_quiet_paths(graph, from_latLon, to_latLon, edge_gdf, node_gdf, nts, remove_geom_prop=False, logging=False)
 
@@ -60,8 +57,9 @@ def get_origin_stops_paths_df(home_stops_file):
             paths_df['from_axyind'] = row['from_axyind']
             paths_df['to_pt_mode'] = row['to_pt_mode']
             paths_df['count'] = row['count']
+            paths_df['util'] = row['utilization']
             paths_df['prob'] = row['prob']
-            paths_df['DT_len_diff'] = [round(row['DT_walk_dist'] - length,1) for length in paths_df['length']]
+            paths_df['DT_len_diff'] = [round(length - row['DT_walk_dist'],1) for length in paths_df['length']]
             paths_df['outside_hel'] = row['outside_hel']
             home_paths.append(paths_df)
         # collect
@@ -75,13 +73,13 @@ def get_origin_stops_paths_df(home_stops_file):
 
 #%% process origins with pool
 # select subset of axyinds to process
-to_process = to_process[:6]
 start_time = time.time()
 pool = Pool(processes=4)
 home_paths = pool.map(get_origin_stops_paths_df, to_process)
 # home_paths = [get_origin_stops_paths_df(axyind) for axyind in to_process]
 errors = [path for path in home_paths if type(path) is int]
 home_paths_dfs = [path for path in home_paths if type(path) is not int]
+print('ERRORS:', errors)
 print('errors count:', len(errors))
 print('path df count:', len(home_paths_dfs))
 all_home_paths_df = gpd.GeoDataFrame(pd.concat(home_paths_dfs, ignore_index=True), crs=from_epsg(3879))
@@ -89,39 +87,40 @@ utils.print_duration(start_time, 'Got paths.')
 axyind_time = round((time.time() - start_time)/len(to_process),2)
 print('axyind_time (s):', axyind_time)
 #%% check paths GDF
-all_home_paths_df.head(5)
+# all_home_paths_df.head(3)
+
 #%% export paths GDF
-all_home_paths_df.to_file('outputs/YKR_commutes_output/home_paths.gpkg', layer='set_5', driver='GPKG')
+all_home_paths_df.to_file('outputs/YKR_commutes_output/home_paths.gpkg', layer='run_2_set_1', driver='GPKG')
 
 #%% read & combine sets 
-gdfs = []
-for path_gdf in ['set_1', 'set_2', 'set_3', 'set_4']:
-    gdfs.append(gpd.read_file('outputs/YKR_commutes_output/home_paths.gpkg', layer=path_gdf))
-all_paths_gdf = pd.concat(gdfs, ignore_index=True)
-all_paths_gdf.head(2)
+# gdfs = []
+# for path_gdf in ['set_1', 'set_2', 'set_3', 'set_4']:
+#     gdfs.append(gpd.read_file('outputs/YKR_commutes_output/home_paths.gpkg', layer=path_gdf))
+# all_paths_gdf = pd.concat(gdfs, ignore_index=True)
+# all_paths_gdf.head(2)
 
 #%% ad unique id for paths
-all_paths_gdf['uniq_id'] = all_paths_gdf.apply(lambda row: row['path_id'] +'_'+ row['id'], axis=1)
-# find weirdly duplicate paths
-duplicate_paths = all_paths_gdf[all_paths_gdf.duplicated(subset=['uniq_id'])]
-duplicate_paths_axyinds = list(duplicate_paths['from_axyind'])
-print(duplicate_paths_axyinds)
+# all_paths_gdf['uniq_id'] = all_paths_gdf.apply(lambda row: row['path_id'] +'_'+ row['id'], axis=1)
+# # find weirdly duplicate paths
+# duplicate_paths = all_paths_gdf[all_paths_gdf.duplicated(subset=['uniq_id'])]
+# duplicate_paths_axyinds = list(duplicate_paths['from_axyind'])
+# print(duplicate_paths_axyinds)
 
 #%% print path counts
-print(len(all_paths_gdf))
-paths_count = all_paths_gdf['uniq_id'].unique()
-print('paths:', len(paths_count))
-print('should be same as:', len(all_paths_gdf.index))
-processed_axyinds = all_paths_gdf['from_axyind'].unique()
-print('axyinds processed:', len(processed_axyinds))
+# print(len(all_paths_gdf))
+# paths_count = all_paths_gdf['uniq_id'].unique()
+# print('paths:', len(paths_count))
+# print('should be same as:', len(all_paths_gdf.index))
+# processed_axyinds = all_paths_gdf['from_axyind'].unique()
+# print('axyinds processed:', len(processed_axyinds))
 
 #%% find axyinds to process based on axyinds in all_paths_gdf
-axyinds = commutes_utils.get_xyind_filenames(path=home_stops_path)
-processed_axyind_files = ['axyind_'+str(axyind)+'.csv' for axyind in processed_axyinds]
-axyinds_to_process = [axyind for axyind in axyinds if axyind not in processed_axyind_files]
-print('still to process:', axyinds_to_process)
+# axyinds = commutes_utils.get_xyind_filenames(path=home_stops_path)
+# processed_axyind_files = ['axyind_'+str(axyind)+'.csv' for axyind in processed_axyinds]
+# axyinds_to_process = [axyind for axyind in axyinds if axyind not in processed_axyind_files]
+# print('still to process:', axyinds_to_process)
 
 #%%
-all_paths_gdf.to_file('outputs/YKR_commutes_output/home_paths_all.gpkg', layer='paths', driver='GPKG')
+# all_paths_gdf.to_file('outputs/YKR_commutes_output/home_paths_all.gpkg', layer='paths', driver='GPKG')
 
 #%%
