@@ -20,22 +20,27 @@ def add_bool_within_hel_poly(gdf):
     print('count outside:', outside_count)
     return gdf
     
-def extract_th_db_cols(paths_gdf, ths=[60, 65]):
+def extract_th_db_cols(paths_gdf, ths=[60, 65], valueignore=-9999):
     gdf = paths_gdf.copy()
     for th in ths:
         th_key = str(th)
         th_col = str(th)+'dBl'
-        gdf[th_col] = [th_noises[th_key] for th_noises in gdf['th_noises']]
+        gdf[th_col] = [th_noises[th_key] if type(th_noises) == dict else -9999 for th_noises in gdf['th_noises']]
     for th in ths:
         th_len_col = str(th)+'dBl'
         th_rat_col = str(th)+'dBr'
-        gdf[th_rat_col] = gdf.apply(lambda row: round((row[th_len_col]/row['length'])*100,2), axis=1)
+        gdf[th_rat_col] = gdf.apply(lambda row: round((row[th_len_col]/row['length'])*100,2) if row['length'] != -9999 else -9999, axis=1)
+    print('mapped', len(gdf[gdf['55dBl'] == valueignore]), 'db stats to -9999')
     return gdf
 
-def add_dt_length_diff_cols(paths_gdf):
+def add_dt_length_diff_cols(paths_gdf, valueignore=-9999):
     gdf = paths_gdf.copy()
-    gdf['DT_len_diff'] = [-1 * diff for diff in gdf['DT_len_diff']]
-    gdf['DT_len_diff_rat'] = gdf.apply(lambda row: round((row['DT_len_diff']/row['length'])*100,2), axis=1)
+    def get_reference_len_rat(row):
+        return round((row['DT_len_diff']/row['length'])*100,2)
+    gdf['DT_len_diff'] = [diff if diff != valueignore else -9999 for diff in gdf['DT_len_diff']]
+    gdf['DT_len'] = gdf.apply(lambda row: row['length'] - row['DT_len_diff'] if row['DT_len_diff'] != valueignore else -9999, axis=1)
+    gdf['DT_len_diff_rat'] = gdf.apply(lambda row: get_reference_len_rat(row) if row['DT_len_diff'] != valueignore else -9999, axis=1)
+    print('mapped', len(gdf[gdf['DT_len_diff_rat'] == valueignore]), 'length stats to -9999')
     return gdf
 
 def explode_array_by_weights(df, var_col, weight_col):
@@ -48,14 +53,41 @@ def explode_array_by_weights(df, var_col, weight_col):
         expl_array += [val] * int(round(weight*10))
     return expl_array
 
-def calc_basic_stats(gdf, var_col, weight=None, percs=None, col_prefix='', printing=False):
+def filter_by_min_value(data_df, var_col, min_value):
+    df = data_df.copy()
+    count_before = len(df)
+    df = df.query(f'''{var_col} > {min_value}''')
+    count_after = len(df)
+    print('Filtered out:', count_before-count_after, 'paths with:', var_col, 'less than:', min_value)
+    return df
+
+def calc_basic_stats(data_gdf, var_col, valuemap=None, valueignore=None, weight=None, min_length=None, percs=None, col_prefix='', printing=False):
+    print('-min_length:', min_length, '-weight:', weight, '-col:', var_col)
+
+    if (min_length is not None):
+        count_before = len(data_gdf)
+        gdf = data_gdf.query(f'''length > {min_length}''')
+        count_after = len(gdf)
+        print('Filtered out:', count_before-count_after, 'paths shorter than', min_length, 'm')
+    else:
+        gdf = data_gdf
+
+    if (valueignore is not None):
+        count_before = len(gdf)
+        gdf = gdf.query(f'''{var_col} != {valueignore}''')
+        count_after = len(gdf)
+        print('Filtered out:', count_before-count_after, 'with value:', valueignore, 'total rows after filter:', count_after)
+    
     var_array = []
     if (weight is not None):
-        if (printing == True): print('calculating weighted stats')
+        if (printing == True): print('Weighted stats:')
         var_array = explode_array_by_weights(gdf, var_col, weight)
     else:
-        if (printing == True): print('calculating basic stats')
+        if (printing == True): print('Basic stats:')
         var_array = gdf[var_col]
+
+    if (valuemap is not None):
+        var_array = [value if value != valuemap[0] else valuemap[1] for value in var_array]
 
     mean = round(np.mean(var_array), 3)
     std = round(np.std(var_array), 3)
@@ -67,6 +99,6 @@ def calc_basic_stats(gdf, var_col, weight=None, percs=None, col_prefix='', print
             d['p'+str(per)] = np.percentile(var_array, per)
 
     if (printing == True):
-        print(d)
+        print('STATS:', d)
 
     return d

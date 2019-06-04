@@ -23,23 +23,34 @@ grid = grid[['xyind', 'grid_geom', 'grid_centr']]
 grid.head()
 
 #%% read paths
-paths =  gpd.read_file('outputs/YKR_commutes_output/home_paths_all.gpkg', layer='paths')
+# paths =  gpd.read_file('outputs/YKR_commutes_output/home_paths_all.gpkg', layer='paths')
+paths =  gpd.read_file('outputs/YKR_commutes_output/home_paths.gpkg', layer='run_2_set_1')
 paths['noises'] = [ast.literal_eval(noises) for noises in paths['noises']]
 paths['th_noises'] = [ast.literal_eval(th_noises) for th_noises in paths['th_noises']]
-# count of all paths
+#%% count of all paths
 print('read', len(paths.index), 'paths')
+print('axyind count:', len(paths['from_axyind'].unique()))
+print('paths per axyind:', round(len(paths.index)/len(paths['from_axyind'].unique())))
 print('cols:', paths.columns)
 
-#%% subset of short paths (filter out quiet paths)
-# filter out paths that are actually PT legs (origin happened to be at the PT stop)
-print('invalid walk paths', len(paths.query("to_pt_mode == 'WALK'")))
-paths = paths.query("to_pt_mode != 'WALK'")
-s_paths = paths.query("type == 'short'")
-print('filtered short paths:', len(s_paths.index))
+#%% fix paths that are actually PT legs (origin happened to be exactly at the PT stop)
+print('PT_leg_walk paths', len(paths.query("to_pt_mode == 'WALK'")))
+paths['length'] = paths.apply(lambda row: -9999 if row['to_pt_mode'] == 'WALK' else row['length'], axis=1)
+paths['DT_len_diff'] = paths.apply(lambda row: -9999 if row['to_pt_mode'] == 'WALK' else row['DT_len_diff'], axis=1)
+paths['noises'] = paths.apply(lambda row: -9999 if row['to_pt_mode'] == 'WALK' else row['noises'], axis=1)
+paths['th_noises'] = paths.apply(lambda row: -9999 if row['to_pt_mode'] == 'WALK' else row['th_noises'], axis=1)
+print('mapped', len(paths.query("length == -9999")), 'lengths to -9999')
 
-#%% add & extract statistic columnds (DB & DT length diff) to gdf
-s_paths = pstats.extract_th_db_cols(s_paths, ths=[55, 60, 65, 70])
-s_paths = pstats.add_dt_length_diff_cols(s_paths)
+#%% subset of short paths (filter out quiet paths)
+s_paths = paths.query("type == 'short'")
+print('short paths count:', len(s_paths.index))
+
+#%% add & extract dB exposure columnds to df
+s_paths = pstats.extract_th_db_cols(s_paths, ths=[55, 60, 65, 70], valueignore=-9999)
+s_paths.head(2)
+
+#%% calculate path length statistics (compare lengths to reference lengths from DT)
+s_paths = pstats.add_dt_length_diff_cols(s_paths, valueignore=-9999)
 s_paths.head(2)
 
 #%% select paths to PT (filter out paths to destinations)
@@ -60,7 +71,12 @@ s_paths_to_pt.head(2)
 # sd standard deviation (SD)
 # wp weighted with path probability
 # wu weighted with path utilization rate
+# DT_len_diff_rat = [diff for diff in s_paths_to_pt['DT_len_diff_rat'] if diff != -9999]
+# print(round(np.std(DT_len_diff_rat)))
+#%%
 s_p_pt_lens = s_paths_to_pt['length']
+# -9999 means origin was already at the PT stop -> hence walk length was 0 m 
+s_p_pt_lens = [length if length != -9999 else 0 for length in s_p_pt_lens]
 s_p_pt_l_mean = round(np.mean(s_p_pt_lens), 3)
 s_p_pt_l_median = round(np.median(s_p_pt_lens), 3)
 s_p_pt_l_sd = round(np.std(s_p_pt_lens), 3)
@@ -76,16 +92,28 @@ quants = weighted_stats.quantile(probs=[0.5], return_pandas=True)
 print(quants)
 
 #%% print weighted statistics of all short paths to PT
-pstats.calc_basic_stats(s_paths_to_pt, 'length', weight='prob', printing=True)
-pstats.calc_basic_stats(s_paths, 'DT_len_diff', weight=None, percs=[5, 10, 15, 25, 75, 85, 90, 95], col_prefix='DT_lendiff', printing=True)
-pstats.calc_basic_stats(s_paths, 'DT_len_diff_rat', weight=None, percs=[5, 10, 15, 25, 75, 85, 90, 95], col_prefix='DT_lendiff_rat', printing=True)
+pstats.calc_basic_stats(s_paths_to_pt, 'length', weight='prob', valuemap=(-9999, 0), printing=True)
+pstats.calc_basic_stats(s_paths, 'DT_len_diff', weight=None, min_length=20, percs=[5, 10, 15, 25, 75, 85, 90, 95], valueignore=-9999, col_prefix='DT_lendiff', printing=True)
+pstats.calc_basic_stats(s_paths, 'DT_len_diff_rat', weight=None, min_length=20, percs=[5, 10, 15, 25, 75, 85, 90, 95], valueignore=-9999, col_prefix='DT_lendiff_rat', printing=True)
+
 #%% plot DT len diff stats
-fig = plots.scatterplot(s_paths, xcol='length', ycol='DT_len_diff', xlabel='Length (m)', ylabel='DT length diff. (m)')
+s_paths_filt = pstats.filter_by_min_value(s_paths, 'length', 20)
+fig = plots.scatterplot(s_paths_filt, xcol='length', ycol='DT_len', yignore=-9999, xlabel='Length (m)', ylabel='Ref. length (m)')
+# fig.savefig('plots/paths_len_ref_len_scatter.png', format='png', dpi=300)
+fig = plots.scatterplot(s_paths_filt, xcol='length', ycol='DT_len_diff', yignore=-9999, xlabel='Length (m)', ylabel='Ref. length diff. (m)')
 # fig.savefig('plots/paths_DT_len_diff_scatter.png', format='png', dpi=300)
-fig = plots.boxplot(s_paths, col='DT_len_diff', label='DT length diff. (m)')
+fig = plots.boxplot(s_paths_filt, col='DT_len_diff', valignore=-9999, label='Ref. length diff. (m)')
 # fig.savefig('plots/paths_DT_len_diff_boxplot.png', format='png', dpi=300)
-fig = plots.scatterplot(s_paths, xcol='length', ycol='DT_len_diff_rat', xlabel='Length (m)', ylabel='DT length diff. (%)')
+fig = plots.scatterplot(s_paths_filt, xcol='length', ycol='DT_len_diff_rat', yignore=-9999, xlabel='Length (m)', ylabel='Ref. length diff. (%)')
 # fig.savefig('plots/paths_DT_len_diff_rat_scatter.png', format='png', dpi=300)
+
+#%% export paths with stats to file
+s_paths.columns
+s_paths.to_file('outputs/YKR_commutes_output/home_paths.gpkg', layer='run_2_stats', driver='GPKG')
+
+
+#%%
+len(s_paths[s_paths['DT_len_diff'] == -9999])
 
 #%% #### group paths by origin (axyind) ####
 print(s_paths_to_pt.columns)

@@ -13,7 +13,13 @@ def set_plot_style():
     rcParams['font.family'] = 'sans-serif'
     rcParams['font.sans-serif'] = ['Arial']
 
-def scatterplot(df, xcol=None, ycol=None, xlabel=None, ylabel=None):
+def scatterplot(data_df, xcol=None, ycol=None, yignore=None, xlabel=None, ylabel=None):
+    if (yignore is not None):
+        df = data_df.query(f'''{ycol} != {yignore}''')
+        print('filtered:', len(data_df)-len(df), 'rows with y value:', yignore)
+    else:
+        df = data_df.copy()
+    
     set_plot_style()
 
     fig, ax = plt.subplots(figsize=(8,5))
@@ -32,7 +38,13 @@ def scatterplot(df, xcol=None, ycol=None, xlabel=None, ylabel=None):
     fig.tight_layout()
     return fig
 
-def boxplot(df, col=None, label=None):
+def boxplot(data_df, col=None, valignore=None, label=None):
+    if (valignore is not None):
+        df = data_df.query(f'''{col} != {valignore}''')
+        print('filtered:', len(data_df)-len(df), 'rows with value:', valignore)
+    else:
+        df = data_df.copy()
+    
     fig, ax = plt.subplots(figsize=(8,5))
     ax.boxplot(df[col], vert=False)
     ax.tick_params(axis='x', which='major', labelsize=15)
