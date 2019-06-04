@@ -16,13 +16,15 @@ def find_nearest_edge(xy, edge_gdf):
     # start_time = time.time()
     edges_sind = edge_gdf.sindex
     point_geom = geom_utils.get_point_from_xy(xy)
-    possible_matches_index = list(edges_sind.intersection(point_geom.buffer(40).bounds))
+    for radius in [40, 90, 250, 350, 450]:
+        possible_matches_index = list(edges_sind.intersection(point_geom.buffer(radius).bounds))
+        if (len(possible_matches_index) != 0):
+            if (radius > 40):
+                print('found', len(possible_matches_index), 'edges with extended radius:', radius)
+            break
     if (len(possible_matches_index) == 0):
-        print('no near edges found -> extend search radius')
-        possible_matches_index = list(edges_sind.intersection(point_geom.buffer(90).bounds))
-        if (len(possible_matches_index) == 0):
-            possible_matches_index = list(edges_sind.intersection(point_geom.buffer(250).bounds))
-            print('found', len(possible_matches_index), 'with extended search')
+        print('no near edges found')
+        return None
     possible_matches = edge_gdf.iloc[possible_matches_index].copy()
     possible_matches['distance'] = [geom.distance(point_geom) for geom in possible_matches['geometry']]
     shortest_dist = possible_matches['distance'].min()
@@ -51,6 +53,8 @@ def get_nearest_node(graph_proj, xy, edge_gdf, node_gdf, nts, add_new_edge_noise
     coords = geom_utils.get_coords_from_xy(xy)
     point = Point(coords)
     near_edge = find_nearest_edge(xy, edge_gdf)
+    if (near_edge is None):
+        return None
     edge_geom = near_edge['geometry']
     nearest_node = find_nearest_node(xy, node_gdf)
     nearest_node_geom = geom_utils.get_point_from_xy(graph_proj.nodes[nearest_node])
@@ -58,7 +62,7 @@ def get_nearest_node(graph_proj, xy, edge_gdf, node_gdf, nts, add_new_edge_noise
     closest_line_point = geom_utils.get_closest_point_on_line(edge_geom, point)
     # if nearest node is same as closest point on closest edge, return nearest node
     near_edge_near_node_dist_diff = closest_line_point.distance(nearest_node_geom) 
-    if (near_edge_near_node_dist_diff < 1):
+    if (near_edge_near_node_dist_diff < 5):
         # print('nearest node is at end of the nearest edge at distance:', round(near_edge_near_node_dist_diff, 5))
         return {'node': nearest_node }
     if (orig_node is not None and 'link_edges' in orig_node):
@@ -140,6 +144,8 @@ def get_short_quiet_paths(graph, from_latLon, to_latLon, edge_gdf, node_gdf, nts
     # find origin and target nodes from closest edges
     orig_node = get_nearest_node(graph, from_xy, edge_gdf, node_gdf, nts, False, logging=logging)
     target_node = get_nearest_node(graph, to_xy, edge_gdf, node_gdf, nts, False, orig_node=orig_node, logging=logging)
+    if (orig_node is None or target_node is None):
+        return None
     if (logging == True):
         utils.print_duration(start_time, 'Got params for routing.')
     start_time = time.time()
