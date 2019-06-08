@@ -48,16 +48,18 @@ s_paths.head(2)
 s_paths = pstats.add_dt_length_diff_cols(s_paths, valueignore=-9999)
 s_paths.head(2)
 
+#%% reproject paths to epsg 3879 (to match epsg of Helsinki polygon)
+s_paths = s_paths.to_crs(from_epsg(3879))
+#%% add bool col for within hel = yes/no
+s_paths = pstats.add_bool_within_hel_poly(s_paths)
+s_paths.head(2)
+
 #%% select paths to PT (filter out paths to destinations)
 count_before = len(s_paths)
 s_paths_to_pt = s_paths.query("to_pt_mode != 'none'")
+s_paths_to_work = s_paths.query("to_pt_mode == 'none'")
 print('short paths to pt count:', len(s_paths_to_pt.index), '(of', str(count_before)+')')
-
-#%% reproject paths to epsg 3879 (to match epsg of Helsinki polygon)
-s_paths_to_pt = s_paths_to_pt.to_crs(from_epsg(3879))
-#%% add bool col for within hel = yes/no
-s_paths_to_pt = pstats.add_bool_within_hel_poly(s_paths_to_pt)
-s_paths_to_pt.head(2)
+print('short paths to work count:', len(s_paths_to_work.index), '(of', str(count_before)+')')
 
 #%% print unweighted statistics of shortest paths to PT
 # s short
@@ -88,10 +90,13 @@ quants = weighted_stats.quantile(probs=[0.5], return_pandas=True)
 print(quants)
 
 #%% print weighted statistics of all short paths to PT
-pstats.calc_basic_stats(s_paths_to_pt, 'length', weight='util', valuemap=(-9999, 0), printing=True)
+pstats.calc_basic_stats(s_paths, 'length', weight='util', percs=[10, 90], valuemap=(-9999, 0), printing=True)
+pstats.calc_basic_stats(s_paths_to_pt, 'length', weight='util', percs=[10, 90], valuemap=(-9999, 0), printing=True)
+pstats.calc_basic_stats(s_paths_to_work, 'length', weight='util', percs=[10, 90], valuemap=(-9999, 0), printing=True)
+
 #%% print stats of lengths compared to reference lengths
-pstats.calc_basic_stats(s_paths, 'DT_len_diff', weight=None, min_length=None, percs=[5, 10, 15, 25, 75, 85, 90, 95], valueignore=-9999, col_prefix='DT_lendiff', printing=True)
-pstats.calc_basic_stats(s_paths, 'DT_len_diff_rat', weight=None, min_length=None, percs=[5, 10, 15, 25, 75, 85, 90, 95], valueignore=-9999, col_prefix='DT_lendiff_rat', printing=True)
+pstats.calc_basic_stats(s_paths, 'DT_len_diff', weight=None, min_length=20, percs=[5, 10, 15, 25, 75, 85, 90, 95], valueignore=-9999, col_prefix='DT_lendiff', printing=True)
+pstats.calc_basic_stats(s_paths, 'DT_len_diff_rat', weight=None, min_length=20, percs=[5, 10, 15, 25, 75, 85, 90, 95], valueignore=-9999, col_prefix='DT_lendiff_rat', printing=True)
 
 #%% plot DT len diff stats
 s_paths_filt = pstats.filter_by_min_value(s_paths, 'length', 20)
