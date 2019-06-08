@@ -19,27 +19,41 @@ def add_bool_within_hel_poly(gdf):
     print('count inside:', inside_count)
     print('count outside:', outside_count)
     return gdf
+
+def map_pt_path_props_to_null(df):
+    paths = df.copy()
+    print('PT_path_walk_paths', len(paths.query("to_pt_mode == 'WALK'")))
+    paths['length'] = paths.apply(lambda row: -9999 if row['to_pt_mode'] == 'WALK' else row['length'], axis=1)
+    paths['DT_len_diff'] = paths.apply(lambda row: -9999 if row['to_pt_mode'] == 'WALK' else row['DT_len_diff'], axis=1)
+    paths['noises'] = paths.apply(lambda row: -9999 if row['to_pt_mode'] == 'WALK' else row['noises'], axis=1)
+    paths['th_noises'] = paths.apply(lambda row: -9999 if row['to_pt_mode'] == 'WALK' else row['th_noises'], axis=1)
+    print('mapped', len(paths.query("length == -9999")), 'lengths to -9999')
+    return paths
     
 def extract_th_db_cols(paths_gdf, ths=[60, 65], valueignore=-9999):
     gdf = paths_gdf.copy()
+    def get_db_len_ratio(row, th_len_col):
+        if (row['length'] == valueignore):
+            return valueignore
+        return round((row[th_len_col]/row['length'])*100,2)
+    
     for th in ths:
         th_key = str(th)
         th_col = str(th)+'dBl'
-        gdf[th_col] = [th_noises[th_key] if type(th_noises) == dict else -9999 for th_noises in gdf['th_noises']]
+        gdf[th_col] = [th_noises[th_key] if type(th_noises) == dict else valueignore for th_noises in gdf['th_noises']]
     for th in ths:
         th_len_col = str(th)+'dBl'
         th_rat_col = str(th)+'dBr'
-        gdf[th_rat_col] = gdf.apply(lambda row: round((row[th_len_col]/row['length'])*100,2) if row['length'] != -9999 else -9999, axis=1)
-    print('mapped', len(gdf[gdf['55dBl'] == valueignore]), 'db stats to -9999')
+        gdf[th_rat_col] = gdf.apply(lambda row: get_db_len_ratio(row, th_len_col), axis=1)
+    print('mapped', len(gdf[gdf['55dBr'] == valueignore]), 'db stats to -9999')
     return gdf
 
 def add_dt_length_diff_cols(paths_gdf, valueignore=-9999):
     gdf = paths_gdf.copy()
     def get_reference_len_rat(row):
         return round((row['DT_len_diff']/row['length'])*100,2)
-    gdf['DT_len_diff'] = [diff if diff != valueignore else -9999 for diff in gdf['DT_len_diff']]
-    gdf['DT_len'] = gdf.apply(lambda row: row['length'] - row['DT_len_diff'] if row['DT_len_diff'] != valueignore else -9999, axis=1)
-    gdf['DT_len_diff_rat'] = gdf.apply(lambda row: get_reference_len_rat(row) if row['DT_len_diff'] != valueignore else -9999, axis=1)
+    gdf['DT_len'] = gdf.apply(lambda row: row['length'] - row['DT_len_diff'] if row['DT_len_diff'] != valueignore else valueignore, axis=1)
+    gdf['DT_len_diff_rat'] = gdf.apply(lambda row: get_reference_len_rat(row) if row['DT_len_diff'] != valueignore else valueignore, axis=1)
     print('mapped', len(gdf[gdf['DT_len_diff_rat'] == valueignore]), 'length stats to -9999')
     return gdf
 
@@ -62,21 +76,22 @@ def filter_by_min_value(data_df, var_col, min_value):
     return df
 
 def calc_basic_stats(data_gdf, var_col, valuemap=None, valueignore=None, weight=None, min_length=None, percs=None, col_prefix='', printing=False):
-    print('-min_length:', min_length, '-weight:', weight, '-col:', var_col)
-
-    if (min_length is not None):
-        count_before = len(data_gdf)
-        gdf = data_gdf.query(f'''length > {min_length}''')
-        count_after = len(gdf)
-        print('Filtered out:', count_before-count_after, 'paths shorter than', min_length, 'm')
-    else:
-        gdf = data_gdf
+    gdf = data_gdf.copy()
+    print('\n-min_length:', min_length, '-weight:', weight, '-col:', var_col)
 
     if (valueignore is not None):
         count_before = len(gdf)
         gdf = gdf.query(f'''{var_col} != {valueignore}''')
         count_after = len(gdf)
         print('Filtered out:', count_before-count_after, 'with value:', valueignore, 'total rows after filter:', count_after)
+    
+    if (min_length is not None):
+        count_before = len(gdf)
+        gdf = gdf.query(f'''length > {min_length}''')
+        count_after = len(gdf)
+        print('Filtered out:', count_before-count_after, 'paths shorter than', min_length, 'm')
+    
+    print('n=',len(gdf.index))
     
     var_array = []
     if (weight is not None):

@@ -31,15 +31,10 @@ paths['th_noises'] = [ast.literal_eval(th_noises) for th_noises in paths['th_noi
 print('read', len(paths.index), 'paths')
 print('axyind count:', len(paths['from_axyind'].unique()))
 print('paths per axyind:', round(len(paths.index)/len(paths['from_axyind'].unique())))
-print('cols:', paths.columns)
+# print('cols:', paths.columns)
 
-#%% fix paths that are actually PT legs (origin happened to be exactly at the PT stop)
-print('PT_leg_walk paths', len(paths.query("to_pt_mode == 'WALK'")))
-paths['length'] = paths.apply(lambda row: -9999 if row['to_pt_mode'] == 'WALK' else row['length'], axis=1)
-paths['DT_len_diff'] = paths.apply(lambda row: -9999 if row['to_pt_mode'] == 'WALK' else row['DT_len_diff'], axis=1)
-paths['noises'] = paths.apply(lambda row: -9999 if row['to_pt_mode'] == 'WALK' else row['noises'], axis=1)
-paths['th_noises'] = paths.apply(lambda row: -9999 if row['to_pt_mode'] == 'WALK' else row['th_noises'], axis=1)
-print('mapped', len(paths.query("length == -9999")), 'lengths to -9999')
+#%% mark path stats to -9999 for paths that are actually PT legs (origin happened to be exactly at the PT stop)
+paths = pstats.map_pt_path_props_to_null(paths)
 
 #%% subset of short paths (filter out quiet paths)
 s_paths = paths.query("type == 'short'")
@@ -54,8 +49,9 @@ s_paths = pstats.add_dt_length_diff_cols(s_paths, valueignore=-9999)
 s_paths.head(2)
 
 #%% select paths to PT (filter out paths to destinations)
+count_before = len(s_paths)
 s_paths_to_pt = s_paths.query("to_pt_mode != 'none'")
-print('short paths to pt count:', len(s_paths_to_pt.index))
+print('short paths to pt count:', len(s_paths_to_pt.index), '(of', str(count_before)+')')
 
 #%% reproject paths to epsg 3879 (to match epsg of Helsinki polygon)
 s_paths_to_pt = s_paths_to_pt.to_crs(from_epsg(3879))
@@ -85,16 +81,17 @@ print('simple median length:', s_p_pt_l_median)
 print('simple length sd:', s_p_pt_l_sd)
 
 #%% print weighted stats with DescrStatsW module
-weighted_stats = DescrStatsW(s_p_pt_lens, weights=s_paths_to_pt['prob'], ddof=0)
+weighted_stats = DescrStatsW(s_p_pt_lens, weights=s_paths_to_pt['util'], ddof=0)
 print('weighted mean length:', round(weighted_stats.mean, 2))
 print('weighted std length:', round(weighted_stats.std, 2))
 quants = weighted_stats.quantile(probs=[0.5], return_pandas=True)
 print(quants)
 
 #%% print weighted statistics of all short paths to PT
-pstats.calc_basic_stats(s_paths_to_pt, 'length', weight='prob', valuemap=(-9999, 0), printing=True)
-pstats.calc_basic_stats(s_paths, 'DT_len_diff', weight=None, min_length=20, percs=[5, 10, 15, 25, 75, 85, 90, 95], valueignore=-9999, col_prefix='DT_lendiff', printing=True)
-pstats.calc_basic_stats(s_paths, 'DT_len_diff_rat', weight=None, min_length=20, percs=[5, 10, 15, 25, 75, 85, 90, 95], valueignore=-9999, col_prefix='DT_lendiff_rat', printing=True)
+pstats.calc_basic_stats(s_paths_to_pt, 'length', weight='util', valuemap=(-9999, 0), printing=True)
+#%% print stats of lengths compared to reference lengths
+pstats.calc_basic_stats(s_paths, 'DT_len_diff', weight=None, min_length=None, percs=[5, 10, 15, 25, 75, 85, 90, 95], valueignore=-9999, col_prefix='DT_lendiff', printing=True)
+pstats.calc_basic_stats(s_paths, 'DT_len_diff_rat', weight=None, min_length=None, percs=[5, 10, 15, 25, 75, 85, 90, 95], valueignore=-9999, col_prefix='DT_lendiff_rat', printing=True)
 
 #%% plot DT len diff stats
 s_paths_filt = pstats.filter_by_min_value(s_paths, 'length', 20)
