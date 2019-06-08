@@ -35,6 +35,7 @@ home_stops_path = 'outputs/YKR_commutes_output/home_stops'
 axyinds = commutes_utils.get_xyind_filenames(path=home_stops_path)
 to_process = axyinds #[:5]
 # to_process = axyinds_to_process
+# to_process = ['axyind_3933756681125.csv']
 print('Start processing', len(to_process), 'axyinds')
 
 #%% functions for calculating origin-stop paths
@@ -51,9 +52,11 @@ def get_origin_stops_paths_df(home_stops_file):
         home_paths = []
         for idx, row in home_stops.iterrows():
             paths = get_origin_stop_paths(from_latLon=row['DT_origin_latLon'], to_latLon=row['dest_latLon'])
-            paths_dicts = [path['properties'] for path in paths]
+            paths_dicts = [path['properties'] for path in paths['paths']]
             paths_df = gpd.GeoDataFrame(paths_dicts)
             paths_df['path_id'] = row['uniq_id']
+            paths_df['orig_offset'] = paths['orig_offset']
+            paths_df['dest_offset'] = paths['dest_offset']
             paths_df['from_axyind'] = row['from_axyind']
             paths_df['to_pt_mode'] = row['to_pt_mode']
             paths_df['count'] = row['count']
@@ -61,13 +64,9 @@ def get_origin_stops_paths_df(home_stops_file):
             paths_df['prob'] = row['prob']
             paths_df['DT_len'] = round(row['DT_walk_dist'], 1)
             paths_df['DT_len_diff'] = [round(length - row['DT_walk_dist'],1) for length in paths_df['length']]
-            paths_df['outside_hel'] = row['outside_hel']
             home_paths.append(paths_df)
         # collect
-        home_paths_df = pd.concat(home_paths, ignore_index=True)
-        # save as axyind.csv table before proceeding to next axyind
-        home_paths_df.drop(columns=['geometry']).to_csv('outputs/YKR_commutes_output/home_paths/axyind_'+str(row['from_axyind'])+'.csv')
-        return home_paths_df
+        return pd.concat(home_paths, ignore_index=True)
     except Exception:
         print('error with:', from_axyind)
         return from_axyind
@@ -91,32 +90,32 @@ print('axyind_time (s):', axyind_time)
 # all_home_paths_df.head(3)
 
 #%% export paths GDF
-# all_home_paths_df.to_file('outputs/YKR_commutes_output/home_paths.gpkg', layer='run_2_set_2', driver='GPKG')
+all_home_paths_df.to_file('outputs/YKR_commutes_output/home_paths.gpkg', layer='run_3_set_1', driver='GPKG')
 
 #%% read paths GDF
-paths = gpd.read_file('outputs/YKR_commutes_output/home_paths.gpkg', layer='run_2_set_1')
+# paths = gpd.read_file('outputs/YKR_commutes_output/home_paths.gpkg', layer='run_3_set_1')
 
 # %% ad unique id for paths
-all_paths_gdf = paths
-all_paths_gdf['uniq_id'] = all_paths_gdf.apply(lambda row: row['path_id'] +'_'+ row['id'], axis=1)
-# find weirdly duplicate paths
-duplicate_paths = all_paths_gdf[all_paths_gdf.duplicated(subset=['uniq_id'])]
-duplicate_paths_axyinds = list(duplicate_paths['from_axyind'])
-print('duplicate paths:', duplicate_paths_axyinds)
+# all_paths_gdf = paths
+# all_paths_gdf['uniq_id'] = all_paths_gdf.apply(lambda row: row['path_id'] +'_'+ row['id'], axis=1)
+# # find weirdly duplicate paths
+# duplicate_paths = all_paths_gdf[all_paths_gdf.duplicated(subset=['uniq_id'])]
+# duplicate_paths_axyinds = list(duplicate_paths['from_axyind'])
+# print('duplicate paths:', duplicate_paths_axyinds)
 
 #%% print path counts
-print(len(all_paths_gdf))
-paths_count = all_paths_gdf['uniq_id'].unique()
-print('paths:', len(paths_count))
-print('should be same as:', len(all_paths_gdf.index))
-processed_axyinds = all_paths_gdf['from_axyind'].unique()
-print('axyinds processed:', len(processed_axyinds))
+# print(len(all_paths_gdf))
+# paths_count = all_paths_gdf['uniq_id'].unique()
+# print('paths:', len(paths_count))
+# print('should be same as:', len(all_paths_gdf.index))
+# processed_axyinds = all_paths_gdf['from_axyind'].unique()
+# print('axyinds processed:', len(processed_axyinds))
 
 #%% find axyinds to process based on axyinds in all_paths_gdf
-axyinds = commutes_utils.get_xyind_filenames(path='outputs/YKR_commutes_output/home_stops')
-processed_axyind_files = ['axyind_'+str(axyind)+'.csv' for axyind in processed_axyinds]
-axyinds_to_process = [axyind for axyind in axyinds if axyind not in processed_axyind_files]
-print('still to process:', axyinds_to_process)
+# axyinds = commutes_utils.get_xyind_filenames(path='outputs/YKR_commutes_output/home_stops')
+# processed_axyind_files = ['axyind_'+str(axyind)+'.csv' for axyind in processed_axyinds]
+# axyinds_to_process = [axyind for axyind in axyinds if axyind not in processed_axyind_files]
+# print('still to process:', axyinds_to_process)
 # still to process: ['axyind_3933756673875.csv', 'axyind_3916256675875.csv', 'axyind_3818756674375.csv']
 
 #%%
