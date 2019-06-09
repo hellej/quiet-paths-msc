@@ -23,8 +23,7 @@ grid = grid[['xyind', 'grid_geom', 'grid_centr']]
 grid.head()
 
 #%% read paths
-# paths =  gpd.read_file('outputs/YKR_commutes_output/home_paths_all.gpkg', layer='paths')
-paths =  gpd.read_file('outputs/YKR_commutes_output/home_paths.gpkg', layer='run_2_set_1')
+paths =  gpd.read_file('outputs/YKR_commutes_output/home_paths.gpkg', layer='run_3_all')
 paths['noises'] = [ast.literal_eval(noises) for noises in paths['noises']]
 paths['th_noises'] = [ast.literal_eval(th_noises) for th_noises in paths['th_noises']]
 #%% count of all paths
@@ -48,8 +47,6 @@ s_paths.head(2)
 s_paths = pstats.add_dt_length_diff_cols(s_paths, valueignore=-9999)
 s_paths.head(2)
 
-#%% reproject paths to epsg 3879 (to match epsg of Helsinki polygon)
-s_paths = s_paths.to_crs(from_epsg(3879))
 #%% add bool col for within hel = yes/no
 s_paths = pstats.add_bool_within_hel_poly(s_paths)
 s_paths.head(2)
@@ -100,19 +97,19 @@ pstats.calc_basic_stats(s_paths, 'DT_len_diff_rat', weight=None, min_length=20, 
 
 #%% plot DT len diff stats
 s_paths_filt = pstats.filter_by_min_value(s_paths, 'length', 20)
+s_paths_filt = pstats.filter_by_max_value(s_paths_filt, 'DT_len_diff', 7000)
 fig = plots.scatterplot(s_paths_filt, xcol='length', ycol='DT_len', yignore=-9999, xlabel='Length (m)', ylabel='Ref. length (m)')
-# fig.savefig('plots/paths_len_ref_len_scatter.png', format='png', dpi=300)
+fig.savefig('plots/paths_len_ref_len_scatter.png', format='png', dpi=300)
 fig = plots.scatterplot(s_paths_filt, xcol='length', ycol='DT_len_diff', yignore=-9999, xlabel='Length (m)', ylabel='Ref. length diff. (m)')
-# fig.savefig('plots/paths_DT_len_diff_scatter.png', format='png', dpi=300)
+fig.savefig('plots/paths_DT_len_diff_scatter.png', format='png', dpi=300)
 fig = plots.boxplot(s_paths_filt, col='DT_len_diff', valignore=-9999, label='Ref. length diff. (m)')
-# fig.savefig('plots/paths_DT_len_diff_boxplot.png', format='png', dpi=300)
+fig.savefig('plots/paths_DT_len_diff_boxplot.png', format='png', dpi=300)
 fig = plots.scatterplot(s_paths_filt, xcol='length', ycol='DT_len_diff_rat', yignore=-9999, xlabel='Length (m)', ylabel='Ref. length diff. (%)')
-# fig.savefig('plots/paths_DT_len_diff_rat_scatter.png', format='png', dpi=300)
+fig.savefig('plots/paths_DT_len_diff_rat_scatter.png', format='png', dpi=300)
 
 #%% export paths with stats to file
 s_paths.columns
-s_paths.to_file('outputs/YKR_commutes_output/home_paths.gpkg', layer='run_2_stats', driver='GPKG')
-
+s_paths.to_file('outputs/YKR_commutes_output/home_paths.gpkg', layer='run_3_stats', driver='GPKG')
 
 #%%
 len(s_paths[s_paths['DT_len_diff'] == -9999])

@@ -24,6 +24,7 @@ def map_pt_path_props_to_null(df):
     paths = df.copy()
     print('PT_path_walk_paths', len(paths.query("to_pt_mode == 'WALK'")))
     paths['length'] = paths.apply(lambda row: -9999 if row['to_pt_mode'] == 'WALK' else row['length'], axis=1)
+    paths['DT_len'] = paths.apply(lambda row: -9999 if row['to_pt_mode'] == 'WALK' else row['DT_len'], axis=1)
     paths['DT_len_diff'] = paths.apply(lambda row: -9999 if row['to_pt_mode'] == 'WALK' else row['DT_len_diff'], axis=1)
     paths['noises'] = paths.apply(lambda row: -9999 if row['to_pt_mode'] == 'WALK' else row['noises'], axis=1)
     paths['th_noises'] = paths.apply(lambda row: -9999 if row['to_pt_mode'] == 'WALK' else row['th_noises'], axis=1)
@@ -71,7 +72,15 @@ def filter_by_min_value(data_df, var_col, min_value):
     count_before = len(df)
     df = df.query(f'''{var_col} > {min_value}''')
     count_after = len(df)
-    print('Filtered out:', count_before-count_after, 'paths with:', var_col, 'less than:', min_value)
+    print('Filtered out:', count_before-count_after, 'paths with:', var_col, 'lower than:', min_value)
+    return df
+
+def filter_by_max_value(data_df, var_col, max_value):
+    df = data_df.copy()
+    count_before = len(df)
+    df = df.query(f'''{var_col} < {max_value}''')
+    count_after = len(df)
+    print('Filtered out:', count_before-count_after, 'paths with:', var_col, 'higher than:', max_value)
     return df
 
 def calc_basic_stats(data_gdf, var_col, valuemap=None, valueignore=None, weight=None, min_length=None, percs=None, col_prefix='', printing=False):
