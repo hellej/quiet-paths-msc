@@ -108,44 +108,44 @@ fig = plots.scatterplot(s_paths_filt, xcol='length', ycol='DT_len_diff_rat', yig
 fig.savefig('plots/paths_DT_len_diff_rat_scatter.png', format='png', dpi=300)
 
 #%% export paths with stats to file
-s_paths.columns
 s_paths.to_file('outputs/YKR_commutes_output/home_paths.gpkg', layer='run_3_stats', driver='GPKG')
 
-#%%
-len(s_paths[s_paths['DT_len_diff'] == -9999])
 
-#%% #### group paths by origin (axyind) ####
-print(s_paths_to_pt.columns)
+#%% #### group paths to PT by origin (axyind) ####
 axy_groups = s_paths_to_pt.groupby('from_axyind')
+print('paths to PT count', len(s_paths_to_pt))
+print(len(s_paths_to_pt.query('DT_len_diff == -9999')))
 
 #%% calculate stats per origin (paths from axyind)
 errors = []
 stats = []
 for key, group in axy_groups:
+    # if (key != 3863756670125):
+    #     continue
     in_paths = group.query("b_inside_hel == 'yes'")
+    filt_paths = pstats.filter_out_problem_paths(in_paths)
     if (len(in_paths) > 0):
-        paths_in_rat = round(len(in_paths)/(len(group))*100, 1)
+        paths_incl_ratio = round(len(filt_paths)/(len(group))*100, 1)
     else:
-        paths_in_rat = 0
-    if (len(in_paths) != 0):
+        paths_incl_ratio = 0
+    if (len(filt_paths) != 0):
         d = { 'axyind': key }
+        d['probsum'] = round(filt_paths['prob'].sum(),2)
+        d['paths_incl_ratio'] = paths_incl_ratio
         # calculate stats of path lengths
-        probsum = group['prob'].sum()
-        len_stats = pstats.calc_basic_stats(in_paths, 'length', weight='prob', col_prefix='len')
-        db55l_stats = pstats.calc_basic_stats(in_paths, '55dBl', weight='prob', col_prefix='dB55l')
-        db60l_stats = pstats.calc_basic_stats(in_paths, '60dBl', weight='prob', col_prefix='dB60l')
-        db65l_stats = pstats.calc_basic_stats(in_paths, '65dBl', weight='prob', col_prefix='dB65l')
-        db55r_stats = pstats.calc_basic_stats(in_paths, '55dBr', weight='prob', col_prefix='dB55r')
-        db60r_stats = pstats.calc_basic_stats(in_paths, '60dBr', weight='prob', col_prefix='dB60r')
-        db65r_stats = pstats.calc_basic_stats(in_paths, '65dBr', weight='prob', col_prefix='dB65r')
+        len_stats = pstats.calc_basic_stats(filt_paths, 'length', weight='prob', valuemap=(-9999, 0), col_prefix='len')
+        # calculate stats of path noise exposures
+        db55l_stats = pstats.calc_basic_stats(filt_paths, '55dBl', weight='prob', valuemap=(-9999, 0), col_prefix='dB55l')
+        db60l_stats = pstats.calc_basic_stats(filt_paths, '60dBl', weight='prob', valuemap=(-9999, 0), col_prefix='dB60l')
+        db65l_stats = pstats.calc_basic_stats(filt_paths, '65dBl', weight='prob', valuemap=(-9999, 0), col_prefix='dB65l')
+        db55r_stats = pstats.calc_basic_stats(filt_paths, '55dBr', weight='prob', valueignore=-9999, col_prefix='dB55r')
+        db60r_stats = pstats.calc_basic_stats(filt_paths, '60dBr', weight='prob', valueignore=-9999,col_prefix='dB60r')
+        db65r_stats = pstats.calc_basic_stats(filt_paths, '65dBr', weight='prob', valueignore=-9999,col_prefix='dB65r')
         d = { **d, **len_stats, **db55l_stats, **db60l_stats, **db65l_stats, **db55r_stats, **db60r_stats, **db65r_stats }
-        # calculate stats of path exposures
-        d['paths_in_rat'] = paths_in_rat
-        d['probsum'] = probsum
         stats.append(d)
     else:
         errors.append(key)
-print('all paths outside for:', len(errors), 'axyinds')
+print('all paths filtered out for:', len(errors), 'axyinds')
 
 #%% combine stats to DF
 stats_df = pd.DataFrame(stats, columns=stats[0].keys())
@@ -154,13 +154,10 @@ stats_df.head()
 #%% merge grid geoometry to axyind stats
 grid_stats = pd.merge(stats_df, grid, how='left', left_on='axyind', right_on='xyind')
 print('merged:', len(grid_stats))
-# drop rows without ykr grid cell geometry
-# grid_stats = grid_stats.dropna(subset=['grid_geom'])
-# print('after na drop:', len(grid_stats))
 # convert to GeoDataFrame
 grid_stats = gpd.GeoDataFrame(grid_stats, geometry='grid_geom', crs=from_epsg(3067))
 
 #%% export axyind stats with grid geometry to file
-grid_stats.drop(columns=['grid_centr']).to_file('outputs/YKR_commutes_output/axyind_stats.gpkg', layer='test', drive='GPKG')
+grid_stats.drop(columns=['grid_centr']).to_file('outputs/YKR_commutes_output/axyind_stats.gpkg', layer='axyind_stats_v3', drive='GPKG')
 
 #%%

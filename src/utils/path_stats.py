@@ -83,23 +83,31 @@ def filter_by_max_value(data_df, var_col, max_value):
     print('Filtered out:', count_before-count_after, 'paths with:', var_col, 'higher than:', max_value)
     return df
 
+def filter_out_problem_paths(data_df, printing=False):
+    df = data_df.copy()
+    count_before = len(df)
+    df = df.query('orig_offset < 110')
+    count_after = len(df)
+    if (printing == True): print('Filtered out:', count_before-count_after, 'paths of:', count_before, 'with: orig_offset < 110')
+    return df
+
 def calc_basic_stats(data_gdf, var_col, valuemap=None, valueignore=None, weight=None, min_length=None, percs=None, col_prefix='', printing=False):
     gdf = data_gdf.copy()
-    print('\n-min_length:', min_length, '-weight:', weight, '-col:', var_col)
+    if (printing == True): print('\n-min_length:', min_length, '-weight:', weight, '-col:', var_col)
 
     if (valueignore is not None):
         count_before = len(gdf)
-        gdf = gdf.query(f'''{var_col} != {valueignore}''')
+        gdf = gdf[gdf[var_col] != valueignore]
         count_after = len(gdf)
-        print('Filtered out:', count_before-count_after, 'with value:', valueignore, 'total rows after filter:', count_after)
+        if (printing == True): print('Filtered out:', count_before-count_after, 'with value:', valueignore, 'total rows after filter:', count_after)
     
     if (min_length is not None):
         count_before = len(gdf)
         gdf = gdf.query(f'''length > {min_length}''')
         count_after = len(gdf)
-        print('Filtered out:', count_before-count_after, 'paths shorter than', min_length, 'm')
+        if (printing == True): print('Filtered out:', count_before-count_after, 'paths shorter than', min_length, 'm')
     
-    print('n=',len(gdf.index))
+    if (printing == True): print('n=',len(gdf.index))
     
     var_array = []
     if (weight is not None):
@@ -121,7 +129,6 @@ def calc_basic_stats(data_gdf, var_col, valuemap=None, valueignore=None, weight=
         for per in percs:
             d['p'+str(per)] = np.percentile(var_array, per)
 
-    if (printing == True):
-        print('STATS:', d)
+    if (printing == True): print('STATS:', d)
 
     return d
