@@ -52,7 +52,6 @@ def add_dt_length_diff_cols(paths_gdf, valueignore=-9999):
     gdf = paths_gdf.copy()
     def get_reference_len_rat(row):
         return round((row['DT_len_diff']/row['length'])*100,2)
-    gdf['DT_len'] = gdf.apply(lambda row: row['length'] - row['DT_len_diff'] if row['DT_len_diff'] != valueignore else valueignore, axis=1)
     gdf['DT_len_diff_rat'] = gdf.apply(lambda row: get_reference_len_rat(row) if row['DT_len_diff'] != valueignore else valueignore, axis=1)
     print('mapped', len(gdf[gdf['DT_len_diff_rat'] == valueignore]), 'length stats to -9999')
     return gdf

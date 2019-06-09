@@ -151,6 +151,8 @@ def get_short_quiet_paths(graph, from_latLon, to_latLon, edge_gdf, node_gdf, nts
     # get shortest path
     path_list = []
     shortest_path = get_shortest_path(graph, orig_node['node'], target_node['node'], 'length')
+    if (shortest_path is None):
+        return None
     path_geom = nw.get_edge_geoms_attrs(graph, shortest_path, 'length', True, True)
     path_list.append({**path_geom, **{'id': 'short_p','type': 'short', 'nt': 0}})
     # get quiet paths to list

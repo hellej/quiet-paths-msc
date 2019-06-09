@@ -35,7 +35,8 @@ home_stops_path = 'outputs/YKR_commutes_output/home_stops'
 axyinds = commutes_utils.get_xyind_filenames(path=home_stops_path)
 to_process = axyinds #[:5]
 # to_process = axyinds_to_process
-# to_process = ['axyind_3933756681125.csv']
+# to_process = ['axyind_3933756681125.csv'] # this threw error before
+# to_process = ['axyind_3898756678375.csv'] # this threw error before
 print('Start processing', len(to_process), 'axyinds')
 
 #%% functions for calculating origin-stop paths
@@ -52,6 +53,9 @@ def get_origin_stops_paths_df(home_stops_file):
         home_paths = []
         for idx, row in home_stops.iterrows():
             paths = get_origin_stop_paths(from_latLon=row['DT_origin_latLon'], to_latLon=row['dest_latLon'])
+            if (paths is None):
+                print('routing error with:', row['from_axyind'], 'prob:', row['prob'])
+                continue
             paths_dicts = [path['properties'] for path in paths['paths']]
             paths_df = gpd.GeoDataFrame(paths_dicts)
             paths_df['path_id'] = row['uniq_id']
@@ -67,8 +71,9 @@ def get_origin_stops_paths_df(home_stops_file):
             home_paths.append(paths_df)
         # collect
         return pd.concat(home_paths, ignore_index=True)
-    except Exception:
-        print('error with:', from_axyind)
+    except Exception as e:
+        print('Error with:', from_axyind)
+        print(str(e))
         return from_axyind
 
 #%% process origins with pool
@@ -87,13 +92,16 @@ utils.print_duration(start_time, 'Got paths.')
 axyind_time = round((time.time() - start_time)/len(to_process),2)
 print('axyind_time (s):', axyind_time)
 #%% check paths GDF
-# all_home_paths_df.head(3)
+all_home_paths_df.head(3)
 
 #%% export paths GDF
-all_home_paths_df.to_file('outputs/YKR_commutes_output/home_paths.gpkg', layer='run_3_set_1', driver='GPKG')
+# all_home_paths_df.to_file('outputs/YKR_commutes_output/home_paths.gpkg', layer='run_3_set_2', driver='GPKG')
 
-#%% read paths GDF
-# paths = gpd.read_file('outputs/YKR_commutes_output/home_paths.gpkg', layer='run_3_set_1')
+#%% combine path sets to GDF of all paths
+# paths_1 = gpd.read_file('outputs/YKR_commutes_output/home_paths.gpkg', layer='run_3_set_1')
+# paths_2 = gpd.read_file('outputs/YKR_commutes_output/home_paths.gpkg', layer='run_3_set_2')
+# concat_paths = gpd.GeoDataFrame(pd.concat([paths_1, paths_2], ignore_index=True), crs=from_epsg(3879))
+# concat_paths.to_file('outputs/YKR_commutes_output/home_paths.gpkg', layer='run_3_all', driver='GPKG')
 
 # %% ad unique id for paths
 # all_paths_gdf = paths
