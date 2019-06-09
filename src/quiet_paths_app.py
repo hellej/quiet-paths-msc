@@ -17,10 +17,9 @@ import time
 app = Flask(__name__)
 CORS(app)
 
+# INITIALIZE GRAPH
 start_time = time.time()
 nts = [0.1, 0.15, 0.25, 0.5, 1, 1.5, 2, 4, 6, 10, 20, 40]
-
-# INITIALIZE GRAPH
 graph = files.get_network_full_noise_v2(directed=False)
 print('Graph of', graph.size(), 'edges read.')
 edge_gdf = nw.get_edge_gdf(graph, attrs=['geometry', 'length', 'noises'])
@@ -32,33 +31,11 @@ print('Noise costs set.')
 edges_sind = edge_gdf.sindex
 nodes_sind = node_gdf.sindex
 print('Spatial index built.')
-
 utils.print_duration(start_time, 'Network initialized.')
 
 @app.route('/')
 def hello_world():
     return 'Keep calm and walk quiet paths.'
-
-@app.route('/shortestpath/<from_lat>,<from_lon>/<to_lat>,<to_lon>')
-def get_shortest_path(from_lat, from_lon, to_lat, to_lon):
-    from_latLon = {'lat': float(from_lat), 'lon': float(from_lon)}
-    to_latLon = {'lat': float(to_lat), 'lon': float(to_lon)}
-    print('from:', from_latLon)
-    print('to:', to_latLon)
-    from_xy = geom_utils.get_xy_from_lat_lon(from_latLon)
-    to_xy = geom_utils.get_xy_from_lat_lon(to_latLon)
-    print('from:', from_xy)
-    print('to:', to_xy)
-    orig_node = rt.get_nearest_node(graph, from_xy, edge_gdf, node_gdf, [], False)
-    target_node = rt.get_nearest_node(graph, to_xy, edge_gdf, node_gdf, [], False)
-    shortest_path = rt.get_shortest_path(graph, orig_node, target_node, 'length')
-    path_geom = nw.get_edge_geoms_attrs(graph, shortest_path, 'length', True, False)
-    feature = geom_utils.get_geojson_from_geom(path_geom['geometry'])
-    feature['properties']['length'] = path_geom['total_length']
-    feature['properties']['origin_node'] = orig_node
-    feature['properties']['target_node'] = target_node
-    print('feature', jsonify(feature))
-    return jsonify(feature)
 
 @app.route('/quietpaths/<from_lat>,<from_lon>/<to_lat>,<to_lon>')
 def get_quiet_path(from_lat, from_lon, to_lat, to_lon):
@@ -73,7 +50,7 @@ def get_quiet_path(from_lat, from_lon, to_lat, to_lon):
     # find origin and target nodes from closest edges
     orig_node = rt.get_nearest_node(graph, from_xy, edge_gdf, node_gdf, nts, False)
     target_node = rt.get_nearest_node(graph, to_xy, edge_gdf, node_gdf, nts, False, orig_node=orig_node)
-    utils.print_duration(start_time, 'Got params for routing.')
+    utils.print_duration(start_time, 'Origin & target nodes set.')
     start_time = time.time()
     # get shortest path
     path_list = []

@@ -18,11 +18,11 @@ def find_nearest_edge(xy, edge_gdf):
     point_geom = geom_utils.get_point_from_xy(xy)
     for radius in [80, 150, 250, 350, 450]:
         possible_matches_index = list(edges_sind.intersection(point_geom.buffer(radius).bounds))
-        if (len(possible_matches_index) != 0):
+        if (len(possible_matches_index) > 0):
             possible_matches = edge_gdf.iloc[possible_matches_index].copy()
             possible_matches['distance'] = [geom.distance(point_geom) for geom in possible_matches['geometry']]
             shortest_dist = possible_matches['distance'].min()
-            if (shortest_dist < (radius - 60) or len(possible_matches_index) > 30):
+            if (shortest_dist < (radius - 50) or len(possible_matches_index) > 20):
                 break
     if (len(possible_matches_index) == 0):
         print('no near edges found')
