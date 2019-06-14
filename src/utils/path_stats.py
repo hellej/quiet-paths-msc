@@ -24,6 +24,8 @@ def map_pt_path_props_to_null(df):
     paths = df.copy()
     print('PT_path_walk_paths', len(paths.query("to_pt_mode == 'WALK'")))
     paths['length'] = paths.apply(lambda row: -9999 if row['to_pt_mode'] == 'WALK' else row['length'], axis=1)
+    paths['nei'] = paths.apply(lambda row: -9999 if row['to_pt_mode'] == 'WALK' else row['nei'], axis=1)
+    paths['nei_norm'] = paths.apply(lambda row: -9999 if row['to_pt_mode'] == 'WALK' else row['nei_norm'], axis=1)
     paths['DT_len'] = paths.apply(lambda row: -9999 if row['to_pt_mode'] == 'WALK' else row['DT_len'], axis=1)
     paths['DT_len_diff'] = paths.apply(lambda row: -9999 if row['to_pt_mode'] == 'WALK' else row['DT_len_diff'], axis=1)
     paths['noises'] = paths.apply(lambda row: -9999 if row['to_pt_mode'] == 'WALK' else row['noises'], axis=1)

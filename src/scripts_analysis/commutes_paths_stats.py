@@ -12,7 +12,7 @@ import utils.geometry as geom_utils
 import utils.files as files
 import utils.plots as plots
 
-#%% read grid for adding grid geometry to axyind level statistics
+#%% read statfi xy-grid
 grid = files.get_statfi_grid()
 # add centroid point geometry to grid
 grid['grid_geom'] = [geometry.geoms[0] for geometry in grid['geometry']]
@@ -22,7 +22,7 @@ grid['xyind'] = [int(xyind) for xyind in grid['xyind']]
 grid = grid[['xyind', 'grid_geom', 'grid_centr']]
 grid.head()
 
-#%% read paths
+#%% read all paths
 paths =  gpd.read_file('outputs/YKR_commutes_output/home_paths.gpkg', layer='run_3_all')
 paths['noises'] = [ast.literal_eval(noises) for noises in paths['noises']]
 paths['th_noises'] = [ast.literal_eval(th_noises) for th_noises in paths['th_noises']]
@@ -30,7 +30,6 @@ paths['th_noises'] = [ast.literal_eval(th_noises) for th_noises in paths['th_noi
 print('read', len(paths.index), 'paths')
 print('axyind count:', len(paths['from_axyind'].unique()))
 print('paths per axyind:', round(len(paths.index)/len(paths['from_axyind'].unique())))
-# print('cols:', paths.columns)
 
 #%% mark path stats to -9999 for paths that are actually PT legs (origin happened to be exactly at the PT stop)
 paths = pstats.map_pt_path_props_to_null(paths)
@@ -143,7 +142,10 @@ for key, group in axy_groups:
         db60r_stats = pstats.calc_basic_stats(filt_paths, '60dBr', weight='prob', valueignore=-9999,col_prefix='dB60r')
         db65r_stats = pstats.calc_basic_stats(filt_paths, '65dBr', weight='prob', valueignore=-9999,col_prefix='dB65r')
         db70r_stats = pstats.calc_basic_stats(filt_paths, '70dBr', weight='prob', valueignore=-9999,col_prefix='dB70r')
-        d = { **d, **len_stats, **db55l_stats, **db60l_stats, **db65l_stats, **db70l_stats, **db55r_stats, **db60r_stats, **db65r_stats, **db70r_stats }
+        nei_stats = pstats.calc_basic_stats(filt_paths, 'nei', weight='prob', valuemap=(-9999, 0), col_prefix='nei')
+        nei_norm_stats = pstats.calc_basic_stats(filt_paths, 'nei_norm', weight='prob', valueignore=-9999, col_prefix='nei_n')
+        d = { **d, **len_stats, **db55l_stats, **db60l_stats, **db65l_stats, **db70l_stats, **db55r_stats, 
+            **db60r_stats, **db65r_stats, **db70r_stats, **nei_stats, **nei_norm_stats }
         stats.append(d)
     else:
         errors.append(key)

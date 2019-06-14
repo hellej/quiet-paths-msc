@@ -106,7 +106,7 @@ def get_edge_noise_cost_attrs(nts, edge_d, link_geom, b_add_noises: bool, noise_
         # estimate link noises based on link length - edge length -ratio and edge noises
         cost_attrs['noises'] = estimate_link_noises(link_geom, edge_d['geometry'], edge_d['noises'])
     for nt in nts:
-        cost = get_noise_cost_from_noises_dict(link_geom, cost_attrs['noises'], nt)
+        cost = get_noise_cost_from_noises_dict(link_geom.length, cost_attrs['noises'], nt=nt)
         cost_attrs['nc_'+str(nt)] = cost
     noises_sum_len = exps.get_total_noises_len(cost_attrs['noises'])
     if ((noises_sum_len - link_geom.length) > 0.1):
@@ -323,14 +323,10 @@ def get_noise_cost(noises: 'noise dictionary', costs: 'cost dictionary', nt: 'no
             noise_cost += noises[db] * costs[db] * nt
     return round(noise_cost,2)
 
-# def add_noise_costs_to_edge_gdf(edge_nc_gdf, nt: 'noise tolerance, float: 0.0-2.0'):
-    # edge_nc_gdf['noise_cost'] = [get_noise_cost(noises, costs, nt) for noises in edge_nc_gdf['noises']]
-    # edge_nc_gdf['cost_rat'] = edge_nc_gdf.apply(lambda row: int(round((row.noise_cost/row.length)*100)), axis=1)
-
-def get_noise_cost_from_noises_dict(geom, noises_dict, nt):
+def get_noise_cost_from_noises_dict(length, noises_dict, nt=1):
     costs = { 50: 0.1, 55: 0.2, 60: 0.3, 65: 0.4, 70: 0.5, 75: 0.6 }
     noise_cost = get_noise_cost(noises_dict, costs, nt)
-    tot_cost = round(geom.length + noise_cost, 2)
+    tot_cost = round(length + noise_cost, 2)
     return tot_cost
 
 def set_graph_noise_costs(edge_gdf, graph, nts: 'list of noise tolerances, float: 0.0-2.0'):
