@@ -74,3 +74,8 @@ def test_aggregate_exposures():
     exposure = exps.aggregate_exposures(exp_list)
     print(exposure)
     assert exposure == { 55: 25, 60: 16, 70: 200 }
+
+def test_mean_noise_level():
+    noises = { 55: 25, 60: 16, 70: 200 }
+    mean_noise_level = exps.get_mean_noise_level(300, noises)
+    assert mean_noise_level == 64.82

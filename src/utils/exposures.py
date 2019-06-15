@@ -199,6 +199,18 @@ def get_total_noises_len(noises):
         totlen += noises[key]
     return round(totlen, 3)
 
+def get_mean_noise_level(length: float, noises: dict):
+    sum_db = 0
+    # estimate mean dB of 5 dB range to be min dB + 2.5 dB
+    for db in noises.keys():
+        sum_db += (int(db)+2.5) * noises[db]
+    # extrapolate noise level range 40-45dB (42.5dB) for all noises less than lowest noise range in the noise data 45-50dB
+    sum_noise_len = get_total_noises_len(noises)
+    db425len = length - sum_noise_len
+    sum_db += 42.5 * db425len
+    mean_db = sum_db/length
+    return round(mean_db, 2)
+
 def compare_lens_noises_lens(edge_gdf, subset=500):
     gdf = edge_gdf.copy()
     print('Edge GDF cols:', gdf.columns)

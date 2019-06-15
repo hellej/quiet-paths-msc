@@ -11,6 +11,7 @@ from fiona.crs import from_epsg
 import utils.geometry as geom_utils
 import utils.files as files
 import utils.plots as plots
+import utils.exposures as exps
 
 #%% read statfi xy-grid
 grid = files.get_statfi_grid()
@@ -40,6 +41,7 @@ print('short paths count:', len(s_paths.index))
 
 #%% add & extract dB exposure columnds to df
 s_paths = pstats.extract_th_db_cols(s_paths, ths=[55, 60, 65, 70], valueignore=-9999)
+s_paths['mdB'] = s_paths.apply(lambda row: exps.get_mean_noise_level(row['length'], row['noises']) if type(row['noises']) == dict else -9999, axis=1)
 s_paths.head(2)
 
 #%% calculate path length statistics (compare lengths to reference lengths from DT)
@@ -144,8 +146,9 @@ for key, group in axy_groups:
         db70r_stats = pstats.calc_basic_stats(filt_paths, '70dBr', weight='prob', valueignore=-9999,col_prefix='dB70r')
         nei_stats = pstats.calc_basic_stats(filt_paths, 'nei', weight='prob', valuemap=(-9999, 0), col_prefix='nei')
         nei_norm_stats = pstats.calc_basic_stats(filt_paths, 'nei_norm', weight='prob', valueignore=-9999, col_prefix='nei_n')
+        mdB_stats = pstats.calc_basic_stats(filt_paths, 'mdB', weight='prob', valueignore=-9999, col_prefix='mdB')
         d = { **d, **len_stats, **db55l_stats, **db60l_stats, **db65l_stats, **db70l_stats, **db55r_stats, 
-            **db60r_stats, **db65r_stats, **db70r_stats, **nei_stats, **nei_norm_stats }
+            **db60r_stats, **db65r_stats, **db70r_stats, **nei_stats, **nei_norm_stats, **mdB_stats }
         stats.append(d)
     else:
         errors.append(key)
