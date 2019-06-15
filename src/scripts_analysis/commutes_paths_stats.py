@@ -179,3 +179,48 @@ grid_stats.drop(columns=['grid_centr']).to_file('outputs/YKR_commutes_output/axy
 #### PATH NOISE STATS #####
 ###########################
 
+#%% print column names
+print(s_paths.columns)
+
+### ALL SHORTEST PATHS ###
+
+#%% noise exposure index
+pstats.calc_basic_stats(s_paths, 'nei', weight='util', percs=[5, 10, 90, 95], valuemap=(-9999, 0), printing=False)
+#%% normalized noise exposure index
+pstats.calc_basic_stats(s_paths, 'nei_norm', weight='util', percs=[5, 10, 90, 95], valueignore=-9999, printing=False)
+#%% mean dB
+pstats.calc_basic_stats(s_paths, 'mdB', weight='util', percs=[5, 10, 90, 95], valueignore=-9999, printing=False)
+#%% exp +60dB (m)
+pstats.calc_basic_stats(s_paths, '60dBl', weight='util', percs=[5, 10, 90, 95], valuemap=(-9999, 0), printing=False)
+#%% exp +65dB (m)
+pstats.calc_basic_stats(s_paths, '65dBl', weight='util', percs=[5, 10, 90, 95], valuemap=(-9999, 0), printing=False)
+#%% exp +70dB (m)
+pstats.calc_basic_stats(s_paths, '70dBl', weight='util', percs=[5, 10, 90, 95], valuemap=(-9999, 0), printing=False)
+#%% ratio +60dB (%)
+pstats.calc_basic_stats(s_paths, '60dBr', weight='util', percs=[5, 10, 90, 95], valueignore=-9999, printing=False)
+#%% ratio +65dB (%)
+pstats.calc_basic_stats(s_paths, '65dBr', weight='util', percs=[5, 10, 90, 95], valueignore=-9999, printing=False)
+#%% ratio +70dB (%)
+pstats.calc_basic_stats(s_paths, '70dBr', weight='util', percs=[5, 10, 90, 95], valueignore=-9999, printing=False)
+
+### SHORTEST PATHS TO PT STOPS ###
+
+#%% noise exposure index
+pstats.calc_basic_stats(s_paths_to_pt, 'nei', weight='util', percs=[5, 10, 90, 95], valuemap=(-9999, 0), printing=False)
+#%% normalized noise exposure index
+pstats.calc_basic_stats(s_paths_to_pt, 'nei_norm', weight='util', percs=[5, 10, 90, 95], valueignore=-9999, printing=False)
+#%% mean dB
+pstats.calc_basic_stats(s_paths_to_pt, 'mdB', weight='util', percs=[5, 10, 90, 95], valueignore=-9999, printing=False)
+#%% exp +60dB (m)
+pstats.calc_basic_stats(s_paths_to_pt, '60dBl', weight='util', percs=[5, 10, 90, 95], valuemap=(-9999, 0), printing=False)
+#%% exp +65dB (m)
+pstats.calc_basic_stats(s_paths_to_pt, '65dBl', weight='util', percs=[5, 10, 90, 95], valuemap=(-9999, 0), printing=False)
+#%% exp +70dB (m)
+pstats.calc_basic_stats(s_paths_to_pt, '70dBl', weight='util', percs=[5, 10, 90, 95], valuemap=(-9999, 0), printing=False)
+#%% ratio +60dB (%)
+pstats.calc_basic_stats(s_paths_to_pt, '60dBr', weight='util', percs=[5, 10, 90, 95], valueignore=-9999, printing=False)
+#%% ratio +65dB (%)
+pstats.calc_basic_stats(s_paths_to_pt, '65dBr', weight='util', percs=[5, 10, 90, 95], valueignore=-9999, printing=False)
+#%% ratio +70dB (%)
+pstats.calc_basic_stats(s_paths_to_pt, '70dBr', weight='util', percs=[5, 10, 90, 95], valueignore=-9999, printing=False)
+
