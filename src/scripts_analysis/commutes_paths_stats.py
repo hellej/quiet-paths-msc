@@ -1,17 +1,20 @@
-#%% 
+#%%
 import pandas as pd
 import geopandas as gpd
 import ast
 import time
 import numpy as np
 import statistics as stats
-import utils.path_stats as pstats
 from statsmodels.stats.weightstats import DescrStatsW
 from fiona.crs import from_epsg
+import utils.path_stats as pstats
 import utils.geometry as geom_utils
 import utils.files as files
 import utils.plots as plots
 import utils.exposures as exps
+
+#### READ & PROCESS PATHS & GRID ####
+##################################### 
 
 #%% read statfi xy-grid
 grid = files.get_statfi_grid()
@@ -58,6 +61,9 @@ s_paths_to_pt = s_paths.query("to_pt_mode != 'none'")
 s_paths_to_work = s_paths.query("to_pt_mode == 'none'")
 print('short paths to pt count:', len(s_paths_to_pt.index), '(of', str(count_before)+')')
 print('short paths to work count:', len(s_paths_to_work.index), '(of', str(count_before)+')')
+
+#### PATH LENGTH STATISTICS ####
+################################
 
 #%% print unweighted statistics of shortest paths to PT
 # s short
@@ -111,8 +117,10 @@ fig.savefig('plots/paths_DT_len_diff_rat_scatter.png', format='png', dpi=300)
 #%% export paths with stats to file
 s_paths.to_file('outputs/YKR_commutes_output/home_paths.gpkg', layer='run_3_stats', driver='GPKG')
 
+#### STATFI GRID LEVEL NOISE STATISTICS ####
+############################################
 
-#%% #### group paths to PT by origin (axyind) ####
+#%% #### group paths to PT by origin (axyind)
 axy_groups = s_paths_to_pt.groupby('from_axyind')
 print('paths to PT count', len(s_paths_to_pt))
 print(len(s_paths_to_pt.query('DT_len_diff == -9999')))
@@ -152,6 +160,7 @@ for key, group in axy_groups:
         stats.append(d)
     else:
         errors.append(key)
+print('stats got for:', len(stats), 'axyinds')
 print('all paths filtered out for:', len(errors), 'axyinds')
 
 #%% combine stats to DF
@@ -167,4 +176,6 @@ grid_stats = gpd.GeoDataFrame(grid_stats, geometry='grid_geom', crs=from_epsg(30
 #%% export axyind stats with grid geometry to file
 grid_stats.drop(columns=['grid_centr']).to_file('outputs/YKR_commutes_output/axyind_stats.gpkg', layer='axyind_stats_v3', drive='GPKG')
 
-#%%
+#### PATH NOISE STATS #####
+###########################
+
