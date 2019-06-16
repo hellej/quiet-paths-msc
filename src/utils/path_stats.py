@@ -33,7 +33,7 @@ def map_pt_path_props_to_null(df):
     print('mapped', len(paths.query("length == -9999")), 'lengths to -9999')
     return paths
     
-def extract_th_db_cols(paths_gdf, ths=[60, 65], valueignore=-9999):
+def extract_th_db_cols(paths_gdf, ths=[60, 65], valueignore=-9999, add_ratios=True):
     gdf = paths_gdf.copy()
     def get_db_len_ratio(row, th_len_col):
         if (row['length'] == valueignore):
@@ -44,11 +44,12 @@ def extract_th_db_cols(paths_gdf, ths=[60, 65], valueignore=-9999):
         th_key = str(th)
         th_col = str(th)+'dBl'
         gdf[th_col] = [th_noises[th_key] if type(th_noises) == dict else valueignore for th_noises in gdf['th_noises']]
-    for th in ths:
-        th_len_col = str(th)+'dBl'
-        th_rat_col = str(th)+'dBr'
-        gdf[th_rat_col] = gdf.apply(lambda row: get_db_len_ratio(row, th_len_col), axis=1)
-    print('mapped', len(gdf[gdf['55dBr'] == valueignore]), 'db stats to -9999')
+    if (add_ratios == True):
+        for th in ths:
+            th_len_col = str(th)+'dBl'
+            th_rat_col = str(th)+'dBr'
+            gdf[th_rat_col] = gdf.apply(lambda row: get_db_len_ratio(row, th_len_col), axis=1)
+    print('mapped', len(gdf[gdf['60dBl'] == valueignore]), 'db stats to -9999')
     return gdf
 
 def add_dt_length_diff_cols(paths_gdf, valueignore=-9999):
