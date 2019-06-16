@@ -58,45 +58,17 @@ s_paths.head(2)
 #%% select paths to PT (filter out paths to destinations)
 count_before = len(s_paths)
 s_paths_pt = s_paths.query("to_pt_mode != 'none'")
-s_paths_to_work = s_paths.query("to_pt_mode == 'none'")
+s_paths_work = s_paths.query("to_pt_mode == 'none'")
 print('short paths to pt count:', len(s_paths_pt.index), '(of', str(count_before)+')')
-print('short paths to work count:', len(s_paths_to_work.index), '(of', str(count_before)+')')
+print('short paths to work count:', len(s_paths_work.index), '(of', str(count_before)+')')
 
 #### PATH LENGTH STATISTICS ####
 ################################
 
-#%% print unweighted statistics of shortest paths to PT
-# s short
-# p path
-# pt public transport (PT)
-# l length
-# sd standard deviation (SD)
-# wp weighted with path probability
-# wu weighted with path utilization rate
-# DT_len_diff_rat = [diff for diff in s_paths_pt['DT_len_diff_rat'] if diff != -9999]
-# print(round(np.std(DT_len_diff_rat)))
-#%%
-s_p_pt_lens = s_paths_pt['length']
-# -9999 means origin was already at the PT stop -> hence walk length was 0 m 
-s_p_pt_lens = [length if length != -9999 else 0 for length in s_p_pt_lens]
-s_p_pt_l_mean = round(np.mean(s_p_pt_lens), 3)
-s_p_pt_l_median = round(np.median(s_p_pt_lens), 3)
-s_p_pt_l_sd = round(np.std(s_p_pt_lens), 3)
-print('simple mean length:', s_p_pt_l_mean)
-print('simple median length:', s_p_pt_l_median)
-print('simple length sd:', s_p_pt_l_sd)
-
-#%% print weighted stats with DescrStatsW module
-weighted_stats = DescrStatsW(s_p_pt_lens, weights=s_paths_pt['util'], ddof=0)
-print('weighted mean length:', round(weighted_stats.mean, 2))
-print('weighted std length:', round(weighted_stats.std, 2))
-quants = weighted_stats.quantile(probs=[0.5], return_pandas=True)
-print(quants)
-
 #%% print weighted statistics of all short paths to PT
 pstats.calc_basic_stats(s_paths, 'length', weight='util', percs=[10, 90], valuemap=(-9999, 0), printing=True)
 pstats.calc_basic_stats(s_paths_pt, 'length', weight='util', percs=[10, 90], valuemap=(-9999, 0), printing=True)
-pstats.calc_basic_stats(s_paths_to_work, 'length', weight='util', percs=[10, 90], valuemap=(-9999, 0), printing=True)
+pstats.calc_basic_stats(s_paths_work, 'length', weight='util', percs=[10, 90], valuemap=(-9999, 0), printing=True)
 
 #%% print stats of lengths compared to reference lengths
 pstats.calc_basic_stats(s_paths, 'DT_len_diff', weight=None, min_length=20, percs=[5, 10, 15, 25, 75, 85, 90, 95], valueignore=-9999, col_prefix='DT_lendiff', printing=True)
@@ -117,6 +89,21 @@ fig.savefig('plots/paths_DT_len_diff_rat_scatter.png', format='png', dpi=300)
 #%% export paths with stats to file
 s_paths.to_file('outputs/YKR_commutes_output/home_paths.gpkg', layer='run_3_stats', driver='GPKG')
 
+#### FILTER OUT PATHS FROM PROBLEMATIC AXYINDS ####
+###################################################
+
+#%% filter out paths from specific axyinds
+count_before = len(s_paths)
+skip_axyinds = [3933756673875, 3863756670125]
+
+paths = paths[~paths['from_axyind'].isin(skip_axyinds)]
+s_paths = s_paths[~s_paths['from_axyind'].isin(skip_axyinds)]
+s_paths_pt = s_paths_pt[~s_paths_pt['from_axyind'].isin(skip_axyinds)]
+s_paths_work = s_paths_work[~s_paths_work['from_axyind'].isin(skip_axyinds)]
+
+count_after = len(s_paths)
+print('Filtered out:', count_before-count_after, 'shortest paths')
+
 #### STATFI GRID LEVEL NOISE STATISTICS ####
 ############################################
 
@@ -125,16 +112,10 @@ axy_groups = s_paths_pt.groupby('from_axyind')
 print('paths to PT count', len(s_paths_pt))
 print(len(s_paths_pt.query('DT_len_diff == -9999')))
 
-# define problematic axyinds (info of these in separate note)
-skip_axyinds = [3933756673875, 3863756670125]
-
 #%% calculate stats per origin (paths from axyind)
 errors = []
 stats = []
 for key, group in axy_groups:
-    if (key in skip_axyinds):
-        print('skipping:', key)
-        continue
     in_paths = group.query("b_inside_hel == 'yes'")
     filt_paths = pstats.filter_out_problem_paths(in_paths)
     if (len(in_paths) > 0):
