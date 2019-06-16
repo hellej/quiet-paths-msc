@@ -93,7 +93,7 @@ def filter_out_problem_paths(data_df, printing=False):
     if (printing == True): print('Filtered out:', count_before-count_after, 'paths of:', count_before, 'with: orig_offset < 110')
     return df
 
-def calc_basic_stats(data_gdf, var_col, valuemap=None, valueignore=None, weight=None, min_length=None, percs=None, col_prefix='', printing=False):
+def calc_basic_stats(data_gdf, var_col, valuemap=None, valueignore=None, weight=None, min_length=None, percs=None, col_prefix='', printing=False, add_varname=False):
     gdf = data_gdf.copy()
     if (printing == True): print('\n-min_length:', min_length, '-weight:', weight, '-col:', var_col)
 
@@ -125,7 +125,10 @@ def calc_basic_stats(data_gdf, var_col, valuemap=None, valueignore=None, weight=
     mean = round(np.mean(var_array), 3)
     std = round(np.std(var_array), 3)
     median = round(np.median(var_array), 3)
-    d = { col_prefix+'_mean': mean, col_prefix+'_median': median, col_prefix+'_std': std }
+
+    col_name = col_prefix +'_' if (col_prefix is not '') else ''
+    d = { 'name': var_col } if (add_varname == True) else {}
+    d = { **d, col_name+'mean': mean, col_name+'median': median, col_name+'std': std }
 
     if (percs is not None):
         for per in percs:

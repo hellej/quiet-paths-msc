@@ -57,9 +57,9 @@ s_paths.head(2)
 
 #%% select paths to PT (filter out paths to destinations)
 count_before = len(s_paths)
-s_paths_to_pt = s_paths.query("to_pt_mode != 'none'")
+s_paths_pt = s_paths.query("to_pt_mode != 'none'")
 s_paths_to_work = s_paths.query("to_pt_mode == 'none'")
-print('short paths to pt count:', len(s_paths_to_pt.index), '(of', str(count_before)+')')
+print('short paths to pt count:', len(s_paths_pt.index), '(of', str(count_before)+')')
 print('short paths to work count:', len(s_paths_to_work.index), '(of', str(count_before)+')')
 
 #### PATH LENGTH STATISTICS ####
@@ -73,10 +73,10 @@ print('short paths to work count:', len(s_paths_to_work.index), '(of', str(count
 # sd standard deviation (SD)
 # wp weighted with path probability
 # wu weighted with path utilization rate
-# DT_len_diff_rat = [diff for diff in s_paths_to_pt['DT_len_diff_rat'] if diff != -9999]
+# DT_len_diff_rat = [diff for diff in s_paths_pt['DT_len_diff_rat'] if diff != -9999]
 # print(round(np.std(DT_len_diff_rat)))
 #%%
-s_p_pt_lens = s_paths_to_pt['length']
+s_p_pt_lens = s_paths_pt['length']
 # -9999 means origin was already at the PT stop -> hence walk length was 0 m 
 s_p_pt_lens = [length if length != -9999 else 0 for length in s_p_pt_lens]
 s_p_pt_l_mean = round(np.mean(s_p_pt_lens), 3)
@@ -87,7 +87,7 @@ print('simple median length:', s_p_pt_l_median)
 print('simple length sd:', s_p_pt_l_sd)
 
 #%% print weighted stats with DescrStatsW module
-weighted_stats = DescrStatsW(s_p_pt_lens, weights=s_paths_to_pt['util'], ddof=0)
+weighted_stats = DescrStatsW(s_p_pt_lens, weights=s_paths_pt['util'], ddof=0)
 print('weighted mean length:', round(weighted_stats.mean, 2))
 print('weighted std length:', round(weighted_stats.std, 2))
 quants = weighted_stats.quantile(probs=[0.5], return_pandas=True)
@@ -95,7 +95,7 @@ print(quants)
 
 #%% print weighted statistics of all short paths to PT
 pstats.calc_basic_stats(s_paths, 'length', weight='util', percs=[10, 90], valuemap=(-9999, 0), printing=True)
-pstats.calc_basic_stats(s_paths_to_pt, 'length', weight='util', percs=[10, 90], valuemap=(-9999, 0), printing=True)
+pstats.calc_basic_stats(s_paths_pt, 'length', weight='util', percs=[10, 90], valuemap=(-9999, 0), printing=True)
 pstats.calc_basic_stats(s_paths_to_work, 'length', weight='util', percs=[10, 90], valuemap=(-9999, 0), printing=True)
 
 #%% print stats of lengths compared to reference lengths
@@ -121,16 +121,20 @@ s_paths.to_file('outputs/YKR_commutes_output/home_paths.gpkg', layer='run_3_stat
 ############################################
 
 #%% #### group paths to PT by origin (axyind)
-axy_groups = s_paths_to_pt.groupby('from_axyind')
-print('paths to PT count', len(s_paths_to_pt))
-print(len(s_paths_to_pt.query('DT_len_diff == -9999')))
+axy_groups = s_paths_pt.groupby('from_axyind')
+print('paths to PT count', len(s_paths_pt))
+print(len(s_paths_pt.query('DT_len_diff == -9999')))
+
+# define problematic axyinds (info of these in separate note)
+skip_axyinds = [3933756673875, 3863756670125]
 
 #%% calculate stats per origin (paths from axyind)
 errors = []
 stats = []
 for key, group in axy_groups:
-    # if (key != 3863756670125):
-    #     continue
+    if (key in skip_axyinds):
+        print('skipping:', key)
+        continue
     in_paths = group.query("b_inside_hel == 'yes'")
     filt_paths = pstats.filter_out_problem_paths(in_paths)
     if (len(in_paths) > 0):
@@ -149,9 +153,9 @@ for key, group in axy_groups:
         db65l_stats = pstats.calc_basic_stats(filt_paths, '65dBl', weight='prob', valuemap=(-9999, 0), col_prefix='dB65l')
         db70l_stats = pstats.calc_basic_stats(filt_paths, '70dBl', weight='prob', valuemap=(-9999, 0), col_prefix='dB70l')
         db55r_stats = pstats.calc_basic_stats(filt_paths, '55dBr', weight='prob', valueignore=-9999, col_prefix='dB55r')
-        db60r_stats = pstats.calc_basic_stats(filt_paths, '60dBr', weight='prob', valueignore=-9999,col_prefix='dB60r')
-        db65r_stats = pstats.calc_basic_stats(filt_paths, '65dBr', weight='prob', valueignore=-9999,col_prefix='dB65r')
-        db70r_stats = pstats.calc_basic_stats(filt_paths, '70dBr', weight='prob', valueignore=-9999,col_prefix='dB70r')
+        db60r_stats = pstats.calc_basic_stats(filt_paths, '60dBr', weight='prob', valueignore=-9999, col_prefix='dB60r')
+        db65r_stats = pstats.calc_basic_stats(filt_paths, '65dBr', weight='prob', valueignore=-9999, col_prefix='dB65r')
+        db70r_stats = pstats.calc_basic_stats(filt_paths, '70dBr', weight='prob', valueignore=-9999, col_prefix='dB70r')
         nei_stats = pstats.calc_basic_stats(filt_paths, 'nei', weight='prob', valuemap=(-9999, 0), col_prefix='nei')
         nei_norm_stats = pstats.calc_basic_stats(filt_paths, 'nei_norm', weight='prob', valueignore=-9999, col_prefix='nei_n')
         mdB_stats = pstats.calc_basic_stats(filt_paths, 'mdB', weight='prob', valueignore=-9999, col_prefix='mdB')
@@ -182,45 +186,34 @@ grid_stats.drop(columns=['grid_centr']).to_file('outputs/YKR_commutes_output/axy
 #%% print column names
 print(s_paths.columns)
 
-### ALL SHORTEST PATHS ###
+#%%# ALL SHORTEST PATHS ###
+sp_stats = []
+sp_stats.append(pstats.calc_basic_stats(s_paths, 'nei', weight='util', percs=[5, 10, 90, 95], valuemap=(-9999, 0), printing=False, add_varname=True))
+sp_stats.append(pstats.calc_basic_stats(s_paths, 'nei_norm', weight='util', percs=[5, 10, 90, 95], valueignore=-9999, printing=False, add_varname=True))
+sp_stats.append(pstats.calc_basic_stats(s_paths, 'mdB', weight='util', percs=[5, 10, 90, 95], valueignore=-9999, printing=False, add_varname=True))
+sp_stats.append(pstats.calc_basic_stats(s_paths, '60dBl', weight='util', percs=[5, 10, 90, 95], valuemap=(-9999, 0), printing=False, add_varname=True))
+sp_stats.append(pstats.calc_basic_stats(s_paths, '65dBl', weight='util', percs=[5, 10, 90, 95], valuemap=(-9999, 0), printing=False, add_varname=True))
+sp_stats.append(pstats.calc_basic_stats(s_paths, '70dBl', weight='util', percs=[5, 10, 90, 95], valuemap=(-9999, 0), printing=False, add_varname=True))
+sp_stats.append(pstats.calc_basic_stats(s_paths, '60dBr', weight='util', percs=[5, 10, 90, 95], valueignore=-9999, printing=False, add_varname=True))
+sp_stats.append(pstats.calc_basic_stats(s_paths, '65dBr', weight='util', percs=[5, 10, 90, 95], valueignore=-9999, printing=False, add_varname=True))
+sp_stats.append(pstats.calc_basic_stats(s_paths, '70dBr', weight='util', percs=[5, 10, 90, 95], valueignore=-9999, printing=False, add_varname=True))
+sp_stats = pd.DataFrame(sp_stats, columns=sp_stats[0].keys())
+sp_stats.to_csv('outputs/path_stats/sp_noise_stats.csv')
+sp_stats
 
-#%% noise exposure index
-pstats.calc_basic_stats(s_paths, 'nei', weight='util', percs=[5, 10, 90, 95], valuemap=(-9999, 0), printing=False)
-#%% normalized noise exposure index
-pstats.calc_basic_stats(s_paths, 'nei_norm', weight='util', percs=[5, 10, 90, 95], valueignore=-9999, printing=False)
-#%% mean dB
-pstats.calc_basic_stats(s_paths, 'mdB', weight='util', percs=[5, 10, 90, 95], valueignore=-9999, printing=False)
-#%% exp +60dB (m)
-pstats.calc_basic_stats(s_paths, '60dBl', weight='util', percs=[5, 10, 90, 95], valuemap=(-9999, 0), printing=False)
-#%% exp +65dB (m)
-pstats.calc_basic_stats(s_paths, '65dBl', weight='util', percs=[5, 10, 90, 95], valuemap=(-9999, 0), printing=False)
-#%% exp +70dB (m)
-pstats.calc_basic_stats(s_paths, '70dBl', weight='util', percs=[5, 10, 90, 95], valuemap=(-9999, 0), printing=False)
-#%% ratio +60dB (%)
-pstats.calc_basic_stats(s_paths, '60dBr', weight='util', percs=[5, 10, 90, 95], valueignore=-9999, printing=False)
-#%% ratio +65dB (%)
-pstats.calc_basic_stats(s_paths, '65dBr', weight='util', percs=[5, 10, 90, 95], valueignore=-9999, printing=False)
-#%% ratio +70dB (%)
-pstats.calc_basic_stats(s_paths, '70dBr', weight='util', percs=[5, 10, 90, 95], valueignore=-9999, printing=False)
+#%%# SHORTEST PATHS TO PT STOPS ###
+sp_pt_stats = []
+sp_pt_stats.append(pstats.calc_basic_stats(s_paths_pt, 'nei', weight='util', percs=[5, 10, 90, 95], valuemap=(-9999, 0), printing=False, add_varname=True))
+sp_pt_stats.append(pstats.calc_basic_stats(s_paths_pt, 'nei_norm', weight='util', percs=[5, 10, 90, 95], valueignore=-9999, printing=False, add_varname=True))
+sp_pt_stats.append(pstats.calc_basic_stats(s_paths_pt, 'mdB', weight='util', percs=[5, 10, 90, 95], valueignore=-9999, printing=False, add_varname=True))
+sp_pt_stats.append(pstats.calc_basic_stats(s_paths_pt, '60dBl', weight='util', percs=[5, 10, 90, 95], valuemap=(-9999, 0), printing=False, add_varname=True))
+sp_pt_stats.append(pstats.calc_basic_stats(s_paths_pt, '65dBl', weight='util', percs=[5, 10, 90, 95], valuemap=(-9999, 0), printing=False, add_varname=True))
+sp_pt_stats.append(pstats.calc_basic_stats(s_paths_pt, '70dBl', weight='util', percs=[5, 10, 90, 95], valuemap=(-9999, 0), printing=False, add_varname=True))
+sp_pt_stats.append(pstats.calc_basic_stats(s_paths_pt, '60dBr', weight='util', percs=[5, 10, 90, 95], valueignore=-9999, printing=False, add_varname=True))
+sp_pt_stats.append(pstats.calc_basic_stats(s_paths_pt, '65dBr', weight='util', percs=[5, 10, 90, 95], valueignore=-9999, printing=False, add_varname=True))
+sp_pt_stats.append(pstats.calc_basic_stats(s_paths_pt, '70dBr', weight='util', percs=[5, 10, 90, 95], valueignore=-9999, printing=False, add_varname=True))
+sp_pt_stats = pd.DataFrame(sp_pt_stats, columns=sp_pt_stats[0].keys())
+sp_pt_stats.to_csv('outputs/path_stats/sp_pt_noise_stats.csv')
+sp_pt_stats
 
-### SHORTEST PATHS TO PT STOPS ###
-
-#%% noise exposure index
-pstats.calc_basic_stats(s_paths_to_pt, 'nei', weight='util', percs=[5, 10, 90, 95], valuemap=(-9999, 0), printing=False)
-#%% normalized noise exposure index
-pstats.calc_basic_stats(s_paths_to_pt, 'nei_norm', weight='util', percs=[5, 10, 90, 95], valueignore=-9999, printing=False)
-#%% mean dB
-pstats.calc_basic_stats(s_paths_to_pt, 'mdB', weight='util', percs=[5, 10, 90, 95], valueignore=-9999, printing=False)
-#%% exp +60dB (m)
-pstats.calc_basic_stats(s_paths_to_pt, '60dBl', weight='util', percs=[5, 10, 90, 95], valuemap=(-9999, 0), printing=False)
-#%% exp +65dB (m)
-pstats.calc_basic_stats(s_paths_to_pt, '65dBl', weight='util', percs=[5, 10, 90, 95], valuemap=(-9999, 0), printing=False)
-#%% exp +70dB (m)
-pstats.calc_basic_stats(s_paths_to_pt, '70dBl', weight='util', percs=[5, 10, 90, 95], valuemap=(-9999, 0), printing=False)
-#%% ratio +60dB (%)
-pstats.calc_basic_stats(s_paths_to_pt, '60dBr', weight='util', percs=[5, 10, 90, 95], valueignore=-9999, printing=False)
-#%% ratio +65dB (%)
-pstats.calc_basic_stats(s_paths_to_pt, '65dBr', weight='util', percs=[5, 10, 90, 95], valueignore=-9999, printing=False)
-#%% ratio +70dB (%)
-pstats.calc_basic_stats(s_paths_to_pt, '70dBr', weight='util', percs=[5, 10, 90, 95], valueignore=-9999, printing=False)
-
+#%%
