@@ -65,14 +65,24 @@ print('short paths to work count:', len(s_paths_work.index), '(of', str(count_be
 #### PATH LENGTH STATISTICS ####
 ################################
 
-#%% print weighted statistics of all short paths to PT
-pstats.calc_basic_stats(s_paths, 'length', weight='util', percs=[10, 90], valuemap=(-9999, 0), printing=True)
-pstats.calc_basic_stats(s_paths_pt, 'length', weight='util', percs=[10, 90], valuemap=(-9999, 0), printing=True)
-pstats.calc_basic_stats(s_paths_work, 'length', weight='util', percs=[10, 90], valuemap=(-9999, 0), printing=True)
+#%% calculate weighted statistics of path lengths
+path_len_stats = []
+path_len_stats.append(pstats.calc_basic_stats(s_paths, 'length', weight='util', percs=[10, 90], valuemap=(-9999, 0), col_prefix='length_all', add_varname=True, add_n=True))
+path_len_stats.append(pstats.calc_basic_stats(s_paths_pt, 'length', weight='util', percs=[10, 90], valuemap=(-9999, 0), col_prefix='length_pt', add_varname=True, add_n=True))
+path_len_stats.append(pstats.calc_basic_stats(s_paths_work, 'length', weight='util', percs=[10, 90], valuemap=(-9999, 0), col_prefix='length_work', add_varname=True, add_n=True))
+path_len_stats = pd.DataFrame(path_len_stats, columns=path_len_stats[0].keys())
+path_len_stats.to_csv('outputs/path_stats/path_len_stats.csv')
+path_len_stats
 
 #%% print stats of lengths compared to reference lengths
-pstats.calc_basic_stats(s_paths, 'DT_len_diff', weight=None, min_length=20, percs=[5, 10, 15, 25, 75, 85, 90, 95], valueignore=-9999, col_prefix='DT_lendiff', printing=True)
-pstats.calc_basic_stats(s_paths, 'DT_len_diff_rat', weight=None, min_length=20, percs=[5, 10, 15, 25, 75, 85, 90, 95], valueignore=-9999, col_prefix='DT_lendiff_rat', printing=True)
+path_len_stats = []
+path_len_stats.append(pstats.calc_basic_stats(s_paths, 'DT_len_diff', weight=None, percs=[5, 10, 15, 25, 75, 85, 90, 95], valueignore=-9999, col_prefix='DT_lendiff', add_varname=True, add_n=True))
+path_len_stats.append(pstats.calc_basic_stats(s_paths, 'DT_len_diff_rat', weight=None, percs=[5, 10, 15, 25, 75, 85, 90, 95], valueignore=-9999, col_prefix='DT_lendiff_rat', add_varname=True, add_n=True))
+path_len_stats.append(pstats.calc_basic_stats(s_paths, 'DT_len_diff', weight=None, min_length=20, percs=[5, 10, 15, 25, 75, 85, 90, 95], valueignore=-9999, col_prefix='DT_lendiff_filt', add_varname=True, add_n=True, printing=True))
+path_len_stats.append(pstats.calc_basic_stats(s_paths, 'DT_len_diff_rat', weight=None, min_length=20, percs=[5, 10, 15, 25, 75, 85, 90, 95], valueignore=-9999, col_prefix='DT_lendiff_rat_filt', add_varname=True, add_n=True))
+path_len_stats = pd.DataFrame(path_len_stats, columns=path_len_stats[0].keys())
+path_len_stats.to_csv('outputs/path_stats/path_len_diff_stats.csv')
+path_len_stats
 
 #%% plot DT len diff stats
 s_paths_filt = pstats.filter_by_min_value(s_paths, 'length', 20)
