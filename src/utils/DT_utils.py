@@ -32,7 +32,7 @@ def get_koskela_centers():
     return inhabited_points_gdf[:4]
 
 def get_target_locations():
-    target_locations = gpd.read_file('data/input/target_locations.geojson')
+    target_locations = gpd.read_file('data/test/target_locations.geojson')
     # CRS OF THIS IS WGS 84
     target_locations['to_latLon'] = [geom_utils.get_lat_lon_from_geom(geom) for geom in target_locations['geometry']]
     # reproject to ETRS

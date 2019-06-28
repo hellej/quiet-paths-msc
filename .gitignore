@@ -17,15 +17,11 @@ src/graphs/hel_u_g.graphml
 src/graphs/hel_u_g_n.graphml
 src/graphs/hel_u_g_n_s.graphml
 src/graphs/hel_u_g_n_c_s.graphml
+src/data_ykr/
 src/data/data.gpkg
 src/data/extents_grids.gpkg
 src/data/networks.gpkg
 src/data/vis.gpkg
-src/data/input/T06_tma_e_12_TOL2008.csv
-src/data/input/r250m*
-src/data/input/T06_tma_e_TOL2008_2016.csv
-src/data/input/T06_tma_e_TOL2008_2016_filtered.csv
-src/data/input/T06_tma_e_TOL2008_2016_hel.csv
 src/graphs/hel_u_g_n_f.graphml
 src/graphs/hel_u_g_n_f_s.graphml
 src/graphs/hel_u_g_n2_f_s.graphml

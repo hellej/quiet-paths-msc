@@ -45,10 +45,10 @@ def get_hel_poly():
     return poly
 
 def get_update_test_walk_line():
-    walk_proj = gpd.read_file('data/input/test_walk_line.shp')
+    walk_proj = gpd.read_file('data/test/test_walk_line.shp')
     walk_proj['length'] = [int(round(geom.length)) for geom in walk_proj['geometry']]
     walk_proj['time'] = [round((geom.length/1.33)/60, 1) for geom in walk_proj['geometry']]
-    # walk_proj.to_file('data/input/test_walk_line.shp')
+    # walk_proj.to_file('data/test/test_walk_line.shp')
     return walk_proj
 
 def get_network_kumpula_dir():
@@ -73,7 +73,7 @@ def get_network_full_noise_v2(directed=True):
     return load_graphml('hel_u_g_n2_f_s.graphml', folder='graphs', directed=directed)
 
 def get_pois():
-    pois = gpd.read_file('data/input/target_locations.geojson')
+    pois = gpd.read_file('data/test/target_locations.geojson')
     pois = pois.to_crs(from_epsg(3879))
     return pois
 

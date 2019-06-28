@@ -17,7 +17,7 @@ import utils.commutes as commutes_utils
 import utils.networks as nw
 
 #%% read YKR work commute data
-commutes = pd.read_csv('data/input/T06_tma_e_TOL2008_2016_hel.csv')
+commutes = pd.read_csv('data_ykr/T06_tma_e_TOL2008_2016_hel.csv')
 commutes['geom_home'] = commutes.apply(lambda row: Point(row['ax'], row['ay']), axis=1)
 commutes['geom_work'] = commutes.apply(lambda row: Point(row['tx'], row['ty']), axis=1)
 commutes['home_latLon'] = [geom_utils.get_lat_lon_from_geom(geom_utils.project_to_wgs(geom, epsg=3067)) for geom in commutes['geom_home']]
