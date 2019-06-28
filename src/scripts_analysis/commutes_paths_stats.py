@@ -208,4 +208,70 @@ sp_pt_stats = pd.DataFrame(sp_pt_stats, columns=sp_pt_stats[0].keys())
 sp_pt_stats.to_csv('outputs/path_stats/sp_pt_noise_stats.csv')
 sp_pt_stats
 
+#### QUIET PATH NOISE STATS #####
+#################################
+#%% set & rename columns
+print(paths.columns)
+qp_cols = ['od_id', 'path_id', 'len_diff', 'len_diff_r', 'length', 'nei',
+       'nei_diff', 'nei_diff_r', 'nei_norm', 'noises', 'noises_diff', 'th_noises', 
+       'th_noises_diff', 'util', 'mdB', '60dBl', '65dBl', '70dBl']
+
+#%% filter out null paths & rename id columns
+p = paths.query('length != -9999').copy()
+p['od_id'] = p['path_id']
+p['path_id'] = p['id']
+p['nei_diff_r'] = p['nei_diff_rat']
+p['len_diff_r'] = p['len_diff_rat']
+print(p[['od_id', 'path_id']].head())
+
+#%% select subset of paths
+axyinds = grid_stats['axyind'].unique()
+axyinds = axyinds[:10]
+p = p[p['from_axyind'].isin(axyinds)]
+print('filtered paths count:', len(p))
+
+#%% add & extract dB exposure columnds to df
+p['mdB'] = p.apply(lambda row: exps.get_mean_noise_level(row['length'], row['noises']), axis=1)
+p = pstats.extract_th_db_cols(p, ths=[60, 65, 70], add_ratios=False)
+print(p.columns)
+p = p[qp_cols]
+p.head()
+
+#%%
+# group by path id (short and quiet paths of OD-pair are in the same group)
+# all_qps = []
+all_od_stats = []
+print('OD count:', len(p['od_id'].unique()))
+grouped = p.groupby('od_id')
+for key, group in grouped:
+    # if (key != '3801256680625_HSL:1320224' and key != '3801256680875_HSL:1320111'):
+    #     continue
+    sp = group.query("path_id == 'short_p'").to_dict(orient='records')[0]
+    qps = group.query("path_id != 'short_p'")[qp_cols]
+    # qps['len_sp'] = sp['length']
+    qps['mdB_diff'] = [mdB - sp['mdB'] for mdB in qps['mdB']]
+    # db len diffs
+    qps['60dB_diff'] = [round(dblen - sp['60dBl'], 1) for dblen in qps['60dBl']]
+    qps['65dB_diff'] = [round(dblen - sp['65dBl'], 1) for dblen in qps['65dBl']]
+    # qps['70dB_diff'] = [round(dblen - sp['70dBl'], 1)  for dblen in qps['70dBl']]
+    # db len diff ratios
+    qps['60dB_diff_r'] = [ round((dblendiff/sp['60dBl'])*100) if sp['60dBl'] != 0 else 0 for dblendiff in qps['60dB_diff']]
+    qps['65dB_diff_r'] = [ round((dblendiff/sp['65dBl'])*100) if sp['65dBl'] != 0 else 0 for dblendiff in qps['65dB_diff']]
+    # qps['70dB_diff_r'] = [ round((dblendiff/sp['70dBl'])*100) if sp['70dBl'] != 0 else 0 for dblendiff in qps['70dB_diff']]
+    # all_qps.append(qps)
+
+    all_od_stats.append(pstats.get_best_quiet_paths_of_max_len_diffs(od_id=key, df=qps, sp=sp, max_len_diffs=[30, 100, 150, 200, 300]))
+    # print('best_qp', od_stats)
+    # print(qps[['path_id', 'len_sp', 'length', 'len_diff']])
+
+#%% collect od stats
+od_stats_df = pd.DataFrame(all_od_stats, columns=all_od_stats[0].keys())
+od_stats_df.head()
+
+#%% collect quiet paths
+# qps_df = pd.concat(all_qps, ignore_index=True)
+# print('quiet paths count:', len(qps_df))
+# print(qps_df.columns)
+# qps_df_500_1000 = qps_df.query('len_sp > 600 and len_sp < 1000')
+
 #%%
