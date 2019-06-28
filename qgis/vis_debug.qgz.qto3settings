@@ -1,0 +1,1032 @@
+{
+  "LAYERS": [
+    {
+      "geomType": 2,
+      "layerId": "path_noises_e088a043_48f1_4b1d_ae85_3e2fb0d8d098",
+      "name": "path_noises",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 2,
+      "layerId": "noise_lines_a422a2f5_0b98_4f06_823a_a026956b8f12",
+      "name": "noise_lines",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 2,
+      "layerId": "noise_lines_test_c978a2b9_1155_491d_893f_4d5e08e9a38f",
+      "name": "noise_lines_test",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 2,
+      "layerId": "test_walk_line_67f1f164_0e90_4df1_9570_099ed2129b48",
+      "name": "test_walk_line",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 3,
+      "layerId": "avg_noise_exps_76c3f20f_3b9c_40c7_b55c_76e31b2c974d",
+      "name": "avg_noise_exps",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 2,
+      "layerId": "lines_g_c1c4a4c6_e2bc_4fe5_a784_467d6ffd1fa5",
+      "name": "lines_g",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 2,
+      "layerId": "paths_g_c66d8544_93af_4015_b619_3aadf5a50a05",
+      "name": "paths_g",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 1,
+      "layerId": "origins_g_7dbb6ad2_ccc2_4791_bce0_6f892137e94e",
+      "name": "origins_g",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 1,
+      "layerId": "targets_g_4e9052a0_7dc8_4b70_8863_4121f2b03cf4",
+      "name": "targets_g",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 1,
+      "layerId": "target_locations_db6f25c2_1cc8_484e_8f37_3ad127c42c0e",
+      "name": "target_locations",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 2,
+      "layerId": "shortest_paths_undir_2e928f05_e507_4de9_a6cd_c85c39b73fd9",
+      "name": "shortest_paths_undir",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 2,
+      "layerId": "shortest_paths_2aa14f99_9ce3_4667_918a_d4b7b4c00713",
+      "name": "shortest_paths",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 2,
+      "layerId": "shortest_paths_g_a89f0f7d_99e7_4edb_9e24_833246ca4b30",
+      "name": "shortest_paths_g",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 3,
+      "layerId": "extents_grids_6be53211_8a7c_4ffc_a875_666ed3f08c8d",
+      "name": "extents_grids r250_hel_tyoalue",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 3,
+      "layerId": "hel_study_area_184f43a9_d49f_49fe_9ae8_7e63360f209e",
+      "name": "hel_study_area",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 3,
+      "layerId": "extents_grids_9fd3db3e_1da4_4dca_912a_6b11a64b6f05",
+      "name": "extents_grids hel",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 3,
+      "layerId": "extents_grids_hel_7bc7dfd7_679f_49c0_a401_e0182dfdfc66",
+      "name": "extends_grids hel mask",
+      "properties": {
+        "checkBox_Clip": true,
+        "checkBox_ExportAttrs": false,
+        "checkBox_Visible": true,
+        "comboBox_Label": null,
+        "comboBox_ObjectType": "Extruded",
+        "comboBox_altitudeMode": null,
+        "fieldExpressionWidget_altitude": "0",
+        "labelHeightWidget": {
+          "comboData": 0,
+          "comboText": "Absolute",
+          "editText": "",
+          "type": 6
+        },
+        "radioButton_Expression": true,
+        "radioButton_IntersectingFeatures": true,
+        "styleWidget0": {
+          "comboData": 1,
+          "comboText": "Feature style",
+          "editText": "",
+          "type": 2
+        },
+        "styleWidget1": {
+          "comboData": 1,
+          "comboText": "Feature style",
+          "editText": "",
+          "type": 5
+        },
+        "styleWidget2": {
+          "comboData": null,
+          "comboText": "Expression",
+          "editText": "264.0",
+          "type": 1
+        },
+        "styleWidget3": {
+          "comboData": 0,
+          "comboText": "(No border)",
+          "editText": "",
+          "type": 7
+        },
+        "styleWidget4": {},
+        "styleWidget5": {}
+      },
+      "visible": false
+    },
+    {
+      "geomType": 1,
+      "layerId": "district_centers_21edf62d_0655_479d_a87c_2564064821b7",
+      "name": "district_centers",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 3,
+      "layerId": "extents_grids_95fc30a2_7240_4c59_800a_220fda5d60e0",
+      "name": "extents_grids HSY_kaupunginosat_19",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 1,
+      "layerId": "YKR_asutut_pisteet_2013_1bf82c91_4e78_4988_9fc7_1d58b5618ce1",
+      "name": "YKR_asutut_pisteet_2013",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 3,
+      "layerId": "extents_grids_71bc8d50_65ea_448d_98c3_8dfb6d8a6191",
+      "name": "extents_grids statfi_hel_tyoalue",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 3,
+      "layerId": "extents_grids_13cec0ff_1b14_4014_9447_89c7df5f0f98",
+      "name": "extents_grids statfi_hel_tyoalue_b4500m",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 3,
+      "layerId": "extents_grids_d4c51697_bc4a_47c1_b049_e373f3e09dff",
+      "name": "extents_grids statfi_hel_tyoalue",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 3,
+      "layerId": "Työssäkäyntialueet_2019__1_4_500_000__2a7cb8d3_21f1_4ea2_b5ff_5e99c08e3b6e",
+      "name": "Työssäkäyntialueet 2019 (1:4 500 000)",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 3,
+      "layerId": "Suuralueet_2019__1_4_500_000__dc6b4188_95f9_4a27_bfde_f5fd56cac8e2",
+      "name": "Suuralueet 2019 (1:4 500 000)",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 3,
+      "layerId": "Maakunnat_2019__1_4_500_000__1f0c4e2c_ddde_4d4a_b38c_3c34319816a4",
+      "name": "Maakunnat 2019 (1:4 500 000)",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 3,
+      "layerId": "r250m_fc6f5831_a818_44db_8a61_ac674b9196a1",
+      "name": "r250m",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 3,
+      "layerId": "extents_grids_72b55c1d_8fba_41f0_a84f_9d39df0cb85e",
+      "name": "extents_grids YKR_grid",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 3,
+      "layerId": "hel_poly_defb04a1_e6b3_4d80_9c59_aa443d058461",
+      "name": "hel_poly",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 3,
+      "layerId": "extents_grids_ef23f946_2fb9_43d1_9b40_c8afb996e99b",
+      "name": "extents_grids koskela_poly",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 3,
+      "layerId": "extents_grids_93497916_0a2a_440d_8a09_965fdae41fe7",
+      "name": "extents_grids HSY_vaesto_250m_2017",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 3,
+      "layerId": "extents_grids_1bf47cff_1b9d_4369_947a_9fd76975b3f9",
+      "name": "extents_grids koskela_kumpula_hexa",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 2,
+      "layerId": "tunnel_edges_36445191_9d0b_4ac1_9abc_1f5f70eabb1a",
+      "name": "tunnel_edges",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 3,
+      "layerId": "extents_grids_abc51aaa_8d20_452d_b810_6a7eae453f12",
+      "name": "extents_grids bboxes",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 3,
+      "layerId": "koskela_poly_03ef9b00_464a_442c_bf06_b7a9d23b0f95",
+      "name": "koskela_poly",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 3,
+      "layerId": "extents_grids_d95f6a25_e7f0_41e2_8009_9a5a68a4c555",
+      "name": "extents_grids AOI_polygons",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 2,
+      "layerId": "edge_noise_problems2_2e63c39e_2586_458d_ba9d_8729f7a6e57d",
+      "name": "edge_noise_problems2",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 2,
+      "layerId": "edge_test_split_lines_6cd2947a_d054_4e2d_bbb5_dd2e1ba30e20",
+      "name": "edge_test_split_lines",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 2,
+      "layerId": "edge_noise_problems_d73ffb7c_41d3_4dba_9110_4ca444bf3f38",
+      "name": "edge_noise_problems",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 1,
+      "layerId": "koskela_nodes_4b62f0a2_fd25_4915_8c00_96e3c5c33070",
+      "name": "koskela_nodes",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 2,
+      "layerId": "koskela_edges_6eab6908_e7b4_446a_ab2b_4c9956606211",
+      "name": "koskela_edges",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 2,
+      "layerId": "koskela_edges_noise_9676dd69_78cc_4c5c_891f_e4070251856f",
+      "name": "koskela_edges_noise",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 2,
+      "layerId": "paths_1e2e8b42_a84e_42c6_a289_836ffa2802c5",
+      "name": "paths copy",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 2,
+      "layerId": "quiet_paths_t_f93efd20_646b_41e4_a013_b9502c391882",
+      "name": "quiet_paths_t",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 3,
+      "layerId": "hel_study_area_mask_copy_f069ff57_7187_43fd_b823_b17d81859d83",
+      "name": "hel_study_area mask copy copy",
+      "properties": {
+        "checkBox_Clip": true,
+        "checkBox_ExportAttrs": false,
+        "checkBox_Visible": true,
+        "comboBox_Label": null,
+        "comboBox_ObjectType": "Extruded",
+        "comboBox_altitudeMode": null,
+        "fieldExpressionWidget_altitude": "0",
+        "labelHeightWidget": {
+          "comboData": 0,
+          "comboText": "Absolute",
+          "editText": "\"fid\"",
+          "type": 6
+        },
+        "radioButton_Expression": true,
+        "radioButton_IntersectingFeatures": true,
+        "styleWidget0": {
+          "comboData": 1,
+          "comboText": "Feature style",
+          "editText": "\"fid\"",
+          "type": 2
+        },
+        "styleWidget1": {
+          "comboData": 1,
+          "comboText": "Feature style",
+          "editText": "\"fid\"",
+          "type": 5
+        },
+        "styleWidget2": {
+          "comboData": null,
+          "comboText": "Expression",
+          "editText": "264.0",
+          "type": 1
+        },
+        "styleWidget3": {
+          "comboData": 0,
+          "comboText": "(No border)",
+          "editText": "",
+          "type": 7
+        },
+        "styleWidget4": {},
+        "styleWidget5": {}
+      },
+      "visible": false
+    },
+    {
+      "geomType": 2,
+      "layerId": "run_3_stats_8ff22ba0_6a70_42d6_bfb5_33c0baeae5d6",
+      "name": "run_3_stats",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 2,
+      "layerId": "run_3_all_bc9f49f1_3601_42e9_9673_159f1d0993ff",
+      "name": "run_3_all",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 2,
+      "layerId": "run_2_stats_7044ddf0_fb4a_45b6_8c66_fda84f54eee9",
+      "name": "run_2_stats copy",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 2,
+      "layerId": "run_2_stats_8618e5af_b39c_4d2c_b268_15f7bd472f38",
+      "name": "run_2_stats",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 2,
+      "layerId": "run_2_set_1_ca920831_dd54_4ab1_b866_ce0c8b690577",
+      "name": "run_2_set_1",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 2,
+      "layerId": "paths_0e49fd90_de48_4d0d_af5a_779a1d9aa03f",
+      "name": "paths",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 3,
+      "layerId": "hel_study_area_mask_d8e07b49_1014_455b_bc07_b8377c3bdbcb",
+      "name": "hel_study_area mask copy",
+      "properties": {
+        "checkBox_Clip": true,
+        "checkBox_ExportAttrs": false,
+        "checkBox_Visible": true,
+        "comboBox_Label": null,
+        "comboBox_ObjectType": "Extruded",
+        "comboBox_altitudeMode": null,
+        "fieldExpressionWidget_altitude": "0",
+        "labelHeightWidget": {
+          "comboData": 0,
+          "comboText": "Absolute",
+          "editText": "\"fid\"",
+          "type": 6
+        },
+        "radioButton_Expression": true,
+        "radioButton_IntersectingFeatures": true,
+        "styleWidget0": {
+          "comboData": 1,
+          "comboText": "Feature style",
+          "editText": "\"fid\"",
+          "type": 2
+        },
+        "styleWidget1": {
+          "comboData": 1,
+          "comboText": "Feature style",
+          "editText": "\"fid\"",
+          "type": 5
+        },
+        "styleWidget2": {
+          "comboData": null,
+          "comboText": "Expression",
+          "editText": "50",
+          "type": 1
+        },
+        "styleWidget3": {
+          "comboData": 0,
+          "comboText": "(No border)",
+          "editText": "",
+          "type": 7
+        },
+        "styleWidget4": {},
+        "styleWidget5": {}
+      },
+      "visible": true
+    },
+    {
+      "geomType": 2,
+      "layerId": "l_tiest2_polyline_copy_67be0163_c798_4f72_a451_b622328725c9",
+      "name": "l_tiest2_polyline copy copy",
+      "properties": {
+        "checkBox_Clip": true,
+        "checkBox_ExportAttrs": false,
+        "checkBox_Visible": true,
+        "comboBox_Label": null,
+        "comboBox_ObjectType": "Line",
+        "comboBox_altitudeMode": null,
+        "fieldExpressionWidget_altitude": "0",
+        "labelHeightWidget": {},
+        "radioButton_IntersectingFeatures": true,
+        "radioButton_zValue": true,
+        "styleWidget0": {
+          "comboData": 1,
+          "comboText": "Feature style",
+          "editText": "",
+          "type": 2
+        },
+        "styleWidget1": {
+          "comboData": 1,
+          "comboText": "Feature style",
+          "editText": "",
+          "type": 5
+        },
+        "styleWidget2": {
+          "checkBox": false,
+          "type": 9
+        },
+        "styleWidget3": {},
+        "styleWidget4": {},
+        "styleWidget5": {}
+      },
+      "visible": true
+    },
+    {
+      "geomType": 3,
+      "layerId": "axyind_stats_v3_63b58c49_f864_4b79_8106_332e948637c9",
+      "name": "probsum < 50 %",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 3,
+      "layerId": "axyind_stats_v3_2e7c3004_67c0_48cf_b4bf_da1235daa5c1",
+      "name": "len_60dB_mean",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 3,
+      "layerId": "len_70dB_mean_e12a41d5_44fb_406a_a337_affc7802c60d",
+      "name": "len_65dB_mean",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 3,
+      "layerId": "len_60dB_mean_b16a8db1_7871_45cc_851a_5a1303f308e8",
+      "name": "len_70dB_mean",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 3,
+      "layerId": "len_70dB_mean_87dbc8b7_785f_416f_880d_fa3fbf898b5e",
+      "name": "len_mean",
+      "properties": {
+        "checkBox_Clip": true,
+        "checkBox_ExportAttrs": false,
+        "checkBox_Visible": true,
+        "comboBox_Label": null,
+        "comboBox_ObjectType": "Extruded",
+        "comboBox_altitudeMode": null,
+        "fieldExpressionWidget_altitude": "0",
+        "labelHeightWidget": {
+          "comboData": 0,
+          "comboText": "Absolute",
+          "editText": "",
+          "type": 6
+        },
+        "radioButton_Expression": true,
+        "radioButton_IntersectingFeatures": true,
+        "styleWidget0": {
+          "comboData": 1,
+          "comboText": "Feature style",
+          "editText": "",
+          "type": 2
+        },
+        "styleWidget1": {
+          "comboData": 1,
+          "comboText": "Feature style",
+          "editText": "",
+          "type": 5
+        },
+        "styleWidget2": {
+          "comboData": null,
+          "comboText": "Expression",
+          "editText": "\"dB65l_mean\"",
+          "type": 1
+        },
+        "styleWidget3": {
+          "comboData": 0,
+          "comboText": "(No border)",
+          "editText": "",
+          "type": 7
+        },
+        "styleWidget4": {},
+        "styleWidget5": {}
+      },
+      "visible": true
+    },
+    {
+      "geomType": 3,
+      "layerId": "test_70956c1f_ef85_4e98_973a_cb8fa494e9a4",
+      "name": "test copy",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 2,
+      "layerId": "l_jrata_polyline_06ddda92_eefc_4e70_94f2_b6a5f7f8cd9b",
+      "name": "l_jrata_polyline",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 2,
+      "layerId": "l_metror_polyline_7a477419_eb06_4951_b694_6e0d6f2872a3",
+      "name": "l_metror_polyline",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 2,
+      "layerId": "l_tiest2_polyline_13847241_d4e5_4b36_8497_3315558793c6",
+      "name": "l_tiest2_polyline copy",
+      "properties": {
+        "checkBox_Clip": true,
+        "checkBox_ExportAttrs": false,
+        "checkBox_Visible": true,
+        "comboBox_Label": null,
+        "comboBox_ObjectType": "Line",
+        "comboBox_altitudeMode": null,
+        "fieldExpressionWidget_altitude": "0",
+        "labelHeightWidget": {},
+        "radioButton_IntersectingFeatures": true,
+        "radioButton_zValue": true,
+        "styleWidget0": {
+          "comboData": 1,
+          "comboText": "Feature style",
+          "editText": "",
+          "type": 2
+        },
+        "styleWidget1": {
+          "comboData": 1,
+          "comboText": "Feature style",
+          "editText": "",
+          "type": 5
+        },
+        "styleWidget2": {
+          "checkBox": false,
+          "type": 9
+        },
+        "styleWidget3": {},
+        "styleWidget4": {},
+        "styleWidget5": {}
+      },
+      "visible": false
+    },
+    {
+      "geomType": 3,
+      "layerId": "hel_study_area_c1097bc8_9219_4466_9f20_5a0f434eaea4",
+      "name": "hel_study_area mask",
+      "properties": {
+        "checkBox_Clip": true,
+        "checkBox_ExportAttrs": false,
+        "checkBox_Visible": true,
+        "comboBox_Label": null,
+        "comboBox_ObjectType": "Extruded",
+        "comboBox_altitudeMode": null,
+        "fieldExpressionWidget_altitude": "0",
+        "labelHeightWidget": {
+          "comboData": 0,
+          "comboText": "Absolute",
+          "editText": "\"fid\"",
+          "type": 6
+        },
+        "radioButton_Expression": true,
+        "radioButton_IntersectingFeatures": true,
+        "styleWidget0": {
+          "comboData": 1,
+          "comboText": "Feature style",
+          "editText": "\"fid\"",
+          "type": 2
+        },
+        "styleWidget1": {
+          "comboData": 1,
+          "comboText": "Feature style",
+          "editText": "\"fid\"",
+          "type": 5
+        },
+        "styleWidget2": {
+          "comboData": null,
+          "comboText": "Expression",
+          "editText": "264.0",
+          "type": 1
+        },
+        "styleWidget3": {
+          "comboData": 0,
+          "comboText": "(No border)",
+          "editText": "",
+          "type": 7
+        },
+        "styleWidget4": {},
+        "styleWidget5": {}
+      },
+      "visible": false
+    },
+    {
+      "geomType": 3,
+      "layerId": "hel_wfs_buildings_39272422_1f26_4bba_bf80_f9ae7822a6b8",
+      "name": "hel_wfs_buildings copy",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 2,
+      "layerId": "l_tiesto_polyline_21fb0fb1_1ffc_41c6_b0cf_9317811c83d4",
+      "name": "l_tiesto_polyline copy",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 3,
+      "layerId": "seutu_meri_joki_bae4e7cb_28ea_4386_a9a9_4b1e05542265",
+      "name": "seutu_meri_joki",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 2,
+      "layerId": "l_jrata_polyline_31e7b72e_0e7e_4809_958b_a52bcb39798d",
+      "name": "l_jrata_polyline copy",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 2,
+      "layerId": "l_metror_polyline_9190a084_cf6c_4589_94b5_dfd73aa5ab57",
+      "name": "l_metror_polyline copy",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 3,
+      "layerId": "walk_stats_grid_af3ca5b5_faea_46a9_91fd_af96ce3a735a",
+      "name": "walk_stats_grid",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 3,
+      "layerId": "hel_study_area_mask_3efbfa45_c8cc_48df_a081_659ce4622f02",
+      "name": "hel_study_area mask copy",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 1,
+      "layerId": "koskela_nodes_92e2ce17_e97a_4941_8042_c2c9061a6b7e",
+      "name": "koskela_nodes copy",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 2,
+      "layerId": "koskela_edges_2d34cc12_9b43_471d_aa54_20d625149e57",
+      "name": "koskela_edges copy",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 3,
+      "layerId": "buildings_kumpula_koskela_d6346543_4d5d_439c_9778_95460c778ff2",
+      "name": "buildings_kumpula_koskela",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 3,
+      "layerId": "hel_study_area_mask_9d7bf626_de6e_4861_bf3c_c23b673d51e0",
+      "name": "hel_study_area mask copy",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 3,
+      "layerId": "extents_grids_bboxes_a8814b84_3fa7_401b_8449_f7dbc691d9a9",
+      "name": "extents_grids bboxes Kurvi",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 3,
+      "layerId": "extents_grids_bboxes_3394e3e3_762d_4711_94bf_edf2eb25acea",
+      "name": "extents_grids bboxes viikki",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 2,
+      "layerId": "l_jrata_polyline_9dca029a_f09d_43cc_b85c_d3ce35b2eaf9",
+      "name": "l_jrata_polyline copy",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 2,
+      "layerId": "l_metror_polyline_8888f42d_78a1_4b83_8ccb_05157709cec1",
+      "name": "l_metror_polyline copy",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 2,
+      "layerId": "l_tiest2_polyline_83fc6edb_bad8_4542_ae76_d9e9e74870a4",
+      "name": "l_tiest2_polyline",
+      "properties": {
+        "checkBox_Clip": true,
+        "checkBox_ExportAttrs": false,
+        "checkBox_Visible": true,
+        "comboBox_Label": null,
+        "comboBox_ObjectType": "Line",
+        "comboBox_altitudeMode": null,
+        "fieldExpressionWidget_altitude": "0",
+        "labelHeightWidget": {},
+        "radioButton_IntersectingFeatures": true,
+        "radioButton_zValue": true,
+        "styleWidget0": {
+          "comboData": 1,
+          "comboText": "Feature style",
+          "editText": "",
+          "type": 2
+        },
+        "styleWidget1": {
+          "comboData": 1,
+          "comboText": "Feature style",
+          "editText": "",
+          "type": 5
+        },
+        "styleWidget2": {
+          "checkBox": false,
+          "type": 9
+        },
+        "styleWidget3": {},
+        "styleWidget4": {},
+        "styleWidget5": {}
+      },
+      "visible": false
+    },
+    {
+      "geomType": 2,
+      "layerId": "l_tiesto_polyline_46f6fbf8_d204_45da_8563_0d1cf12db61e",
+      "name": "l_tiesto_polyline",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 3,
+      "layerId": "hel_wfs_buildings_copy_89bcfe88_c046_45d0_9742_18bfb56a30ef",
+      "name": "hel_wfs_buildings copy copy",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 3,
+      "layerId": "seutu_meri_joki_4d3886dd_f9f5_4c17_9702_47df258868df",
+      "name": "seutu_meri_joki copy",
+      "properties": {
+        "checkBox_Clip": true,
+        "checkBox_ExportAttrs": false,
+        "checkBox_Visible": true,
+        "comboBox_Label": null,
+        "comboBox_ObjectType": "Extruded",
+        "comboBox_altitudeMode": null,
+        "fieldExpressionWidget_altitude": "0",
+        "labelHeightWidget": {
+          "comboData": 0,
+          "comboText": "Absolute",
+          "editText": "",
+          "type": 6
+        },
+        "radioButton_Expression": true,
+        "radioButton_IntersectingFeatures": true,
+        "styleWidget0": {
+          "comboData": 1,
+          "comboText": "Feature style",
+          "editText": "",
+          "type": 2
+        },
+        "styleWidget1": {
+          "comboData": 1,
+          "comboText": "Feature style",
+          "editText": "",
+          "type": 5
+        },
+        "styleWidget2": {
+          "comboData": null,
+          "comboText": "Expression",
+          "editText": "0",
+          "type": 1
+        },
+        "styleWidget3": {
+          "comboData": 0,
+          "comboText": "(No border)",
+          "editText": "",
+          "type": 7
+        },
+        "styleWidget4": {},
+        "styleWidget5": {}
+      },
+      "visible": true
+    },
+    {
+      "geomType": 3,
+      "layerId": "extents_grids_bboxes_Kluuvi_e1f4d209_2472_4b6b_b49e_a30ec02ed0ce",
+      "name": "extents_grids bboxes Kurvi",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 3,
+      "layerId": "extents_grids_bboxes_viikki_copy_cb7d8ea6_29b0_4564_bc1a_408dff5ad3e4",
+      "name": "extents_grids bboxes kurvi",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 3,
+      "layerId": "extents_grids_bboxes_viikki_d9841ebe_a712_40cd_8453_deae6fe1ef00",
+      "name": "extents_grids bboxes viikki copy",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 3,
+      "layerId": "hel_wfs_buildings_54e35cbf_cd08_461d_bb76_899fb4743175",
+      "name": "hel_wfs_buildings",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 3,
+      "layerId": "hel_study_area_mask_e5e49167_d31f_422b_b707_22dea2a33622",
+      "name": "hel_study_area mask copy",
+      "properties": {
+        "checkBox_Clip": true,
+        "checkBox_ExportAttrs": false,
+        "checkBox_Visible": true,
+        "comboBox_Label": null,
+        "comboBox_ObjectType": "Extruded",
+        "comboBox_altitudeMode": null,
+        "fieldExpressionWidget_altitude": "0",
+        "labelHeightWidget": {
+          "comboData": 0,
+          "comboText": "Absolute",
+          "editText": "\"fid\"",
+          "type": 6
+        },
+        "radioButton_Expression": true,
+        "radioButton_IntersectingFeatures": true,
+        "styleWidget0": {
+          "comboData": 1,
+          "comboText": "Feature style",
+          "editText": "\"fid\"",
+          "type": 2
+        },
+        "styleWidget1": {
+          "comboData": 1,
+          "comboText": "Feature style",
+          "editText": "\"fid\"",
+          "type": 5
+        },
+        "styleWidget2": {
+          "comboData": null,
+          "comboText": "Expression",
+          "editText": "264.0",
+          "type": 1
+        },
+        "styleWidget3": {
+          "comboData": 0,
+          "comboText": "(No border)",
+          "editText": "",
+          "type": 7
+        },
+        "styleWidget4": {},
+        "styleWidget5": {}
+      },
+      "visible": false
+    },
+    {
+      "geomType": 3,
+      "layerId": "seutu_meri_joki_5f3f0ba0_6549_4153_8054_4d7900aef8b5",
+      "name": "seutu_meri_joki_noise_hel",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 3,
+      "layerId": "data_2017_alue_01_tieliikenne_L_Aeq_paiva_6211ff6f_0c7f_4a74_8ea3_1913847b99bd",
+      "name": "data 2017_alue_01_tieliikenne_L_Aeq_paiva_noise_hel",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 3,
+      "layerId": "data_c784e0a3_e255_471a_bffb_e9e4ba0aa7eb",
+      "name": "data 2017_alue_01_tieliikenne_L_Aeq_paiva",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 3,
+      "layerId": "data_a653d584_c1c4_4ea9_a773_361a0bcd5dd3",
+      "name": "data pks_2011_alue_01_tieliikenne_L_Aeq_paiva",
+      "properties": null,
+      "visible": false
+    },
+    {
+      "geomType": 0,
+      "layerId": "FLAT",
+      "name": "Flat Plane",
+      "properties": null,
+      "visible": false
+    }
+  ]
+}
