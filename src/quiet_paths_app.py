@@ -20,7 +20,7 @@ CORS(app)
 # INITIALIZE GRAPH
 start_time = time.time()
 nts = [0.1, 0.15, 0.25, 0.5, 1, 1.5, 2, 4, 6, 10, 20, 40]
-graph = files.get_network_full_noise_v2(directed=False)
+graph = files.get_network_full_noise(version=2)
 # graph = files.get_network_kumpula_noise(version=2)
 print('Graph of', graph.size(), 'edges read.')
 edge_gdf = nw.get_edge_gdf(graph, attrs=['geometry', 'length', 'noises'])

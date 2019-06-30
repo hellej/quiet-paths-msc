@@ -12,9 +12,10 @@ import utils.exposures as exps
 import utils.utils as utils
 
 #%% 1. Set graph extent, name and output folder
-graph_name = 'kumpula-v2'
+graph_name = 'hel-v2'
 out_dir = 'graphs'
-aoi_poly = files.get_koskela_kumpula_box()
+# aoi_poly = files.get_koskela_kumpula_box()
+aoi_poly = files.get_hel_poly(wgs=True, buffer_m=1000)
 
 #%% 2.1 Get undirected projected graph
 start_time = time.time()
@@ -171,7 +172,7 @@ print('Exported graph to file:', graph_filename)
 #%% 11. Validate exported graph for use in quiet path app
 start_time = time.time()
 nts = [0.1, 0.15, 0.25, 0.5, 1, 1.5, 2, 4, 6, 10, 20, 40]
-# graph = files.get_network_full_noise_v2(directed=False)
+# graph = files.get_network_full_noise(version==2)
 graph = files.get_network_kumpula_noise(version=2)
 print('Graph of', graph.size(), 'edges read.')
 edge_gdf = nw.get_edge_gdf(graph, attrs=['geometry', 'length', 'noises'], by_nodes=False)
@@ -193,8 +194,5 @@ edge_gdf_all.head()
 #%%
 edge_gdf_noise_costs_ok = edge_gdf_all[edge_gdf_all['nc_0.1'] < 1001]
 print(len(edge_gdf_noise_costs_ok))
-
-#%%
-type(graph)
 
 #%%

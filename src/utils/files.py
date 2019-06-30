@@ -41,9 +41,13 @@ def get_koskela_kumpula_box():
     bounds = geom_utils.project_to_wgs(poly).bounds
     return box(*bounds)
 
-def get_hel_poly():
+def get_hel_poly(wgs=False, buffer_m=None):
     # return polygon of Helsinki in epsg:3879
     poly = list(hel['geometry'])[0]
+    if (buffer_m is not None):
+        poly = poly.buffer(buffer_m)
+    if (wgs == True):
+        poly = geom_utils.project_to_wgs(poly)
     return poly
 
 def get_update_test_walk_line():
@@ -72,11 +76,11 @@ def get_network_full():
     graph = ox.load_graphml('hel_u_g.graphml', folder='graphs')
     return graph
 
-def get_network_full_noise(directed=True):
-    return load_graphml('hel_u_g_n_f_s.graphml', folder='graphs', directed=directed)
-
-def get_network_full_noise_v2(directed=True):
-    return load_graphml('hel_u_g_n2_f_s.graphml', folder='graphs', directed=directed)
+def get_network_full_noise(version=None):
+    if (version == 1):
+        return load_graphml('hel_u_g_n2_f_s.graphml', folder='graphs', directed=False)
+    if (version == 2):
+        return load_graphml('hel-v2_u_g_n2_f_s.graphml', folder='graphs', directed=False)
 
 def get_pois():
     pois = gpd.read_file('data/test/target_locations.geojson')
