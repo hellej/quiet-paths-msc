@@ -290,6 +290,7 @@ def get_all_edge_dicts(graph, attrs=None, by_nodes=True):
                         ed = edges[edge_k]
                         ed['uvkey'] = edge_uvkey
                     edge_dicts.append(ed)
+        return edge_dicts
     else:
         for u, v, k, data in graph.edges(keys=True, data=True):
             edge_uvkey = (u, v, k)
@@ -303,7 +304,7 @@ def get_all_edge_dicts(graph, attrs=None, by_nodes=True):
                 ed = data.copy()
                 ed['uvkey'] = edge_uvkey
             edge_dicts.append(ed)
-    return edge_dicts
+        return edge_dicts
 
 def get_edge_noise_exps(edge_dict, noise_polys, graph):
     edge_d = {}

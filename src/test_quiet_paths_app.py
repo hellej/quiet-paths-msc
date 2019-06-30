@@ -65,18 +65,18 @@ def get_short_quiet_paths(from_latLon, to_latLon):
 #%% initialize graph
 start_time = time.time()
 nts = [0.1, 0.15, 0.25, 0.5, 1, 1.5, 2, 4, 6, 10, 20, 40]
-# graph = files.get_network_full_noise_v2(directed=False)
-graph = files.get_network_kumpula_noise(version=2)
+graph = files.get_network_full_noise_v2(directed=False)
+# graph = files.get_network_kumpula_noise(version=2)
 print('Graph of', graph.size(), 'edges read.')
 edge_gdf = nw.get_edge_gdf(graph, attrs=['geometry', 'length', 'noises'])
 node_gdf = nw.get_node_gdf(graph)
-# print('Network features extracted.')
+print('Network features extracted.')
 nw.set_graph_noise_costs(edge_gdf, graph, nts)
 edge_gdf = edge_gdf[['uvkey', 'geometry', 'noises']]
 print('Noise costs set.')
 edges_sind = edge_gdf.sindex
 nodes_sind = node_gdf.sindex
-# print('Spatial index built.')
+print('Spatial index built.')
 utils.print_duration(start_time, 'Network initialized.')
 
 #%% read test locations

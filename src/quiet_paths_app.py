@@ -21,6 +21,7 @@ CORS(app)
 start_time = time.time()
 nts = [0.1, 0.15, 0.25, 0.5, 1, 1.5, 2, 4, 6, 10, 20, 40]
 graph = files.get_network_full_noise_v2(directed=False)
+# graph = files.get_network_kumpula_noise(version=2)
 print('Graph of', graph.size(), 'edges read.')
 edge_gdf = nw.get_edge_gdf(graph, attrs=['geometry', 'length', 'noises'])
 node_gdf = nw.get_node_gdf(graph)
@@ -38,7 +39,7 @@ def hello_world():
     return 'Keep calm and walk quiet paths.'
 
 @app.route('/quietpaths/<from_lat>,<from_lon>/<to_lat>,<to_lon>')
-def get_quiet_path(from_lat, from_lon, to_lat, to_lon):
+def get_short_quiet_paths(from_lat, from_lon, to_lat, to_lon):
     start_time = time.time()
     # get origin & target nodes
     from_latLon = {'lat': float(from_lat), 'lon': float(from_lon)}
