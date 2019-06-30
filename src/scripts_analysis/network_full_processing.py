@@ -1,0 +1,200 @@
+#%%
+import geopandas as gpd
+import osmnx as ox
+import networkx as nx
+import time
+from multiprocessing import Pool
+from fiona.crs import from_epsg
+import utils.files as files
+import utils.geometry as geom_utils
+import utils.networks as nw
+import utils.exposures as exps
+import utils.utils as utils
+
+#%% 1. Set graph extent, name and output folder
+graph_name = 'kumpula-v2'
+out_dir = 'graphs'
+aoi_poly = files.get_koskela_kumpula_box()
+
+#%% 2.1 Get undirected projected graph
+start_time = time.time()
+graph = nw.get_walkable_network(extent_poly_wgs=aoi_poly)
+utils.print_duration(start_time, 'Graph acquired.', round_n=1)
+
+#%% 2.2 Delete unnecessary edge attributes and get edges as dictionaries
+nw.delete_unused_edge_attrs(graph, save_attrs=['uvkey', 'length', 'geometry', 'noises', 'osmid'])
+edge_dicts = nw.get_all_edge_dicts(graph, attrs=['geometry'], by_nodes=False)
+print('Got all edge dicts:', len(edge_dicts))
+
+#%% 2.3 Add missing edge geometries to graph
+start_time = time.time()
+def get_edge_geoms(edge_dict):
+    return nw.get_missing_edge_geometries(graph, edge_dict)
+pool = Pool(processes=4)
+edge_geom_dicts = pool.map(get_edge_geoms, edge_dicts)
+pool.close()
+for edge_d in edge_geom_dicts:
+    nx.set_edge_attributes(graph, { edge_d['uvkey']: {'geometry': edge_d['geometry'], 'length': edge_d['length']}})
+utils.print_duration(start_time, 'Missing edge geometries added.', round_n=1)
+
+#%% 3.1 Remove unwalkable streets & tunnels from the graph [query graph for filtering]
+print('Query unwalkable network...')
+graph_filt = nw.get_unwalkable_network(extent_poly_wgs=aoi_poly)
+filt_edge_dicts = nw.get_all_edge_dicts(graph_filt, by_nodes=False)
+nw.add_missing_edge_geometries(graph_filt, filt_edge_dicts)
+
+#%% 3.2 Remove unwalkable streets & tunnels from the graph [prepare networks for comparison]
+filt_edge_gdf = nw.get_edge_gdf(graph_filt, by_nodes=True)
+# add osmid as string to unwalkable (filter) edge gdfs
+filt_edge_gdf['osmid_str'] = [nw.osmid_to_string(osmid) for osmid in filt_edge_gdf['osmid'] ]
+print('Found', len(filt_edge_gdf), 'unwalkable edges within the extent.')
+## save tunnel edge gdf to file
+# filt_edges_file = filt_edge_gdf.drop(['oneway', 'access', 'osmid', 'uvkey', 'service', 'junction', 'lanes'], axis=1, errors='ignore')
+# filt_edges_file.to_file('data/networks.gpkg', layer='tunnel_edges_v2', driver="GPKG")
+# get edge gdf from graph
+edge_gdf = nw.get_edge_gdf(graph, by_nodes=True, attrs=['geometry', 'length', 'osmid'])
+# add osmid as string to edge gdfs
+edge_gdf['osmid_str'] = [nw.osmid_to_string(osmid) for osmid in edge_gdf['osmid']]
+
+#%% 3.3 Find matching (unwalkable) edges from the graph 
+edges_to_rm = []
+for idx, filt_edge in filt_edge_gdf.iterrows():
+    edges_found = edge_gdf.loc[edge_gdf['osmid_str'] == filt_edge['osmid_str']].copy()
+    if (len(edges_found) > 0):
+        edges_found['filter_match'] = [geom_utils.lines_overlap(filt_edge['geometry'], geom) for geom in edges_found['geometry']]
+        edges_match = edges_found.loc[edges_found['filter_match'] == True].copy()
+        rm_edges = list(edges_match['uvkey'])
+        edges_to_rm += rm_edges
+
+# filter out duplicate edges to remove
+edges_to_rm = list(set(edges_to_rm))
+print('Found', len(edges_to_rm), 'edges to remove (by matching osmid & geometry).')
+
+#%% 3.4 Remove matched unwalkable edges from the graph
+removed = 0
+errors = 0
+for uvkey in edges_to_rm:
+    try:
+        graph.remove_edge(uvkey[0], uvkey[1], key=uvkey[2])
+        removed += 1
+    except Exception:
+        errors += 1
+print('Removed', removed, 'edges from the graph')
+print('Could not remove', errors, 'edges (probably due to undirected graph type).')
+
+#%% 4. Remove unnecessary attributes from the graph 
+nw.delete_unused_edge_attrs(graph)
+
+#%% 5.1 Remove isolated nodes from the graph
+isolate_nodes = list(nx.isolates(graph))
+graph.remove_nodes_from(isolate_nodes)
+print('Removed', len(isolate_nodes), 'isolated nodes.')
+
+#%% 6.1 Find small unconnected subgraphs from the graph (to remove)
+sub_graphs = nx.connected_component_subgraphs(graph)
+# find nodes to remove from the subgraphs
+rm_nodes = []
+for sb in sub_graphs:
+    sub_graph = sb.copy()
+    print(f'subgraph has {sub_graph.number_of_nodes()} nodes')
+    if (len(sub_graph.nodes) < 30):
+        rm_nodes += list(sub_graph.nodes)
+print('Found', len(rm_nodes), 'nodes to remove (to remove subgrahs).')
+
+#%% 6.2 Remove subgraphs (by nodes)
+removed = 0
+errors = 0
+for rm_node in rm_nodes:
+    try:
+        graph.remove_node(rm_node)
+        print('removed node', rm_node)
+        removed += 1
+    except Exception:
+        errors += 1
+print('Removed', removed, 'nodes from the graph (subgraphs)')
+print('Could not remove', errors, 'nodes (removed already before).')
+
+#%% 7. Remove isolated nodes again from the graph (just to be sure)
+isolate_nodes = list(nx.isolates(graph))
+graph.remove_nodes_from(isolate_nodes)
+print('Found & removed', len(isolate_nodes), 'isolated nodes.')
+
+#%% 8. Export filtered graph to file
+graph_filename = graph_name +'_u_g_f_s.graphml'
+print('Exporting graph of', graph.number_of_nodes(), 'nodes and', graph.number_of_edges(), 'edges to file...')
+ox.save_graphml(graph, filename=graph_filename, folder='graphs', gephi=False)
+print('Exported graph to file:', graph_filename)
+
+#%% 9.1 Prepare for extraction of noise distances
+noise_polys = files.get_noise_polygons()
+noise_polys_sind = noise_polys.sindex
+edge_dicts = nw.get_all_edge_dicts(graph, attrs=['geometry', 'length'], by_nodes=False)
+
+# define function for spatial join between edge geometries and noise polygons
+def get_edge_noises_df(edge_dicts):
+    edge_gdf_sub = gpd.GeoDataFrame(edge_dicts, crs=from_epsg(3879))[['geometry', 'length', 'uvkey']]
+    # build spatial indexes
+    edges_sind = edge_gdf_sub.sindex
+    # add noise split lines as list
+    edge_gdf_sub['split_lines'] = [geom_utils.get_split_lines_list(line_geom, noise_polys) for line_geom in edge_gdf_sub['geometry']]
+    # explode new rows from split lines column
+    split_lines = geom_utils.explode_lines_to_split_lines(edge_gdf_sub, 'uvkey')
+    # join noises to split lines
+    split_line_noises = exps.get_noise_attrs_to_split_lines(split_lines, noise_polys)
+    # aggregate noises back to edges
+    edge_noises = exps.aggregate_line_noises(split_line_noises, 'uvkey')
+    return edge_noises
+
+#%% 9.2 Extract noise data by edge geometries
+# divide list of all edge dicts to chunks of 3000 edges
+edge_chunks = utils.get_list_chunks(edge_dicts, 3000)
+pool = Pool(processes=4)
+start_time = time.time()
+edge_noise_dfs = pool.map(get_edge_noises_df, edge_chunks)
+time_elapsed = time.time() - start_time
+edge_time = round(time_elapsed/len(edge_dicts), 5)
+print('\n--- %s minutes ---' % (round(time_elapsed/60, 2)))
+print('--- %s seconds per edge ---' % (edge_time))
+print('Noises extracted by edge geometries.')
+
+#%% 9.3 Update edge noises to graph
+for edge_noises in edge_noise_dfs:
+    nw.update_edge_noises(edge_noises, graph)
+print('Noises updated to graph.')
+
+#%% 10. Export graph with edge noises
+graph_filename = graph_name +'_u_g_n2_f_s.graphml'
+print('Exporting graph of', graph.number_of_nodes(), 'nodes and', graph.number_of_edges(), 'edges to file...')
+ox.save_graphml(graph, filename=graph_filename, folder='graphs', gephi=False)
+print('Exported graph to file:', graph_filename)
+
+#%% 11. Validate exported graph for use in quiet path app
+start_time = time.time()
+nts = [0.1, 0.15, 0.25, 0.5, 1, 1.5, 2, 4, 6, 10, 20, 40]
+# graph = files.get_network_full_noise_v2(directed=False)
+graph = files.get_network_kumpula_noise(version=2)
+print('Graph of', graph.size(), 'edges read.')
+edge_gdf = nw.get_edge_gdf(graph, attrs=['geometry', 'length', 'noises'], by_nodes=False)
+node_gdf = nw.get_node_gdf(graph)
+print('Network features extracted.')
+nw.set_graph_noise_costs(edge_gdf, graph, nts)
+edge_gdf = edge_gdf[['uvkey', 'geometry', 'noises']]
+print('Noise costs set.')
+edges_sind = edge_gdf.sindex
+nodes_sind = node_gdf.sindex
+print('Spatial index built.')
+utils.print_duration(start_time, 'Network initialized.')
+
+#%%
+edge_gdf_all = nw.get_edge_gdf(graph)
+print(len(edge_gdf_all))
+edge_gdf_all.head()
+
+#%%
+edge_gdf_noise_costs_ok = edge_gdf_all[edge_gdf_all['nc_0.1'] < 1001]
+print(len(edge_gdf_noise_costs_ok))
+
+#%%
+type(graph)
+
+#%%

@@ -29,14 +29,16 @@ def get_koskela_poly():
     return poly
 
 def get_koskela_box():
+    # return polygon of Koskela area in epsg:3879
     poly = get_koskela_poly()
     bounds = poly.bounds
     return box(*bounds)
 
 def get_koskela_kumpula_box():
+    # return polygon of Kumpula & Koskela area in epsg:3879
     rows = bboxes.loc[bboxes['name'] == 'koskela_kumpula']
     poly = list(rows['geometry'])[0]
-    bounds = poly.bounds
+    bounds = geom_utils.project_to_wgs(poly).bounds
     return box(*bounds)
 
 def get_hel_poly():
@@ -59,8 +61,12 @@ def get_network_kumpula():
     graph_undir = ox.load_graphml('kumpula_u_g.graphml', folder='graphs')
     return graph_undir
 
-def get_network_kumpula_noise(directed=None):
-    return load_graphml('kumpula_u_g_n_s.graphml', folder='graphs', directed=directed)
+def get_network_kumpula_noise(version=1):
+    if (version == 1):
+        return load_graphml('kumpula_u_g_n_s.graphml', folder='graphs', directed=False)
+    if (version == 2):
+        return load_graphml('kumpula-v2_u_g_n2_f_s.graphml', folder='graphs', directed=False)
+    return None
 
 def get_network_full():
     graph = ox.load_graphml('hel_u_g.graphml', folder='graphs')

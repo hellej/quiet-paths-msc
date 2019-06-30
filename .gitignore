@@ -25,3 +25,5 @@ src/data/vis.gpkg
 src/graphs/hel_u_g_n_f.graphml
 src/graphs/hel_u_g_n_f_s.graphml
 src/graphs/hel_u_g_n2_f_s.graphml
+src/graphs/kumpula-v2_u_g_f_s.graphml
+src/graphs/kumpula-v2_u_g_n2_f_s.graphml

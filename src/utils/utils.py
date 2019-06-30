@@ -24,6 +24,6 @@ def get_list_chunks(l, n):
         chunks.append(l[i:i + n])
     return chunks
 
-def print_duration(time1, text):
-    time_elapsed = round(time.time() - time1, 3)
+def print_duration(time1, text, round_n=3):
+    time_elapsed = round(time.time() - time1, round_n)
     print('--- %s s --- %s' % (time_elapsed, text))

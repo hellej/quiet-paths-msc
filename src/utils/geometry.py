@@ -210,7 +210,7 @@ def get_geojson_from_geom(geom):
 
 def lines_overlap(geom1, geom2):
     '''
-    Function for testing if two lines overlap. Multiple geometrical tests can be made:
+    Function for testing if two lines overlap within small tolerance. Multiple geometrical tests can be made:
     1) Other line should be within a small buffer around the other line and vice versa.
     2) First points of the lines should be close.
     3) Distance between the lines should be small.
