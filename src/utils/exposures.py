@@ -211,9 +211,8 @@ def get_mean_noise_level(length: float, noises: dict):
     mean_db = sum_db/length
     return round(mean_db, 2)
 
-def compare_lens_noises_lens(edge_gdf, subset=500):
+def compare_lens_noises_lens(edge_gdf):
     gdf = edge_gdf.copy()
-    print('Edge GDF cols:', gdf.columns)
     gdf['uvkey_str'] = [str(uvkey[0])+'_'+str(uvkey[1]) for uvkey in gdf['uvkey']]
     gdf['node_from'] = [uvkey[0] for uvkey in gdf['uvkey']]
     gdf['length'] = [geom.length for geom in gdf['geometry']]

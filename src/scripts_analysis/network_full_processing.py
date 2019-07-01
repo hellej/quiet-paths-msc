@@ -15,7 +15,7 @@ import utils.utils as utils
 graph_name = 'hel-v2'
 out_dir = 'graphs'
 # aoi_poly = files.get_koskela_kumpula_box()
-aoi_poly = files.get_hel_poly(wgs=True, buffer_m=1000)
+aoi_poly = files.get_hel_poly(WGS84=True, buffer_m=1000)
 
 #%% 2.1 Get undirected projected graph
 start_time = time.time()
@@ -169,30 +169,38 @@ print('Exporting graph of', graph.number_of_nodes(), 'nodes and', graph.number_o
 ox.save_graphml(graph, filename=graph_filename, folder='graphs', gephi=False)
 print('Exported graph to file:', graph_filename)
 
-#%% 11. Validate exported graph for use in quiet path app
+#%% 11. Validate contaminated distances in the exported graph
+# graph_name = 'kumpula-v2'
+# graph_filename = graph_name +'_u_g_n2_f_s.graphml'
+graph = files.load_graphml(graph_filename, folder=out_dir, directed=False)
+# get edge gdf
+edge_gdf = nw.get_edge_gdf(graph, attrs=['geometry', 'length', 'noises'], by_nodes=False)
+edge_sample = edge_gdf.sample(n=10000)
+# compare total length of contaminated distances along edge(s) to total length of edge(s)
+edge_noise_length_check = exps.compare_lens_noises_lens(edge_sample)
+edge_problems = edge_noise_length_check.query("len_noise_error < -0.005")
+problem_count = len(edge_problems)
+if (problem_count > 0):
+    missing_ratio = round((problem_count/len(edge_gdf)) * 100, 3)
+    print('Contaminated distances (noises) bad for:', problem_count, 'edges ('+ str(missing_ratio)+' %)')
+else:
+    print('Contaminated distances (noises) of edges ok.')
+
+#%% 12. Validate exported graph for use in quiet path app
 start_time = time.time()
 nts = [0.1, 0.15, 0.25, 0.5, 1, 1.5, 2, 4, 6, 10, 20, 40]
-# graph = files.get_network_full_noise(version==2)
-graph = files.get_network_kumpula_noise(version=2)
-print('Graph of', graph.size(), 'edges read.')
 edge_gdf = nw.get_edge_gdf(graph, attrs=['geometry', 'length', 'noises'], by_nodes=False)
-node_gdf = nw.get_node_gdf(graph)
-print('Network features extracted.')
 nw.set_graph_noise_costs(edge_gdf, graph, nts)
-edge_gdf = edge_gdf[['uvkey', 'geometry', 'noises']]
-print('Noise costs set.')
-edges_sind = edge_gdf.sindex
-nodes_sind = node_gdf.sindex
-print('Spatial index built.')
-utils.print_duration(start_time, 'Network initialized.')
+# get full number of edges (undirected edges x 2)
+edge_gdf_all = nw.get_edge_gdf(graph, by_nodes=True)
+# calculate edges for which the noise costs were set
+edge_gdf_noise_costs_ok = edge_gdf_all[(edge_gdf_all['nc_0.1'] < 1000) & (edge_gdf_all['nc_0.1'] > 0.2)]
+missing_edge_costs_count = len(edge_gdf_all) - len(edge_gdf_noise_costs_ok)
+if (missing_edge_costs_count > 0):
+    missing_ratio = round((missing_edge_costs_count/len(edge_gdf_all)) * 100, 3)
+    print('Edge noise costs not set for:', missing_edge_costs_count, 'edges ('+ str(missing_ratio)+' %)')
+else:
+    print('Edge noise costs ok.')
 
-#%%
-edge_gdf_all = nw.get_edge_gdf(graph)
-print(len(edge_gdf_all))
-edge_gdf_all.head()
-
-#%%
-edge_gdf_noise_costs_ok = edge_gdf_all[edge_gdf_all['nc_0.1'] < 1001]
-print(len(edge_gdf_noise_costs_ok))
 
 #%%

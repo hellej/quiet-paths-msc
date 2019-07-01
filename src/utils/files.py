@@ -41,12 +41,12 @@ def get_koskela_kumpula_box():
     bounds = geom_utils.project_to_wgs(poly).bounds
     return box(*bounds)
 
-def get_hel_poly(wgs=False, buffer_m=None):
+def get_hel_poly(WGS84=False, buffer_m=None):
     # return polygon of Helsinki in epsg:3879
     poly = list(hel['geometry'])[0]
     if (buffer_m is not None):
         poly = poly.buffer(buffer_m)
-    if (wgs == True):
+    if (WGS84 == True):
         poly = geom_utils.project_to_wgs(poly)
     return poly
 
