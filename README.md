@@ -1,7 +1,7 @@
 # MSc thesis
 ## Assessing and minimizing pedestrians' exposure to traffic noise with spatial analysis and Web GIS (working title)
 This repository contains the main components of my master's thesis, including:
-* Scripts for [construction, processing and analysis](src/utils/networks.py) of walkable street network (graph)
+* Scripts for [construction, processing and analysis](src/scripts_analysis/network_full_processing.py) of walkable street network (graph)
 * [Scripts](https://github.com/hellej/quiet-paths-msc/tree/master/src/batch_jobs) for extracting traffic noises to all network edges (in CSC's Taito supercluster) 
 * [Analysis](https://github.com/hellej/quiet-paths-msc/tree/master/src/scripts_analysis) and [utilities](src/utils/exposures.py) for assessing pedestrians exposure to traffic noise
 * [Quiet path route optimization application](src/quiet_paths_app.py) (POC)
