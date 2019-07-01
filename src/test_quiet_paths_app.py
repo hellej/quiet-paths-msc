@@ -111,13 +111,37 @@ class TestQuietPaths(unittest.TestCase):
         self.assertDictEqual(stats, compare_d)
 
     def test_quiet_path_3(self):
-        compare_d = { 'p_count': 9, 'sp_count': 1, 'qp_count': 8, 'sp_len': 1288.6, 'qp_len_sum': 12684.7 }
+        compare_d = {'p_count': 4, 'sp_count': 1, 'qp_count': 3, 'sp_len': 771.5, 'qp_len_sum': 2462.2}
         stats = get_path_stats(origin_latLon, to_latLon_3)
         self.assertDictEqual(stats, compare_d)
 
     def test_quiet_path_4(self):
         compare_d = { 'p_count': 4, 'sp_count': 1, 'qp_count': 3, 'sp_len': 1317.8, 'qp_len_sum': 4180.3 }
         stats = get_path_stats(origin_latLon, to_latLon_4)
+        self.assertDictEqual(stats, compare_d)
+
+    def test_quiet_path_5(self):
+        # origin at the end of an edge
+        origin_latLon = { 'lat': 60.21312, 'lon': 24.96236 }
+        to_latLon = { 'lat': 60.21239, 'lon': 24.96278 }
+        compare_d = { 'p_count': 2, 'qp_count': 1, 'qp_len_sum': 83.7, 'sp_count': 1, 'sp_len': 83.7 }
+        stats = get_path_stats(origin_latLon, to_latLon)
+        self.assertDictEqual(stats, compare_d)
+
+    def test_quiet_path_6(self):
+        # origin and target on the same edge
+        origin_latLon = { 'lat': 60.21189, 'lon': 24.96235 }
+        to_latLon = { 'lat': 60.21148, 'lon': 24.96241 }
+        compare_d = { 'p_count': 2, 'qp_count': 1, 'qp_len_sum': 45.4, 'sp_count': 1, 'sp_len': 45.4 }
+        stats = get_path_stats(origin_latLon, to_latLon)
+        self.assertDictEqual(stats, compare_d)
+
+    def test_quiet_path_7(self):
+        # origin and target on the same edge (loop)
+        origin_latLon = { 'lat': 60.21055, 'lon': 24.96032 }
+        to_latLon = { 'lat': 60.21045, 'lon': 24.95886 }
+        compare_d = { 'p_count': 2, 'qp_count': 1, 'qp_len_sum': 132.0, 'sp_count': 1, 'sp_len': 94.5 }
+        stats = get_path_stats(origin_latLon, to_latLon)
         self.assertDictEqual(stats, compare_d)
 
 if __name__ == '__main__':

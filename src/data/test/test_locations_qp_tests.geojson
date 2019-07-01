@@ -3,10 +3,10 @@
 "name": "target_locations",
 "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
 "features": [
-{ "type": "Feature", "properties": { "fid": null, "type": "POI", "name": "Koskela", "name_en": "Koskela" }, "geometry": { "type": "Point", "coordinates": [ 24.969744687192424, 60.217538818281447 ] } },
-{ "type": "Feature", "properties": { "fid": null, "type": "target", "name": null, "name_en": null }, "geometry": { "type": "Point", "coordinates": [ 24.966229805754072, 60.202289690070039 ] } },
-{ "type": "Feature", "properties": { "fid": null, "type": "target", "name": null, "name_en": null }, "geometry": { "type": "Point", "coordinates": [ 24.94862114343367, 60.209639893617428 ] } },
-{ "type": "Feature", "properties": { "fid": null, "type": "target", "name": null, "name_en": null }, "geometry": { "type": "Point", "coordinates": [ 24.950846090217695, 60.217432127035572 ] } },
-{ "type": "Feature", "properties": { "fid": null, "type": "target", "name": null, "name_en": null }, "geometry": { "type": "Point", "coordinates": [ 24.967113238975376, 60.227447590645923 ] } }
+{ "type": "Feature", "properties": { "fid": "", "type": "POI", "name": "Koskela", "name_en": "Koskela" }, "geometry": { "type": "Point", "coordinates": [ 24.969744687192424, 60.217538818281447 ] } },
+{ "type": "Feature", "properties": { "fid": "3", "type": "target", "name": null, "name_en": null }, "geometry": { "type": "Point", "coordinates": [ 24.966229805754072, 60.202289690070039 ] } },
+{ "type": "Feature", "properties": { "fid": "2", "type": "target", "name": null, "name_en": null }, "geometry": { "type": "Point", "coordinates": [ 24.94862114343367, 60.209639893617428 ] } },
+{ "type": "Feature", "properties": { "fid": "1", "type": "target", "name": null, "name_en": null }, "geometry": { "type": "Point", "coordinates": [ 24.959879767898752, 60.215809350481656 ] } },
+{ "type": "Feature", "properties": { "fid": "4", "type": "target", "name": null, "name_en": null }, "geometry": { "type": "Point", "coordinates": [ 24.967113238975376, 60.227447590645923 ] } }
 ]
 }
