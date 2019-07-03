@@ -48,34 +48,35 @@ def find_nearest_node(xy, node_gdf):
     # utils.print_duration(start_time, 'found nearest node')
     return nearest_node
 
-def get_nearest_node(graph_proj, xy, edge_gdf, node_gdf, nts, add_new_edge_noises: bool, noise_polys=None, orig_node=None, logging=False):
+def get_nearest_node(graph, xy, edge_gdf, node_gdf, nts, orig_node=None, logging=False):
     coords = geom_utils.get_coords_from_xy(xy)
     point = Point(coords)
-    near_edge = find_nearest_edge(xy, edge_gdf)
-    if (near_edge is None):
+    nearest_edge = find_nearest_edge(xy, edge_gdf)
+    if (nearest_edge is None):
         return None
-    edge_geom = near_edge['geometry']
     nearest_node = find_nearest_node(xy, node_gdf)
-    nearest_node_geom = geom_utils.get_point_from_xy(graph_proj.nodes[nearest_node])
-    # create a new node on the nearest edge nearest to the origin
-    closest_line_point = geom_utils.get_closest_point_on_line(edge_geom, point)
-    # if nearest node is same as closest point on closest edge, return nearest node
-    near_edge_near_node_dist_diff = closest_line_point.distance(nearest_node_geom) 
-    if (near_edge_near_node_dist_diff < 1):
-        # print('nearest node is at end of the nearest edge at distance:', round(near_edge_near_node_dist_diff, 5))
+    # parse node geom from node attributes
+    nearest_node_geom = geom_utils.get_point_from_xy(graph.nodes[nearest_node])
+    # get the nearest point on the nearest edge
+    nearest_edge_point = geom_utils.get_closest_point_on_line(nearest_edge['geometry'], point)
+    # return the nearest node if it as near as the nearest edge
+    if (nearest_edge_point.distance(nearest_node_geom)  < 1):
         return { 'node': nearest_node, 'offset': round(nearest_node_geom.distance(point), 1) }
+    # check if the nearest edge of the target is one of the linking edges created for origin 
     if (orig_node is not None and 'link_edges' in orig_node):
-        if (closest_line_point.distance(orig_node['link_edges']['link1']['geometry']) < 0.2):
-            near_edge = orig_node['link_edges']['link1']
-        if (closest_line_point.distance(orig_node['link_edges']['link2']['geometry']) < 0.2):
-            near_edge = orig_node['link_edges']['link2']
-    new_node = nw.add_new_node(graph_proj, closest_line_point, logging=logging)
-    link_edges = nw.add_linking_edges_for_new_node(graph_proj, new_node, closest_line_point, near_edge, nts, add_new_edge_noises, noise_polys=noise_polys, logging=logging)
-    return { 'node': new_node, 'link_edges': link_edges, 'offset': round(closest_line_point.distance(point), 1) }
+        if (nearest_edge_point.distance(orig_node['link_edges']['link1']['geometry']) < 0.2):
+            nearest_edge = orig_node['link_edges']['link1']
+        if (nearest_edge_point.distance(orig_node['link_edges']['link2']['geometry']) < 0.2):
+            nearest_edge = orig_node['link_edges']['link2']
+    # create a new node on the nearest edge
+    new_node = nw.add_new_node(graph, nearest_edge_point, logging=logging)
+    # link added node to the origin and target nodes of the nearest edge (by adding two linking edges)
+    link_edges = nw.add_linking_edges_for_new_node(graph, new_node, nearest_edge_point, nearest_edge, nts, logging=logging)
+    return { 'node': new_node, 'link_edges': link_edges, 'offset': round(nearest_edge_point.distance(point), 1) }
 
-def get_shortest_path(graph_proj, orig_node, target_node, weight: str):
+def get_shortest_path(graph, orig_node, target_node, weight: str):
     if (orig_node != target_node):
-        s_path = nx.shortest_path(G=graph_proj, source=orig_node, target=target_node, weight=weight)
+        s_path = nx.shortest_path(G=graph, source=orig_node, target=target_node, weight=weight)
         return s_path
     else:
         return None
@@ -141,8 +142,8 @@ def get_short_quiet_paths(graph, from_latLon, to_latLon, edge_gdf, node_gdf, nts
     from_xy = geom_utils.get_xy_from_lat_lon(from_latLon)
     to_xy = geom_utils.get_xy_from_lat_lon(to_latLon)
     # find origin and target nodes from closest edges
-    orig_node = get_nearest_node(graph, from_xy, edge_gdf, node_gdf, nts, False, logging=logging)
-    target_node = get_nearest_node(graph, to_xy, edge_gdf, node_gdf, nts, False, orig_node=orig_node, logging=logging)
+    orig_node = get_nearest_node(graph, from_xy, edge_gdf, node_gdf, nts, logging=logging)
+    target_node = get_nearest_node(graph, to_xy, edge_gdf, node_gdf, nts, orig_node=orig_node, logging=logging)
     if (orig_node is None or target_node is None):
         return None
     if (logging == True):

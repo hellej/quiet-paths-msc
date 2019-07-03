@@ -129,14 +129,10 @@ def estimate_link_noises(link_geom, edge_geom, edge_noises):
         link_noises[db] = round(edge_noises[db] * link_len_ratio, 3)
     return link_noises
 
-def get_edge_noise_cost_attrs(nts, edge_d, link_geom, b_add_noises: bool, noise_polys):
+def get_edge_noise_cost_attrs(nts, edge_d, link_geom):
     cost_attrs = {}
-    if (b_add_noises == True):
-        # get link noise exposures accurately if b_add_noises = True
-        cost_attrs['noises'] = exps.get_noise_dict_for_geom(link_geom, noise_polys)
-    else:
-        # estimate link noises based on link length - edge length -ratio and edge noises
-        cost_attrs['noises'] = estimate_link_noises(link_geom, edge_d['geometry'], edge_d['noises'])
+    # estimate link noises based on link length - edge length -ratio and edge noises
+    cost_attrs['noises'] = estimate_link_noises(link_geom, edge_d['geometry'], edge_d['noises'])
     for nt in nts:
         cost = get_noise_cost_from_noises_dict(link_geom.length, cost_attrs['noises'], nt=nt)
         cost_attrs['nc_'+str(nt)] = cost
@@ -145,7 +141,7 @@ def get_edge_noise_cost_attrs(nts, edge_d, link_geom, b_add_noises: bool, noise_
         print('link length unmatch:', noises_sum_len, link_geom.length)
     return cost_attrs
 
-def add_linking_edges_for_new_node(graph, new_node, split_point, edge, nts, b_add_noises, noise_polys=None, logging=True):
+def add_linking_edges_for_new_node(graph, new_node, split_point, edge, nts, logging=False):
     edge_geom = edge['geometry']
     split_lines = geom_utils.split_line_at_point(edge_geom, split_point)
     node_from = edge['uvkey'][0]
@@ -165,20 +161,22 @@ def add_linking_edges_for_new_node(graph, new_node, split_point, edge, nts, b_ad
     graph.add_edge(new_node, node_from, geometry=link1, length=round(link1.length, 3), uvkey=(new_node, node_from, 0))
     graph.add_edge(new_node, node_to, key=1, geometry=link2, length=round(link2.length, 3), uvkey=(new_node, node_to, 1))
     graph.add_edge(node_to, new_node, key=1, geometry=link2, length=round(link2.length, 3), uvkey=(node_to, new_node, 1))
-    # set noise cost attributes for new edges if they will be used in quiet path routing
-    if (len(nts) > 0):
-        link1_noise_costs = get_edge_noise_cost_attrs(nts, edge, link1, b_add_noises, noise_polys)
-        link2_noise_costs = get_edge_noise_cost_attrs(nts, edge, link2, b_add_noises, noise_polys)
-        attrs = {
-            (node_from, new_node, 0): link1_noise_costs,
-            (new_node, node_from, 0): link1_noise_costs,
-            (new_node, node_to, 1): link2_noise_costs,
-            (node_to, new_node, 1): link2_noise_costs
-        }
-        nx.set_edge_attributes(graph, attrs)
+    # set noise cost attributes for new linking edges so that they work in quiet path routing
+    link1_noise_costs = get_edge_noise_cost_attrs(nts, edge, link1)
+    link2_noise_costs = get_edge_noise_cost_attrs(nts, edge, link2)
+    attrs = {
+        (node_from, new_node, 0): link1_noise_costs,
+        (new_node, node_from, 0): link1_noise_costs,
+        (new_node, node_to, 1): link2_noise_costs,
+        (node_to, new_node, 1): link2_noise_costs
+    }
+    nx.set_edge_attributes(graph, attrs)
+    if (logging == True):
+        print('set link1 noise costs to:', link1_noise_costs['nc_1'], link1_noise_costs['nc_40'])
+        print('set link2 noise costs to:', link2_noise_costs['nc_1'], link2_noise_costs['nc_40'])
     link1_d = { 'geometry': link1, 'noises': link1_noise_costs['noises'], 'uvkey': (new_node, node_from, 0) }
     link2_d = { 'geometry': link2, 'noises': link2_noise_costs['noises'], 'uvkey': (node_to, new_node, 0) }
-    return {'node_from': node_from, 'new_node': new_node, 'node_to': node_to, 'link1': link1_d, 'link2': link2_d }
+    return { 'node_from': node_from, 'new_node': new_node, 'node_to': node_to, 'link1': link1_d, 'link2': link2_d }
 
 def remove_linking_edges_of_new_node(graph, new_node_d):
     if ('link_edges' in new_node_d.keys()):

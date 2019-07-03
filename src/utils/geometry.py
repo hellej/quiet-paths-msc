@@ -237,4 +237,9 @@ def lines_overlap(geom1, geom2):
     if (dist1 < 1 and len_diff < 10 and (dist2 < 1 or dist3 < 1)):
         return True
     return False
-    
+
+def get_gdf_subset_within_poly(gdf, polygon):
+    gdf = gdf.copy()
+    gdf['b_inside_poly'] = [True if geom.within(polygon) else False for geom in gdf['geometry']]
+    inside = gdf[gdf['b_inside_poly'] == True]
+    return inside.drop(columns=['b_inside_poly'])
