@@ -59,7 +59,7 @@ def get_nearest_node(graph, xy, edge_gdf, node_gdf, nts, orig_node=None, logging
     nearest_node_geom = geom_utils.get_point_from_xy(graph.nodes[nearest_node])
     # get the nearest point on the nearest edge
     nearest_edge_point = geom_utils.get_closest_point_on_line(nearest_edge['geometry'], point)
-    # return the nearest node if it as near as the nearest edge
+    # return the nearest node if it is as near as the nearest edge
     if (nearest_edge_point.distance(nearest_node_geom)  < 1):
         return { 'node': nearest_node, 'offset': round(nearest_node_geom.distance(point), 1) }
     # check if the nearest edge of the target is one of the linking edges created for origin 
