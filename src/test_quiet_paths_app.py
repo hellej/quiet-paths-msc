@@ -51,8 +51,8 @@ def get_short_quiet_paths(graph, from_latLon, to_latLon, logging=False):
 #%% initialize graph
 start_time = time.time()
 nts = [0.1, 0.15, 0.25, 0.5, 1, 1.5, 2, 4, 6, 10, 20, 40]
-graph = files.get_network_full_noise(version=2)
-# graph = files.get_network_kumpula_noise(version=2)
+# graph = files.get_network_full_noise(version=2)
+graph = files.get_network_kumpula_noise(version=2)
 print('Graph of', graph.size(), 'edges read.')
 edge_gdf = nw.get_edge_gdf(graph, attrs=['geometry', 'length', 'noises'])
 node_gdf = nw.get_node_gdf(graph)
@@ -65,71 +65,74 @@ nodes_sind = node_gdf.sindex
 print('Spatial index built.')
 utils.print_duration(start_time, 'Network initialized.')
 
-#%% read test locations
-origin_latLon = tests.get_origin_lat_lon()
-target_locations = tests.get_target_locations()
-to_latLon_1 = list(target_locations['latLon'])[0]
-to_latLon_2 = list(target_locations['latLon'])[1]
-to_latLon_3 = list(target_locations['latLon'])[2]
-to_latLon_4 = list(target_locations['latLon'])[3]
-
-def get_path_stats(graph, origin_latLon, to_latLon, logging=False):
-    test_paths = get_short_quiet_paths(graph, origin_latLon, to_latLon, logging=logging)
-    sp = test_paths[test_paths['type'] == 'short']
-    qp = test_paths[test_paths['type'] == 'quiet']
-    p_count = len(test_paths)
+def get_od_path_stats(graph, od_dict, logging=False):
+    paths = get_short_quiet_paths(graph, od_dict['orig_latLon'], od_dict['dest_latLon'], logging=logging)
+    sp = paths[paths['type'] == 'short']
+    qp = paths[paths['type'] == 'quiet']
     sp_count = len(sp)
     qp_count = len(qp)
     sp_len = round(sp['total_length'].sum(), 1)
     qp_len_sum = round(qp['total_length'].sum(), 1)
-    return { 'p_count': p_count, 'sp_count': sp_count, 'qp_count': qp_count, 'sp_len': sp_len, 'qp_len_sum': qp_len_sum }
+    all_noises = exps.aggregate_exposures(list(paths['noises']))
+    noise_total_len = round(exps.get_total_noises_len(all_noises), 1)
+    stats = { 'sp_count': sp_count, 'qp_count': qp_count, 'sp_len': sp_len, 'qp_len_sum': qp_len_sum, 'noise_total_len': noise_total_len }
+    return stats
+
+#%% read test OD pairs
+ods = tests.get_target_ODs()
+od_dicts = ods.to_dict(orient='records')
 
 class TestQuietPaths(unittest.TestCase):
 
     def test_quiet_path_1(self):
-        compare_d = { 'p_count': 7, 'sp_count': 1, 'qp_count': 6, 'sp_len': 2043.0, 'qp_len_sum': 16711.4 }
-        stats = get_path_stats(graph, origin_latLon, to_latLon_1)
+        compare_d = { 'sp_count': 1, 'qp_count': 1, 'sp_len': 813.0, 'qp_len_sum': 813.0, 'noise_total_len': 618.5 }
+        stats = get_od_path_stats(graph, od_dicts[0])
         self.assertDictEqual(stats, compare_d)
 
     def test_quiet_path_2(self):
-        compare_d = { 'p_count': 9, 'sp_count': 1, 'qp_count': 8, 'sp_len': 1547.5, 'qp_len_sum': 15774.1 }
-        stats = get_path_stats(graph, origin_latLon, to_latLon_2)
+        compare_d = { 'sp_count': 1, 'qp_count': 5, 'sp_len': 1140.8, 'qp_len_sum': 6139.4, 'noise_total_len': 5969.7 }
+        stats = get_od_path_stats(graph, od_dicts[1])
         self.assertDictEqual(stats, compare_d)
 
     def test_quiet_path_3(self):
-        compare_d = {'p_count': 6, 'sp_count': 1, 'qp_count': 5, 'sp_len': 1062.5, 'qp_len_sum': 5645.1 }
-        stats = get_path_stats(graph, origin_latLon, to_latLon_3)
+        compare_d = { 'sp_count': 1, 'qp_count': 4, 'sp_len': 936.5, 'qp_len_sum': 4688.3, 'noise_total_len': 4303.4 }
+        stats = get_od_path_stats(graph, od_dicts[2])
         self.assertDictEqual(stats, compare_d)
 
     def test_quiet_path_4(self):
-        compare_d = { 'p_count': 4, 'sp_count': 1, 'qp_count': 3, 'sp_len': 1317.8, 'qp_len_sum': 4180.3 }
-        stats = get_path_stats(graph, origin_latLon, to_latLon_4)
+        compare_d = { 'sp_count': 1, 'qp_count': 5, 'sp_len': 1136.5, 'qp_len_sum': 6562.6, 'noise_total_len': 7263.1 }
+        stats = get_od_path_stats(graph, od_dicts[3])
         self.assertDictEqual(stats, compare_d)
 
     def test_quiet_path_5(self):
-        # origin at the end of an edge
-        origin_latLon = { 'lat': 60.21312, 'lon': 24.96236 }
-        to_latLon = { 'lat': 60.21239, 'lon': 24.96278 }
-        compare_d = { 'p_count': 2, 'qp_count': 1, 'qp_len_sum': 83.7, 'sp_count': 1, 'sp_len': 83.7 }
-        stats = get_path_stats(graph, origin_latLon, to_latLon)
+        compare_d = { 'sp_count': 1, 'qp_count': 8, 'sp_len': 1648.8, 'qp_len_sum': 14334.3, 'noise_total_len': 11922.9 }
+        stats = get_od_path_stats(graph, od_dicts[4])
         self.assertDictEqual(stats, compare_d)
 
     def test_quiet_path_6(self):
-        # origin and target on the same edge
-        origin_latLon = { 'lat': 60.21189, 'lon': 24.96235 }
-        to_latLon = { 'lat': 60.21148, 'lon': 24.96241 }
-        compare_d = { 'p_count': 2, 'qp_count': 1, 'qp_len_sum': 45.4, 'sp_count': 1, 'sp_len': 45.4 }
-        stats = get_path_stats(graph, origin_latLon, to_latLon)
+        compare_d = { 'sp_count': 1, 'qp_count': 5, 'sp_len': 1024.9, 'qp_len_sum': 6410.0, 'noise_total_len': 6782.7 }
+        stats = get_od_path_stats(graph, od_dicts[5])
         self.assertDictEqual(stats, compare_d)
 
     def test_quiet_path_7(self):
-        # origin and target on the same edge (loop)
-        origin_latLon = { 'lat': 60.21055, 'lon': 24.96032 }
-        to_latLon = { 'lat': 60.21054, 'lon': 24.95899 }
-        compare_d = { 'p_count': 2, 'qp_count': 1, 'qp_len_sum': 82.2, 'sp_count': 1, 'sp_len': 82.2 }
-        stats = get_path_stats(graph, origin_latLon, to_latLon, logging=True)
-        self.assertEqual(stats['sp_len'], compare_d['sp_len'])
-        self.assertEqual(stats['qp_len_sum'], compare_d['qp_len_sum'])
+        compare_d = { 'sp_count': 1, 'qp_count': 4, 'sp_len': 1053.4, 'qp_len_sum': 5120.3, 'noise_total_len': 5523.1 }
+        stats = get_od_path_stats(graph, od_dicts[6])
+        self.assertDictEqual(stats, compare_d)
+
+    def test_quiet_path_8(self):
+        compare_d = { 'sp_count': 1, 'qp_count': 6, 'sp_len': 795.9, 'qp_len_sum': 6318.3, 'noise_total_len': 5385.9 }
+        stats = get_od_path_stats(graph, od_dicts[7])
+        self.assertDictEqual(stats, compare_d)
+
+    def test_quiet_path_9(self):
+        compare_d = { 'sp_count': 1, 'qp_count': 2, 'sp_len': 670.6, 'qp_len_sum': 1364.7, 'noise_total_len': 1218.2 }
+        stats = get_od_path_stats(graph, od_dicts[8])
+        self.assertDictEqual(stats, compare_d)
+
+    def test_quiet_path_10(self):
+        compare_d = { 'sp_count': 1, 'qp_count': 1, 'sp_len': 138.0, 'qp_len_sum': 138.0, 'noise_total_len': 276.0 }
+        stats = get_od_path_stats(graph, od_dicts[9])
+        self.assertDictEqual(stats, compare_d)
 
 if __name__ == '__main__':
     unittest.main()
