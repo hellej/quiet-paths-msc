@@ -51,8 +51,8 @@ def get_short_quiet_paths(graph, from_latLon, to_latLon, logging=False):
 #%% initialize graph
 start_time = time.time()
 nts = [0.1, 0.15, 0.25, 0.5, 1, 1.5, 2, 4, 6, 10, 20, 40]
-# graph = files.get_network_full_noise(version=2)
-graph = files.get_network_kumpula_noise(version=2)
+graph = files.get_network_full_noise(version=2)
+# graph = files.get_network_kumpula_noise(version=2)
 print('Graph of', graph.size(), 'edges read.')
 edge_gdf = nw.get_edge_gdf(graph, attrs=['geometry', 'length', 'noises'])
 node_gdf = nw.get_node_gdf(graph)
@@ -92,12 +92,12 @@ class TestQuietPaths(unittest.TestCase):
         self.assertDictEqual(stats, compare_d)
 
     def test_quiet_path_2(self):
-        compare_d = { 'p_count': 9, 'sp_count': 1, 'qp_count': 8, 'sp_len': 1547.5, 'qp_len_sum': 16059.9 }
+        compare_d = { 'p_count': 9, 'sp_count': 1, 'qp_count': 8, 'sp_len': 1547.5, 'qp_len_sum': 15774.1 }
         stats = get_path_stats(graph, origin_latLon, to_latLon_2)
         self.assertDictEqual(stats, compare_d)
 
     def test_quiet_path_3(self):
-        compare_d = {'p_count': 6, 'sp_count': 1, 'qp_count': 5, 'sp_len': 1062.5, 'qp_len_sum': 5700.7 }
+        compare_d = {'p_count': 6, 'sp_count': 1, 'qp_count': 5, 'sp_len': 1062.5, 'qp_len_sum': 5645.1 }
         stats = get_path_stats(graph, origin_latLon, to_latLon_3)
         self.assertDictEqual(stats, compare_d)
 
@@ -126,7 +126,7 @@ class TestQuietPaths(unittest.TestCase):
         # origin and target on the same edge (loop)
         origin_latLon = { 'lat': 60.21055, 'lon': 24.96032 }
         to_latLon = { 'lat': 60.21054, 'lon': 24.95899 }
-        compare_d = { 'p_count': 2, 'qp_count': 1, 'qp_len_sum': 144.4, 'sp_count': 1, 'sp_len': 82.2 }
+        compare_d = { 'p_count': 2, 'qp_count': 1, 'qp_len_sum': 82.2, 'sp_count': 1, 'sp_len': 82.2 }
         stats = get_path_stats(graph, origin_latLon, to_latLon, logging=True)
         self.assertEqual(stats['sp_len'], compare_d['sp_len'])
         self.assertEqual(stats['qp_len_sum'], compare_d['qp_len_sum'])
