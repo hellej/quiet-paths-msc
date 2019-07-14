@@ -79,59 +79,58 @@ def get_od_path_stats(graph, od_dict, logging=False):
     return stats
 
 #%% read test OD pairs
-ods = tests.get_target_ODs()
-od_dicts = ods.to_dict(orient='records')
+od_dict = tests.get_target_ODs()
 
 class TestQuietPaths(unittest.TestCase):
 
     def test_quiet_path_1(self):
         compare_d = { 'sp_count': 1, 'qp_count': 1, 'sp_len': 813.0, 'qp_len_sum': 813.0, 'noise_total_len': 618.5 }
-        stats = get_od_path_stats(graph, od_dicts[0])
+        stats = get_od_path_stats(graph, od_dict[1])
         self.assertDictEqual(stats, compare_d)
 
     def test_quiet_path_2(self):
-        compare_d = { 'sp_count': 1, 'qp_count': 5, 'sp_len': 1140.8, 'qp_len_sum': 6139.4, 'noise_total_len': 5969.7 }
-        stats = get_od_path_stats(graph, od_dicts[1])
+        compare_d = { 'sp_count': 1, 'qp_count': 1, 'sp_len': 138.0, 'qp_len_sum': 138.0, 'noise_total_len': 276.0 }
+        stats = get_od_path_stats(graph, od_dict[2])
         self.assertDictEqual(stats, compare_d)
 
     def test_quiet_path_3(self):
         compare_d = { 'sp_count': 1, 'qp_count': 4, 'sp_len': 936.5, 'qp_len_sum': 4688.3, 'noise_total_len': 4303.4 }
-        stats = get_od_path_stats(graph, od_dicts[2])
+        stats = get_od_path_stats(graph, od_dict[3])
         self.assertDictEqual(stats, compare_d)
 
     def test_quiet_path_4(self):
         compare_d = { 'sp_count': 1, 'qp_count': 5, 'sp_len': 1136.5, 'qp_len_sum': 6562.6, 'noise_total_len': 7263.1 }
-        stats = get_od_path_stats(graph, od_dicts[3])
+        stats = get_od_path_stats(graph, od_dict[4])
         self.assertDictEqual(stats, compare_d)
 
     def test_quiet_path_5(self):
         compare_d = { 'sp_count': 1, 'qp_count': 8, 'sp_len': 1648.8, 'qp_len_sum': 14334.3, 'noise_total_len': 11922.9 }
-        stats = get_od_path_stats(graph, od_dicts[4])
+        stats = get_od_path_stats(graph, od_dict[5])
         self.assertDictEqual(stats, compare_d)
 
     def test_quiet_path_6(self):
         compare_d = { 'sp_count': 1, 'qp_count': 5, 'sp_len': 1024.9, 'qp_len_sum': 6410.0, 'noise_total_len': 6782.7 }
-        stats = get_od_path_stats(graph, od_dicts[5])
+        stats = get_od_path_stats(graph, od_dict[6])
         self.assertDictEqual(stats, compare_d)
 
     def test_quiet_path_7(self):
         compare_d = { 'sp_count': 1, 'qp_count': 4, 'sp_len': 1053.4, 'qp_len_sum': 5120.3, 'noise_total_len': 5523.1 }
-        stats = get_od_path_stats(graph, od_dicts[6])
+        stats = get_od_path_stats(graph, od_dict[7])
         self.assertDictEqual(stats, compare_d)
 
     def test_quiet_path_8(self):
         compare_d = { 'sp_count': 1, 'qp_count': 6, 'sp_len': 795.9, 'qp_len_sum': 6318.3, 'noise_total_len': 5385.9 }
-        stats = get_od_path_stats(graph, od_dicts[7])
+        stats = get_od_path_stats(graph, od_dict[8])
         self.assertDictEqual(stats, compare_d)
 
     def test_quiet_path_9(self):
         compare_d = { 'sp_count': 1, 'qp_count': 2, 'sp_len': 670.6, 'qp_len_sum': 1364.7, 'noise_total_len': 1218.2 }
-        stats = get_od_path_stats(graph, od_dicts[8])
+        stats = get_od_path_stats(graph, od_dict[9])
         self.assertDictEqual(stats, compare_d)
 
     def test_quiet_path_10(self):
-        compare_d = { 'sp_count': 1, 'qp_count': 1, 'sp_len': 138.0, 'qp_len_sum': 138.0, 'noise_total_len': 276.0 }
-        stats = get_od_path_stats(graph, od_dicts[9])
+        compare_d = { 'sp_count': 1, 'qp_count': 5, 'sp_len': 1140.8, 'qp_len_sum': 6139.4, 'noise_total_len': 5969.7 }
+        stats = get_od_path_stats(graph, od_dict[10])
         self.assertDictEqual(stats, compare_d)
 
 if __name__ == '__main__':

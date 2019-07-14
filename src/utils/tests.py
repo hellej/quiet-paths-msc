@@ -23,5 +23,8 @@ def get_target_ODs():
     ods['dest_point'] = [geom.interpolate(1, normalized=True) for geom in ods['geometry']]
     ods['orig_latLon'] = [geom_utils.get_lat_lon_from_geom(geom) for geom in ods['orig_point']]
     ods['dest_latLon'] = [geom_utils.get_lat_lon_from_geom(geom) for geom in ods['dest_point']]
-    # target_locations['latLon'] = [geom_utils.get_lat_lon_from_geom(geom) for geom in target_locations['geometry']]
-    return ods
+    od_dicts = ods.to_dict(orient='records')
+    od_dict = {}
+    for od in od_dicts:
+        od_dict[int(od['OD'])] = od
+    return od_dict
