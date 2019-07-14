@@ -142,7 +142,7 @@ def test_distr_centers_with_DT(districts_gdf):
     districts_gdf['DT_valid'] = [distr_valids[id_distr] for id_distr in districts_gdf['id_distr']]
     return districts_gdf
 
-def get_work_targets_gdf(geom_home, districts, axyind=None, work_rows=None, logging=True):
+def get_work_destinations_gdf(geom_home, districts, axyind=None, work_rows=None, logging=True):
     home_distr = get_home_district(geom_home, districts)
     # turn work_rows (workplaces) into GDF
     works = gpd.GeoDataFrame(work_rows, geometry='geom_work', crs=from_epsg(3067))
@@ -156,10 +156,10 @@ def get_work_targets_gdf(geom_home, districts, axyind=None, work_rows=None, logg
     remote_works = works.query('within_home_distr == False and home_dist >= 3000')
     if (close_works.empty == False):
         # rename work_latLon to "to_latLon"
-        close_works = close_works.rename(index=str, columns={'work_latLon': 'to_latLon', 'txyind': 'id_target'})
+        close_works = close_works.rename(index=str, columns={'work_latLon': 'to_latLon', 'txyind': 'id_destination'})
         # filter out unused columns
-        close_works = close_works[['yht', 'to_latLon', 'id_target']]
-        close_works['target_type'] = 'gridcell'
+        close_works = close_works[['yht', 'to_latLon', 'id_destination']]
+        close_works['destination_type'] = 'gridcell'
         close_dests_count = len(close_works.index)
     else: 
         print('no close works found')
@@ -175,31 +175,31 @@ def get_work_targets_gdf(geom_home, districts, axyind=None, work_rows=None, logg
         distr_works = pd.merge(distr_works_grps, districts, how='left', on='id_distr')
         distr_works['yht'] = [int(round(yht)) for yht in distr_works['yht']]
         # rename work_latLon and distr_latLon to "to_latLon"
-        distr_works = distr_works.rename(index=str, columns={'distr_latLon': 'to_latLon', 'id_distr': 'id_target'})
+        distr_works = distr_works.rename(index=str, columns={'distr_latLon': 'to_latLon', 'id_distr': 'id_destination'})
         # filter out unused columns
-        distr_works = distr_works[['yht', 'to_latLon', 'id_target']]
-        distr_works['target_type'] = 'district'
+        distr_works = distr_works[['yht', 'to_latLon', 'id_destination']]
+        distr_works['destination_type'] = 'district'
         distr_dests_count = len(distr_works.index)
     else: 
         print('no remote works found')
         distr_dests_count = 0
 
-    # set only close works as targets
+    # set only close works as destinations
     if (close_works.empty == False and remote_works.empty == True):
-        targets = close_works.reset_index(drop=True)
-    # set only remote works as targets
+        destinations = close_works.reset_index(drop=True)
+    # set only remote works as destinations
     if (close_works.empty == True and remote_works.empty == False):
-        targets = distr_works.reset_index(drop=True)
+        destinations = distr_works.reset_index(drop=True)
     # combine destination dataframes if at both exist
     if (close_works.empty == False and remote_works.empty == False):
-        targets = pd.concat([close_works, distr_works], ignore_index=True, sort=True)
-    # no targets found
+        destinations = pd.concat([close_works, distr_works], ignore_index=True, sort=True)
+    # no destinations found
     if (close_works.empty == True and remote_works.empty == True):
         total_dests_count = 0
         all_included_works_count = 0
     else:
-        total_dests_count = len(targets.index)
-        all_included_works_count = targets['yht'].sum()
+        total_dests_count = len(destinations.index)
+        all_included_works_count = destinations['yht'].sum()
 
     if (logging == True):
         print('found total:', total_dests_count, 'destinations')
@@ -218,9 +218,9 @@ def get_work_targets_gdf(geom_home, districts, axyind=None, work_rows=None, logg
         print('work count match:', work_count_match)
         print('sum of all works:', total_works_count)
         print('of which outside analysis:', missing_works, '-', outside_ratio, '%')
-    home_work_stats = pd.DataFrame([{'axyind': axyind, 'total_dests_count': total_dests_count, 'close_dests_count': close_dests_count, 'distr_dests_count': distr_dests_count, 'total_works_count': total_works_count, 'dest_works_count': all_included_works_count, 'missing_works_count': missing_works, 'outside_ratio': outside_ratio, 'work_count_match': work_count_match }])
+    home_work_stats = pd.DataFrame([{ 'axyind': axyind, 'total_dests_count': total_dests_count, 'close_dests_count': close_dests_count, 'distr_dests_count': distr_dests_count, 'total_works_count': total_works_count, 'dest_works_count': all_included_works_count, 'missing_works_count': missing_works, 'outside_ratio': outside_ratio, 'work_count_match': work_count_match }])
     home_work_stats[['axyind', 'total_dests_count', 'close_dests_count', 'distr_dests_count', 'total_works_count', 'dest_works_count', 'missing_works_count', 'outside_ratio', 'work_count_match']]
-    return { 'targets': targets, 'home_work_stats': home_work_stats, 'total_dests_count': total_dests_count }
+    return { 'destinations': destinations, 'home_work_stats': home_work_stats, 'total_dests_count': total_dests_count }
 
 def get_adjusted_routing_location(latLon, graph=None, edge_gdf=None, node_gdf=None):
     wgs_point = geom_utils.get_point_from_lat_lon(latLon)
@@ -230,7 +230,7 @@ def get_adjusted_routing_location(latLon, graph=None, edge_gdf=None, node_gdf=No
     new_point = Point(buffer_random_coords)
     point_xy = geom_utils.get_xy_from_geom(new_point)
     try:
-        node = rt.get_nearest_node(graph, point_xy, edge_gdf, node_gdf, [], False, logging=False)
+        node = rt.get_nearest_node(graph, point_xy, edge_gdf, node_gdf, logging=False)
         node_geom = nw.get_node_geom(graph, node['node'])
         node_distance = round(node_geom.distance(etrs_point))
         node_geom_wgs = geom_utils.project_to_wgs(node_geom)
@@ -238,9 +238,9 @@ def get_adjusted_routing_location(latLon, graph=None, edge_gdf=None, node_gdf=No
         if (node_distance < 130):
             return node_latLon
     except Exception:
-        print('no adjusted origin/target found')
+        print('no adjusted origin/destination found')
         return latLon
-    print('no adjusted origin/target found')
+    print('no adjusted origin/destination found')
     return latLon
 
 def get_valid_latLon_for_DT(latLon, distance=60, datetime=None, graph=None, edge_gdf=None, node_gdf=None):
@@ -267,7 +267,7 @@ def get_valid_latLon_for_DT(latLon, distance=60, datetime=None, graph=None, edge
         point_xy = geom_utils.get_xy_from_geom(circle_point)
         try:
             # find nearest node in the network
-            node = rt.get_nearest_node(graph, point_xy, edge_gdf, node_gdf, [], False, logging=False)
+            node = rt.get_nearest_node(graph, point_xy, edge_gdf, node_gdf, logging=False)
             node_geom = nw.get_node_geom(graph, node['node'])
             node_distance = round(node_geom.distance(etrs_point))
             node_geom_wgs = geom_utils.project_to_wgs(node_geom)
@@ -298,57 +298,57 @@ def get_home_work_walks(axyind=None, work_rows=None, districts=None, datetime=No
     valid_home_latLon = get_valid_latLon_for_DT(home_latLon, distance=45, datetime=datetime, graph=graph, edge_gdf=edge_gdf, node_gdf=node_gdf)
     if (valid_home_latLon == None):
         return None
-    targets = get_work_targets_gdf(geom_home, districts, axyind=axyind, work_rows=work_rows, logging=logging)
-    if (targets == None):
+    destinations = get_work_destinations_gdf(geom_home, districts, axyind=axyind, work_rows=work_rows, logging=logging)
+    if (destinations == None):
         return None
-    work_targets = targets['targets']
-    home_work_stats = targets['home_work_stats']
-    # filter rows of work_targets for testing
-    work_targets = work_targets[:14] if subset == True else work_targets
-    # print('WORK_TARGETS', work_targets)
-    # filter out target if it's the same as origin
-    work_targets = work_targets[work_targets.apply(lambda x: str(x['id_target']) != str(axyind), axis=1)]
-    total_origin_workers_flow = work_targets['yht'].sum()
+    work_destinations = destinations['destinations']
+    home_work_stats = destinations['home_work_stats']
+    # filter rows of work_destinations for testing
+    work_destinations = work_destinations[:14] if subset == True else work_destinations
+    # print('work_destinations', work_destinations)
+    # filter out destination if it's the same as origin
+    work_destinations = work_destinations[work_destinations.apply(lambda x: str(x['id_destination']) != str(axyind), axis=1)]
+    total_origin_workers_flow = work_destinations['yht'].sum()
     if (logging == True):
-        print('Routing to', len(work_targets.index), 'destinations:')
+        print('Routing to', len(work_destinations.index), 'destinations:')
     # get routes to all workplaces of the route
     home_walks_all = []
-    for idx, target in work_targets.iterrows():
-        utils.print_progress(idx, targets['total_dests_count'], percentages=False)
+    for idx, destination in work_destinations.iterrows():
+        utils.print_progress(idx, destinations['total_dests_count'], percentages=False)
         # execute routing request to Digitransit API
         try:
-            itins = DT_routing.get_route_itineraries(valid_home_latLon, target['to_latLon'], walk_speed, datetime, itins_count=3, max_walk_distance=2500)
+            itins = DT_routing.get_route_itineraries(valid_home_latLon, destination['to_latLon'], walk_speed, datetime, itins_count=3, max_walk_distance=2500)
         except Exception:
-            print('Error in DT routing request between:', axyind, 'and', target['id_target'])
+            print('Error in DT routing request between:', axyind, 'and', destination['id_destination'])
             itins = []
-        # if no itineraries got, try adjusting the origin & target by snapping them to network
+        # if no itineraries got, try adjusting the origin & destination by snapping them to network
         if (len(itins) == 0):
-            print('no itineraries got -> try adjusting target')
-            adj_target = get_valid_latLon_for_DT(target['to_latLon'], datetime=datetime, graph=graph, edge_gdf=edge_gdf, node_gdf=node_gdf)
+            print('no itineraries got -> try adjusting destination')
+            adj_destination = get_valid_latLon_for_DT(destination['to_latLon'], datetime=datetime, graph=graph, edge_gdf=edge_gdf, node_gdf=node_gdf)
             time.sleep(0.3)
             try:
-                itins = DT_routing.get_route_itineraries(valid_home_latLon, adj_target, walk_speed, datetime, itins_count=3, max_walk_distance=2500)
-                print('found', len(itins), 'with adjusted origin & target locations')
+                itins = DT_routing.get_route_itineraries(valid_home_latLon, adj_destination, walk_speed, datetime, itins_count=3, max_walk_distance=2500)
+                print('found', len(itins), 'with adjusted origin & destination locations')
             except Exception:
-                print('error in DT routing with adjusted origin & target')
+                print('error in DT routing with adjusted origin & destination')
                 itins = []
 
         od_itins_count = len(itins)
-        od_workers_flow = target['yht']
+        od_workers_flow = destination['yht']
         if (od_itins_count > 0):
             # calculate utilization of the itineraries for identifying the probability of using the itinerary from the origin
             # based on number of commuters and number of alternative itineraries to the destination
             # if only one itinerary is got for origin-destination (commute flow), utilization equals the number of commutes between the OD pair
             utilization = round(od_workers_flow/od_itins_count, 6)
-            od_walk_dicts = DT_routing.parse_itin_attributes(itins, axyind, target['id_target'], utilization=utilization)
+            od_walk_dicts = DT_routing.parse_itin_attributes(itins, axyind, destination['id_destination'], utilization=utilization)
             home_walks_all += od_walk_dicts
         else:
-            print('No DT itineraries got between:', axyind, 'and', target['id_target'])
-            error_df = pd.DataFrame([{ 'axyind': axyind, 'target_type': target['target_type'], 'target_id': target['id_target'], 'target_yht': target['yht'] }])
-            error_df.to_csv('outputs/YKR_commutes_output/home_stops_errors/axyind_'+str(axyind)+'_to_'+str(target['id_target'])+'.csv')
+            print('No DT itineraries got between:', axyind, 'and', destination['id_destination'])
+            error_df = pd.DataFrame([{ 'axyind': axyind, 'destination_type': destination['destination_type'], 'destination_id': destination['id_destination'], 'destination_yht': destination['yht'] }])
+            error_df.to_csv('outputs/YKR_commutes_output/home_stops_errors/axyind_'+str(axyind)+'_to_'+str(destination['id_destination'])+'.csv')
 
     # print(home_walks_all)
-    # collect walks to stops/targets to GDF
+    # collect walks to stops/destinations to GDF
     if (len(home_walks_all) == 0):
         return None
     home_walks_all_df = pd.DataFrame(home_walks_all)

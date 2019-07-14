@@ -8,6 +8,7 @@ from fiona.crs import from_epsg
 import utils.files as files
 import utils.geometry as geom_utils
 import utils.networks as nw
+import utils.quiet_paths as qp
 import utils.exposures as exps
 import utils.utils as utils
 
@@ -160,7 +161,7 @@ print('Noises extracted by edge geometries.')
 
 #%% 9.3 Update edge noises to graph
 for edge_noises in edge_noise_dfs:
-    nw.update_edge_noises(edge_noises, graph)
+    nw.update_edge_noises_to_graph(edge_noises, graph)
 print('Noises updated to graph.')
 
 #%% 10. Export graph with edge noises
@@ -188,9 +189,10 @@ else:
 
 #%% 12. Validate exported graph for use in quiet path app
 start_time = time.time()
-nts = [0.1, 0.15, 0.25, 0.5, 1, 1.5, 2, 4, 6, 10, 20, 40]
+nts = qp.get_noise_tolerances()
+db_costs = qp.get_db_costs()
 edge_gdf = nw.get_edge_gdf(graph, attrs=['geometry', 'length', 'noises'], by_nodes=False)
-nw.set_graph_noise_costs(edge_gdf, graph, nts)
+nw.set_graph_noise_costs(graph, edge_gdf, db_costs=db_costs, nts=nts)
 # get full number of edges (undirected edges x 2)
 edge_gdf_all = nw.get_edge_gdf(graph, by_nodes=True)
 # calculate edges for which the noise costs were set

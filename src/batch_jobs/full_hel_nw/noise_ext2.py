@@ -50,7 +50,7 @@ print('Noises extracted.')
 
 # UPDATE NOISES TO GRAPH
 for edge_noises in edge_noise_dfs:
-    nw.update_edge_noises(edge_noises, graph)
+    nw.update_edge_noises_to_graph(edge_noises, graph)
 print('Noises updated.')
 
 # EXPORT GRAPH

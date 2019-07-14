@@ -115,33 +115,33 @@ def get_new_node_attrs(graph, point):
     geom_attrs = {**geom_utils.get_xy_from_geom(point), **geom_utils.get_lat_lon_from_geom(wgs_point)}
     return { 'id': new_node_id, **geom_attrs }
 
-def add_new_node(graph, point, logging=True):
+def add_new_node_to_graph(graph, point, logging=True):
     attrs = get_new_node_attrs(graph, point)
     if (logging == True):
         print('add new node:', attrs['id'])
     graph.add_node(attrs['id'], ref='', x=attrs['x'], y=attrs['y'], lon=attrs['lon'], lat=attrs['lat'])
     return attrs['id']
 
-def estimate_link_noises(link_geom, edge_geom, edge_noises):
+def interpolate_link_noises(link_geom, edge_geom, edge_noises):
     link_noises = {}
     link_len_ratio = link_geom.length / edge_geom.length
     for db in edge_noises.keys():
         link_noises[db] = round(edge_noises[db] * link_len_ratio, 3)
     return link_noises
 
-def get_edge_noise_cost_attrs(nts, edge_d, link_geom):
+def get_edge_noise_cost_attrs(nts, db_costs, edge_d, link_geom):
     cost_attrs = {}
     # estimate link noises based on link length - edge length -ratio and edge noises
-    cost_attrs['noises'] = estimate_link_noises(link_geom, edge_d['geometry'], edge_d['noises'])
+    cost_attrs['noises'] = interpolate_link_noises(link_geom, edge_d['geometry'], edge_d['noises'])
     for nt in nts:
-        cost = get_noise_cost_from_noises_dict(link_geom.length, cost_attrs['noises'], nt=nt)
+        cost = get_noise_cost_from_noises_dict(link_geom.length, cost_attrs['noises'], db_costs, nt=nt)
         cost_attrs['nc_'+str(nt)] = cost
     noises_sum_len = exps.get_total_noises_len(cost_attrs['noises'])
     if ((noises_sum_len - link_geom.length) > 0.1):
         print('link length unmatch:', noises_sum_len, link_geom.length)
     return cost_attrs
 
-def add_linking_edges_for_new_node(graph, new_node, split_point, edge, nts, logging=False):
+def add_linking_edges_for_new_node(graph, new_node, split_point, edge, nts, db_costs, logging=False):
     edge_geom = edge['geometry']
     # split edge at new node to two line geometries
     split_lines = geom_utils.split_line_at_point(edge_geom, split_point)
@@ -159,8 +159,8 @@ def add_linking_edges_for_new_node(graph, new_node, split_point, edge, nts, logg
     if (logging == True):
         print('add linking edges between:', node_from, new_node, node_to)
     # interpolate noise cost attributes for new linking edges so that they work in quiet path routing
-    link1_noise_costs = get_edge_noise_cost_attrs(nts, edge, link1)
-    link2_noise_costs = get_edge_noise_cost_attrs(nts, edge, link2)
+    link1_noise_costs = get_edge_noise_cost_attrs(nts, db_costs, edge, link1)
+    link2_noise_costs = get_edge_noise_cost_attrs(nts, db_costs, edge, link2)
     # combine link attributes to prepare adding them as new edges
     link1_attrs = { 'geometry': link1, 'length' : round(link1.length, 3), **link1_noise_costs }
     link2_attrs = { 'geometry': link2, 'length' : round(link2.length, 3), **link2_noise_costs }
@@ -169,14 +169,11 @@ def add_linking_edges_for_new_node(graph, new_node, split_point, edge, nts, logg
     graph.add_edges_from([ (new_node, node_from, { 'uvkey': (new_node, node_from), **link1_attrs }) ])
     graph.add_edges_from([ (node_to, new_node, { 'uvkey': (node_to, new_node), **link2_attrs }) ])
     graph.add_edges_from([ (new_node, node_to, { 'uvkey': (new_node, node_to), **link2_attrs }) ])
-    if (logging == True):
-        print('set link1 noise costs to:', link1_noise_costs['nc_1'], link1_noise_costs['nc_40'])
-        print('set link2 noise costs to:', link2_noise_costs['nc_1'], link2_noise_costs['nc_40'])
     link1_d = { 'uvkey': (new_node, node_from), **link1_attrs }
     link2_d = { 'uvkey': (node_to, new_node), **link2_attrs }
     return { 'node_from': node_from, 'new_node': new_node, 'node_to': node_to, 'link1': link1_d, 'link2': link2_d }
 
-def remove_linking_edges_of_new_node(graph, new_node_d):
+def remove_new_node_and_link_edges(graph, new_node_d):
     if ('link_edges' in new_node_d.keys()):
         link_edges = new_node_d['link_edges']
         edges = [
@@ -272,7 +269,7 @@ def get_all_edge_dicts(graph, attrs=None, by_nodes=True):
             for node_to in nodes_to.keys():
                 # all edges between node-from and node-to as dict (usually)
                 edges = graph[node_from][node_to]
-                # usually only one edge is found between each origin-to-target-node -pair 
+                # usually only one edge is found between each origin-to-destination-node -pair 
                 # edge_k is unique identifier for edge between two nodes, integer (etc. 0 or 1) 
                 for edge_k in edges.keys():
                     # combine unique identifier for the edge
@@ -302,18 +299,6 @@ def get_all_edge_dicts(graph, attrs=None, by_nodes=True):
             edge_dicts.append(ed)
         return edge_dicts
 
-def get_edge_noise_exps(edge_dict, noise_polys, graph):
-    edge_d = {}
-    if ('noises' not in edge_d):
-        noise_lines = exps.get_exposure_lines(edge_dict['geometry'], noise_polys)
-        if (noise_lines.empty):
-            noise_dict = {}
-        else:
-            noise_dict = exps.get_exposures(noise_lines)
-        edge_d['uvkey'] = edge_dict['uvkey']
-        edge_d['noises'] = noise_dict
-        return edge_d
-
 def get_edge_gdf(graph, attrs=None, by_nodes=True, subset=None, dicts=False):
     edge_dicts = get_all_edge_dicts(graph, attrs=attrs, by_nodes=by_nodes)
     gdf = gpd.GeoDataFrame(edge_dicts, crs=from_epsg(3879))
@@ -324,32 +309,30 @@ def get_edge_gdf(graph, attrs=None, by_nodes=True, subset=None, dicts=False):
     else:
         return gdf
     
-def update_edge_noises(edge_gdf, graph):
+def update_edge_noises_to_graph(edge_gdf, graph):
     for edge in edge_gdf.itertuples():
         nx.set_edge_attributes(graph, { getattr(edge, 'uvkey'): { 'noises': getattr(edge, 'noises')}})
 
-def update_edge_costs(edge_gdf, graph, nt):
+def update_edge_costs_to_graph(edge_gdf, graph, nt):
     cost_attr = 'nc_'+str(nt)
     for edge in edge_gdf.itertuples():
         nx.set_edge_attributes(graph, { getattr(edge, 'uvkey'): { cost_attr: getattr(edge, 'tot_cost')}}) 
 
-def get_noise_cost(noises: 'noise dictionary', costs: 'cost dictionary', nt: 'noise tolerance'):
+def get_noise_cost(noises: 'noise dictionary', db_costs: 'cost dictionary', nt: 'noise tolerance'):
     noise_cost = 0
     for db in noises:
-        if (db in costs):
-            noise_cost += noises[db] * costs[db] * nt
+        if (db in db_costs):
+            noise_cost += noises[db] * db_costs[db] * nt
     return round(noise_cost,2)
 
-def get_noise_cost_from_noises_dict(length, noises_dict, nt=1):
-    costs = { 50: 0.1, 55: 0.2, 60: 0.3, 65: 0.4, 70: 0.5, 75: 0.6 }
-    noise_cost = get_noise_cost(noises_dict, costs, nt)
+def get_noise_cost_from_noises_dict(length, noises_dict, db_costs, nt=1):
+    noise_cost = get_noise_cost(noises_dict, db_costs, nt)
     tot_cost = round(length + noise_cost, 2)
     return tot_cost
 
-def set_graph_noise_costs(edge_gdf, graph, nts: 'list of noise tolerances, float: 0.0-2.0'):
-    costs = { 50: 0.1, 55: 0.2, 60: 0.3, 65: 0.4, 70: 0.5, 75: 0.6 }
+def set_graph_noise_costs(graph, edge_gdf, db_costs=None, nts=None):
     edge_nc_gdf = edge_gdf.copy()
     for nt in nts:
-        edge_nc_gdf['noise_cost'] = [get_noise_cost(noises, costs, nt) for noises in edge_nc_gdf['noises']]
+        edge_nc_gdf['noise_cost'] = [get_noise_cost(noises, db_costs, nt) for noises in edge_nc_gdf['noises']]
         edge_nc_gdf['tot_cost'] = edge_nc_gdf.apply(lambda row: round(row['length'] + row['noise_cost'], 2), axis=1)
-        update_edge_costs(edge_nc_gdf, graph, nt)
+        update_edge_costs_to_graph(edge_nc_gdf, graph, nt)

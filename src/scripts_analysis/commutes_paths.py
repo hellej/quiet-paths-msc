@@ -12,16 +12,18 @@ import utils.times as times
 import utils.networks as nw
 import utils.utils as utils
 import utils.routing as rt
+import utils.quiet_paths as qp
 
 #%% initialize graph
 start_time = time.time()
-nts = [0.1, 0.15, 0.25, 0.5, 1, 1.5, 2, 4, 6, 10, 20, 40]
-graph = files.get_network_full_noise(version==1)
+nts = qp.get_noise_tolerances()
+db_costs = qp.get_db_costs()
+graph = files.get_network_full_noise()
 print('Graph of', graph.size(), 'edges read.')
 edge_gdf = nw.get_edge_gdf(graph, attrs=['geometry', 'length', 'noises'])
 node_gdf = nw.get_node_gdf(graph)
 print('Network features extracted.')
-nw.set_graph_noise_costs(edge_gdf, graph, nts)
+nw.set_graph_noise_costs(graph, edge_gdf, db_costs=db_costs, nts=nts)
 edge_gdf = edge_gdf[['uvkey', 'geometry', 'noises']]
 print('Noise costs set.')
 edges_sind = edge_gdf.sindex
@@ -41,7 +43,7 @@ print('Start processing', len(to_process), 'axyinds')
 
 #%% functions for calculating origin-stop paths
 def get_origin_stop_paths(from_latLon=None, to_latLon=None):
-    return rt.get_short_quiet_paths(graph, from_latLon, to_latLon, edge_gdf, node_gdf, nts, remove_geom_prop=False, logging=False)
+    return rt.get_short_quiet_paths(graph, from_latLon, to_latLon, edge_gdf, node_gdf, nts=nts, db_costs=db_costs, remove_geom_prop=False, logging=False)
 
 # function for calculating short & quiet paths
 def get_origin_stops_paths_df(home_stops_file):
@@ -89,7 +91,7 @@ print('errors count:', len(errors))
 print('path df count:', len(home_paths_dfs))
 all_home_paths_df = gpd.GeoDataFrame(pd.concat(home_paths_dfs, ignore_index=True), crs=from_epsg(3879))
 utils.print_duration(start_time, 'Got paths.')
-axyind_time = round((time.time() - start_time)/len(to_process),2)
+axyind_time = round((time.time() - start_time)/len(to_process), 2)
 print('axyind_time (s):', axyind_time)
 #%% check paths GDF
 all_home_paths_df.head(3)

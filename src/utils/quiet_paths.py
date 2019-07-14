@@ -1,6 +1,12 @@
 import utils.geometry as geom_utils
 import utils.exposures as exps
 
+def get_noise_tolerances():
+    return [ 0.1, 0.15, 0.25, 0.5, 1, 1.5, 2, 4, 6, 10, 20, 40 ]
+
+def get_db_costs():
+    return { 50: 0.1, 55: 0.2, 60: 0.3, 65: 0.4, 70: 0.5, 75: 0.6 }
+
 def get_similar_length_paths(paths, path):
     path_len = path['properties']['length']
     similar_len_paths = [path for path in paths if (path['properties']['length'] < (path_len + 25)) & (path['properties']['length'] > (path_len - 25))]

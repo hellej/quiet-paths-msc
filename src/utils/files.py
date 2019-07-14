@@ -1,13 +1,11 @@
+import os
+import ast
 import geopandas as gpd
 import osmnx as ox
+import networkx as nx
 from shapely import wkt
 from shapely.geometry import box
 import utils.geometry as geom_utils
-import utils.networks as nw
-from fiona.crs import from_epsg
-import os
-import networkx as nx
-import ast
 
 bboxes = gpd.read_file('data/extents_grids.gpkg', layer='bboxes')
 hel = gpd.read_file('data/extents_grids.gpkg', layer='hel')
@@ -42,7 +40,7 @@ def get_koskela_kumpula_box():
     return box(*bounds)
 
 def get_hel_poly(WGS84=False, buffer_m=None):
-    # return polygon of Helsinki in epsg:3879
+    # return buffered polygon of Helsinki in either epsg:3879 or WGS84
     poly = list(hel['geometry'])[0]
     if (buffer_m is not None):
         poly = poly.buffer(buffer_m)
@@ -50,44 +48,24 @@ def get_hel_poly(WGS84=False, buffer_m=None):
         poly = geom_utils.project_to_wgs(poly)
     return poly
 
-def get_update_test_walk_line():
-    walk_proj = gpd.read_file('data/test/test_walk_line.shp')
-    walk_proj['length'] = [int(round(geom.length)) for geom in walk_proj['geometry']]
-    walk_proj['time'] = [round((geom.length/1.33)/60, 1) for geom in walk_proj['geometry']]
-    # walk_proj.to_file('data/test/test_walk_line.shp')
-    return walk_proj
-
-def get_network_kumpula_dir():
-    graph_proj = ox.load_graphml('kumpula_g.graphml', folder='graphs')
-    return graph_proj
-
 def get_network_kumpula():
-    graph_undir = ox.load_graphml('kumpula_u_g.graphml', folder='graphs')
+    graph_undir = load_graphml('kumpula-v2_u_g_f_s.graphml', folder='graphs', directed=False, noises=False)
     return graph_undir
 
-def get_network_kumpula_noise(version=1):
+def get_network_kumpula_noise(version=2):
     if (version == 1):
         return load_graphml('kumpula_u_g_n_s.graphml', folder='graphs', directed=False)
     if (version == 2):
         return load_graphml('kumpula-v2_u_g_n2_f_s.graphml', folder='graphs', directed=False)
     return None
 
-def get_network_full():
-    graph = ox.load_graphml('hel_u_g.graphml', folder='graphs')
-    return graph
-
-def get_network_full_noise(version=None):
+def get_network_full_noise(version=2):
     if (version == 1):
         return load_graphml('hel_u_g_n2_f_s.graphml', folder='graphs', directed=False)
     if (version == 2):
         return load_graphml('hel-v2_u_g_n2_f_s.graphml', folder='graphs', directed=False)
 
-def get_pois():
-    pois = gpd.read_file('data/test/target_locations.geojson')
-    pois = pois.to_crs(from_epsg(3879))
-    return pois
-
-def load_graphml(filename, folder=None, node_type=int, directed=None):
+def load_graphml(filename, folder=None, node_type=int, directed=None, noises=True):
     # read the graph from disk
     path = os.path.join(folder, filename)
 
@@ -116,7 +94,8 @@ def load_graphml(filename, folder=None, node_type=int, directed=None):
         # first parse oneway to bool and length to float - they should always
         # have only 1 value each
         data['length'] = float(data['length'])
-        data['noises'] = ast.literal_eval(data['noises'])
+        if (noises == True):
+            data['noises'] = ast.literal_eval(data['noises'])
 
         # if geometry attribute exists, load the string as well-known text to
         # shapely LineString
