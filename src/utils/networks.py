@@ -133,9 +133,10 @@ def get_edge_noise_cost_attrs(nts, db_costs, edge_d, link_geom):
     cost_attrs = {}
     # estimate link noises based on link length - edge length -ratio and edge noises
     cost_attrs['noises'] = interpolate_link_noises(link_geom, edge_d['geometry'], edge_d['noises'])
+    # calculate noise tolerance specific noise costs
     for nt in nts:
-        cost = get_noise_cost_from_noises_dict(link_geom.length, cost_attrs['noises'], db_costs, nt=nt)
-        cost_attrs['nc_'+str(nt)] = cost
+        noise_cost = exps.get_noise_cost(noises=cost_attrs['noises'], db_costs=db_costs, nt=nt)
+        cost_attrs['nc_'+str(nt)] = round(noise_cost + link_geom.length, 2)
     noises_sum_len = exps.get_total_noises_len(cost_attrs['noises'])
     if ((noises_sum_len - link_geom.length) > 0.1):
         print('link length unmatch:', noises_sum_len, link_geom.length)
@@ -212,7 +213,7 @@ def get_edge_line_coords(graph, node_from, edge_d):
         return edge_coords[::-1]
     return edge_coords
 
-def get_edge_geoms_attrs(graph, path, weight, geoms: bool, noises: bool):
+def aggregate_path_geoms_attrs(graph, path, weight='length', geom=True, noises=False):
     result = {}
     edge_lengths = []
     path_coords = []
@@ -224,7 +225,7 @@ def get_edge_geoms_attrs(graph, path, weight, geoms: bool, noises: bool):
         node_2 = path[idx+1]
         edges = graph[node_1][node_2]
         edge_d = get_shortest_edge(edges, weight)
-        if geoms:
+        if geom:
             if ('nc_0.1') not in edge_d:
                 print('missing noise cost attr')
             if ('geometry' in edge_d):
@@ -246,19 +247,13 @@ def get_edge_geoms_attrs(graph, path, weight, geoms: bool, noises: bool):
         if noises:
             if ('noises' in edge_d):
                 edge_exps.append(edge_d['noises'])
-    if geoms:
+    if geom:
         path_line = LineString(path_coords)
         total_length = round(sum(edge_lengths),2)
         result['geometry'] = path_line
         result['total_length'] = total_length
     if noises:
         result['noises'] = exps.aggregate_exposures(edge_exps)
-    if (abs(result['total_length'] - path_line.length) > 0.2):
-        print('Result total len:', result['total_length'], 'should be:', path_line.length)
-    if (path_line.length - exps.get_total_noises_len(result['noises']) < -0.1):
-        print('geom len vs noises len:', path_line.length, exps.get_total_noises_len(result['noises']))
-    if (result['total_length'] - exps.get_total_noises_len(result['noises']) < -0.1):
-        print('total len vs noises len:', result['total_length'], exps.get_total_noises_len(result['noises']))
     return result
 
 def get_all_edge_dicts(graph, attrs=None, by_nodes=True):
@@ -275,7 +270,7 @@ def get_all_edge_dicts(graph, attrs=None, by_nodes=True):
                     # combine unique identifier for the edge
                     edge_uvkey = (node_from, node_to, edge_k)
                     ed = { 'uvkey': edge_uvkey }
-                    # if attribute list is provided, get only corresponding edge attributes
+                    # if attribute list is provided, get only the specified edge attributes
                     if (isinstance(attrs, list)):
                         for attr in attrs:
                             ed[attr] = edges[edge_k][attr]
@@ -289,7 +284,7 @@ def get_all_edge_dicts(graph, attrs=None, by_nodes=True):
             edge_uvkey = (u, v, k)
             # edge dict contains all edge attributes
             ed = { 'uvkey': edge_uvkey }
-            # if attribute list is provided, get only corresponding edge attributes
+            # if attribute list is provided, get only the specified edge attributes
             if (isinstance(attrs, list)):
                 for attr in attrs:
                     ed[attr] = data[attr]
@@ -318,21 +313,9 @@ def update_edge_costs_to_graph(edge_gdf, graph, nt):
     for edge in edge_gdf.itertuples():
         nx.set_edge_attributes(graph, { getattr(edge, 'uvkey'): { cost_attr: getattr(edge, 'tot_cost')}}) 
 
-def get_noise_cost(noises: 'noise dictionary', db_costs: 'cost dictionary', nt: 'noise tolerance'):
-    noise_cost = 0
-    for db in noises:
-        if (db in db_costs):
-            noise_cost += noises[db] * db_costs[db] * nt
-    return round(noise_cost,2)
-
-def get_noise_cost_from_noises_dict(length, noises_dict, db_costs, nt=1):
-    noise_cost = get_noise_cost(noises_dict, db_costs, nt)
-    tot_cost = round(length + noise_cost, 2)
-    return tot_cost
-
 def set_graph_noise_costs(graph, edge_gdf, db_costs=None, nts=None):
     edge_nc_gdf = edge_gdf.copy()
     for nt in nts:
-        edge_nc_gdf['noise_cost'] = [get_noise_cost(noises, db_costs, nt) for noises in edge_nc_gdf['noises']]
+        edge_nc_gdf['noise_cost'] = [exps.get_noise_cost(noises=noises, db_costs=db_costs, nt=nt) for noises in edge_nc_gdf['noises']]
         edge_nc_gdf['tot_cost'] = edge_nc_gdf.apply(lambda row: round(row['length'] + row['noise_cost'], 2), axis=1)
         update_edge_costs_to_graph(edge_nc_gdf, graph, nt)

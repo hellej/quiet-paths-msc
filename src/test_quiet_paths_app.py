@@ -25,14 +25,14 @@ def get_short_quiet_paths(graph, from_latLon, to_latLon, logging=False):
     # start_time = time.time()
     # get shortest path
     path_list = []
-    shortest_path = rt.get_shortest_path(graph, orig_node['node'], dest_node['node'], 'length')
-    path_geom = nw.get_edge_geoms_attrs(graph, shortest_path, 'length', True, True)
+    shortest_path = rt.get_shortest_path(graph, orig_node['node'], dest_node['node'], weight='length')
+    path_geom = nw.aggregate_path_geoms_attrs(graph, shortest_path, weight='length', noises=True)
     path_list.append({**path_geom, **{'id': 'short_p','type': 'short', 'nt': 0}})
     # get quiet paths to list
     for nt in nts:
-        cost_attr = 'nc_'+str(nt)
-        shortest_path = rt.get_shortest_path(graph, orig_node['node'], dest_node['node'], cost_attr)
-        path_geom = nw.get_edge_geoms_attrs(graph, shortest_path, cost_attr, True, True)
+        noise_cost_attr = 'nc_'+str(nt)
+        shortest_path = rt.get_shortest_path(graph, orig_node['node'], dest_node['node'], weight=noise_cost_attr)
+        path_geom = nw.aggregate_path_geoms_attrs(graph, shortest_path, weight=noise_cost_attr, noises=True)
         path_list.append({**path_geom, **{'id': 'q_'+str(nt), 'type': 'quiet', 'nt': nt}})
     # remove linking edges of the origin / destination nodes
     nw.remove_new_node_and_link_edges(graph, orig_node)
@@ -43,7 +43,7 @@ def get_short_quiet_paths(graph, from_latLon, to_latLon, logging=False):
     # get exposures to noises along the paths
     paths_gdf['th_noises'] = [exps.get_th_exposures(noises, [55, 60, 65, 70]) for noises in paths_gdf['noises']]
     # add noise exposure index (same as noise cost with noise tolerance: 1)
-    paths_gdf['nei'] = [round(nw.get_noise_cost(noises, db_costs, 1), 1) for noises in paths_gdf['noises']]
+    paths_gdf['nei'] = [round(exps.get_noise_cost(noises=noises, db_costs=db_costs), 1) for noises in paths_gdf['noises']]
     paths_gdf['nei_norm'] = paths_gdf.apply(lambda row: round(row.nei / (0.6 * row.total_length), 4), axis=1)
     return paths_gdf
 

@@ -13,6 +13,73 @@ def set_plot_style():
     rcParams['font.family'] = 'sans-serif'
     rcParams['font.sans-serif'] = ['Arial']
 
+def plot_exposure_lengths(exp_lens):
+    plt.style.use('default')
+
+    fig, ax = plt.subplots(figsize=(7,7))
+    dbs = list(exp_lens.keys())
+    lengths = list(exp_lens.values())
+
+    ax.bar(dbs, lengths, width=3)
+    # ax.set_xlim([30, 80])
+
+    yticks = list(range(0, int(max(lengths)+10), 50))
+    yticks = [int(tick) for tick in yticks]
+    ax.set_yticks(yticks)
+    ax.set_yticklabels(yticks, fontsize=15)
+
+    if (max(dbs)>85):
+        raise Exception('Adjust xticks to show high dB exposures!!')
+    xticks = np.arange(40, 90, step=5)
+    ax.set_xticks(xticks)
+    ax.set_xticklabels(xticks, fontsize=15)
+
+    ax.set_ylabel('Distance (m)')
+    ax.set_xlabel('Traffic noise (dB)')
+
+
+    ax.xaxis.label.set_size(16)
+    ax.yaxis.label.set_size(16)
+
+    ax.xaxis.labelpad = 10
+    ax.yaxis.labelpad = 10
+
+    return fig
+
+def plot_exposure_times(exp_times):
+    plt.style.use('default')
+
+    fig, ax = plt.subplots(figsize=(7,7))
+    dbs = list(exp_times.keys())
+    times = list(exp_times.values())
+
+    ax.bar(dbs, times, width=3)
+    # ax.set_xlim([30, 80])
+
+    if (max(times)>5):
+        raise Exception('Adjust yticks to show long exposures!!')
+    yticks = list(range(0, 6, 1))
+    yticks = [int(tick) for tick in yticks]
+    ax.set_yticks(yticks)
+    ax.set_yticklabels(yticks, fontsize=15)
+
+    if (max(dbs)>85):
+        raise Exception('Adjust xticks to show high dB exposures!!')
+    xticks = np.arange(40, 90, step=5)
+    ax.set_xticks(xticks)
+    ax.set_xticklabels(xticks, fontsize=15)
+
+    ax.set_ylabel('Duration (min)')
+    ax.set_xlabel('Traffic noise (dB)')
+
+    ax.xaxis.label.set_size(16)
+    ax.yaxis.label.set_size(16)
+
+    ax.xaxis.labelpad = 10
+    ax.yaxis.labelpad = 10
+
+    return fig
+
 def scatterplot(data_df, xcol=None, ycol=None, yignore=None, xlabel=None, ylabel=None):
     if (yignore is not None):
         df = data_df.query(f'''{ycol} != {yignore}''')
