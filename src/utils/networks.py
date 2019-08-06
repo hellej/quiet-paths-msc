@@ -241,9 +241,6 @@ def aggregate_path_geoms_attrs(graph, path, weight='length', geom=True, noises=F
                 print('idx:', idx, 'from:', node_1, 'to:', node_2)
                 print(' problems with edge:', edge_d['uvkey'], edge_d['noises'])
                 print(' edge lens vs noise lens:', edge_d['length'], exps.get_total_noises_len(edge_d['noises']))
-                # fixed_noises = exps.get_exposures_for_geom(edge_d['geometry'], noise_polys)
-                # print(' fixed noises:', fixed_noises)
-                # print(' fixed noises len:', exps.get_total_noises_len(fixed_noises))
         if noises:
             if ('noises' in edge_d):
                 edge_exps.append(edge_d['noises'])

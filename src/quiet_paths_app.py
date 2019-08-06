@@ -51,18 +51,19 @@ def get_short_quiet_paths(from_lat, from_lon, to_lat, to_lon):
     orig_node = rt.get_nearest_node(graph, from_xy, edge_gdf, node_gdf, nts=nts, db_costs=db_costs)
     dest_node = rt.get_nearest_node(graph, to_xy, edge_gdf, node_gdf, nts=nts, db_costs=db_costs, orig_node=orig_node)
     utils.print_duration(start_time, 'Origin & destination nodes set.')
-    start_time = time.time()
     # get shortest path
+    start_time = time.time()
     path_list = []
     shortest_path = rt.get_shortest_path(graph, orig_node['node'], dest_node['node'], weight='length')
-    path_geom = nw.aggregate_path_geoms_attrs(graph, shortest_path, weight='length', noises=True)
-    path_list.append({**path_geom, **{'id': 'short_p','type': 'short', 'nt': 0}})
+    path_geom_noises = nw.aggregate_path_geoms_attrs(graph, shortest_path, weight='length', noises=True)
+    path_list.append({**path_geom_noises, **{'id': 'short_p','type': 'short', 'nt': 0}})
     # get quiet paths to list
     for nt in nts:
         noise_cost_attr = 'nc_'+str(nt)
         shortest_path = rt.get_shortest_path(graph, orig_node['node'], dest_node['node'], weight=noise_cost_attr)
-        path_geom = nw.aggregate_path_geoms_attrs(graph, shortest_path, weight=noise_cost_attr, noises=True)
-        path_list.append({**path_geom, **{'id': 'q_'+str(nt), 'type': 'quiet', 'nt': nt}})
+        path_geom_noises = nw.aggregate_path_geoms_attrs(graph, shortest_path, weight=noise_cost_attr, noises=True)
+        path_list.append({**path_geom_noises, **{'id': 'q_'+str(nt), 'type': 'quiet', 'nt': nt}})
+    utils.print_duration(start_time, 'Routing done.')
     # remove linking edges of the origin / destination nodes
     nw.remove_new_node_and_link_edges(graph, orig_node)
     nw.remove_new_node_and_link_edges(graph, dest_node)
@@ -77,11 +78,12 @@ def get_short_quiet_paths(from_lat, from_lon, to_lat, to_lon):
     # gdf to dicts
     path_dicts = qp.get_geojson_from_q_path_gdf(paths_gdf)
     # group paths with nearly identical geometries
-    unique_paths = qp.remove_duplicate_geom_paths(path_dicts, tolerance=25)
+    start_time = time.time()
+    unique_paths = qp.remove_duplicate_geom_paths(path_dicts, tolerance=25, logging=False)
+    utils.print_duration(start_time, 'Filtered unique paths.')
     # calculate exposure differences to shortest path
     path_comps = rt.get_short_quiet_paths_comparison_for_dicts(unique_paths)
     # return paths as GeoJSON (FeatureCollection)
-    utils.print_duration(start_time, 'Routing done.')
     return jsonify(path_comps)
 
 if __name__ == '__main__':

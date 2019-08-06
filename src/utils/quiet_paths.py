@@ -56,7 +56,6 @@ def remove_duplicate_geom_paths(paths, tolerance=None, remove_geom_prop=True, lo
                 if (path_id not in filtered_paths_ids):
                     filtered_paths.append(path)
                     filtered_paths_ids.append(path_id)
-        print('overlapping paths:', all_overlapping_paths)
     # check if shortest path is shorter than shortest quiet path
     shortest_quiet_path = filtered_paths[0]
     if (shortest_quiet_path['properties']['length'] - shortest_path['properties']['length'] > 10):
@@ -68,12 +67,11 @@ def remove_duplicate_geom_paths(paths, tolerance=None, remove_geom_prop=True, lo
         if ('short_p' not in filtered_paths_ids):
             filtered_paths[0]['properties']['type'] = 'short'
             filtered_paths[0]['properties']['id'] = 'short_p'
-    if (logging == True):
-        print('found', len(paths), 'of which returned', len(filtered_paths), 'unique paths.')
     # delete shapely geometries from path dicts
     if (remove_geom_prop == True):
         for path in filtered_paths:
             del path['properties']['geometry']
+    if logging == True: print('found', len(paths), 'of which returned', len(filtered_paths), 'unique paths.')
     return filtered_paths
 
 def get_geojson_from_q_path_gdf(gdf):
@@ -86,17 +84,10 @@ def get_geojson_from_q_path_gdf(gdf):
         feature_d['properties']['sum_noise_len'] = exps.get_total_noises_len(getattr(path, 'noises'))
         feature_d['properties']['min_nt'] = getattr(path, 'min_nt')
         feature_d['properties']['max_nt'] = getattr(path, 'max_nt')
-        # feature_d['properties']['len_diff'] = getattr(path, 'len_diff')
-        # feature_d['properties']['len_diff_rat'] = getattr(path, 'len_diff_rat')
         feature_d['properties']['noises'] = getattr(path, 'noises')
-        # feature_d['properties']['noises_diff'] = getattr(path, 'noises_diff')
         feature_d['properties']['th_noises'] = getattr(path, 'th_noises')
-        # feature_d['properties']['th_noises_diff'] = getattr(path, 'th_noises_diff')
         feature_d['properties']['nei'] = getattr(path, 'nei')
         feature_d['properties']['nei_norm'] = getattr(path, 'nei_norm')
-        # feature_d['properties']['nei_diff_rat'] = getattr(path, 'nei_diff_rat')
-        # feature_d['properties']['path_score'] = getattr(path, 'path_score')
         feature_d['properties']['geometry'] = getattr(path, 'geometry')
         features.append(feature_d)
-    
     return features
