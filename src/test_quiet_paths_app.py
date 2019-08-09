@@ -40,8 +40,10 @@ def get_short_quiet_paths(graph, from_latLon, to_latLon, logging=False):
     # collect quiet paths to gdf
     paths_gdf = gpd.GeoDataFrame(path_list, crs=from_epsg(3879))
     paths_gdf = paths_gdf.drop_duplicates(subset=['type', 'total_length']).sort_values(by=['type', 'total_length'], ascending=[False, True])
-    # get exposures to noises along the paths
+    # add exposures to noise levels higher than specified threshods (dBs)
     paths_gdf['th_noises'] = [exps.get_th_exposures(noises, [55, 60, 65, 70]) for noises in paths_gdf['noises']]
+    # add percentages of cumulative distances of different noise levels
+    paths_gdf['noise_pcts'] = paths_gdf.apply(lambda row: exps.get_noise_pcts(row['noises'], row['total_length']), axis=1)
     # add noise exposure index (same as noise cost with noise tolerance: 1)
     paths_gdf['nei'] = [round(exps.get_noise_cost(noises=noises, db_costs=db_costs), 1) for noises in paths_gdf['noises']]
     paths_gdf['nei_norm'] = paths_gdf.apply(lambda row: round(row.nei / (0.6 * row.total_length), 4), axis=1)

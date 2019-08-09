@@ -63,6 +63,27 @@ def get_th_exposures(noise_dict, ths):
         th_noise_dict[ths[idx]] = round(th_lens[idx],3)
     return th_noise_dict
 
+def get_noise_pcts(noise_dict, total_length):
+    noise_dists = {}
+    db_40_len = round(total_length - get_total_noises_len(noise_dict),1)
+    if db_40_len > 0:
+        noise_dists[40] = db_40_len
+    for noise in noise_dict.keys():
+        noise_dist = noise_dict[noise]
+        if noise == 45:
+            if 40 in noise_dists.keys(): noise_dists[40] += noise_dist
+            else: noise_dists[40] = noise_dist
+        elif noise >= 70:
+            if 70 in noise_dists.keys(): noise_dists[70] += noise_dist
+            else: noise_dists[70] = noise_dist
+        else:
+            noise_dists[noise] = noise_dist
+    noise_pcts = {}
+    for noise in noise_dists.keys():
+        noise_dist = noise_dists[noise]
+        noise_pcts[noise] = round(noise_dist*100/total_length, 1)
+    return noise_pcts
+
 def get_noise_attrs_to_split_lines(gdf, noise_polys):
     gdf['split_line_index'] = gdf.index
     gdf['geometry'] = gdf['mid_point']
