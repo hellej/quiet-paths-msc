@@ -75,7 +75,9 @@ def get_short_quiet_paths(from_lat, from_lon, to_lat, to_lon):
     paths_gdf['th_noises'] = [exps.get_th_exposures(noises, [55, 60, 65, 70]) for noises in paths_gdf['noises']]
     # add percentages of cumulative distances of different noise levels
     paths_gdf['noise_pcts'] = paths_gdf.apply(lambda row: exps.get_noise_pcts(row['noises'], row['total_length']), axis=1)
-    # add noise exposure index (same as noise cost with noise tolerance: 1)
+    # calculate mean noise level
+    paths_gdf['mdB'] = paths_gdf.apply(lambda row: exps.get_mean_noise_level(row['noises'], row['total_length']), axis=1)
+    # calculate noise exposure index (same as noise cost but without noise tolerance coefficient)
     paths_gdf['nei'] = [round(exps.get_noise_cost(noises=noises, db_costs=db_costs), 1) for noises in paths_gdf['noises']]
     paths_gdf['nei_norm'] = paths_gdf.apply(lambda row: round(row.nei / (0.6 * row.total_length), 4), axis=1)
     # gdf to dicts

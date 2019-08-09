@@ -153,7 +153,7 @@ def get_total_noises_len(noises):
         totlen += noises[key]
     return round(totlen, 3)
 
-def get_mean_noise_level(length: float, noises: dict):
+def get_mean_noise_level(noises: dict, length: float):
     sum_db = 0
     # estimate mean dB of 5 dB range to be min dB + 2.5 dB
     for db in noises.keys():

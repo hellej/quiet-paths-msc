@@ -84,6 +84,7 @@ def get_geojson_from_q_path_gdf(gdf):
         feature_d['properties']['noises'] = getattr(path, 'noises')
         feature_d['properties']['noise_pcts'] = getattr(path, 'noise_pcts')
         feature_d['properties']['th_noises'] = getattr(path, 'th_noises')
+        feature_d['properties']['mdB'] = getattr(path, 'mdB')
         feature_d['properties']['nei'] = getattr(path, 'nei')
         feature_d['properties']['nei_norm'] = getattr(path, 'nei_norm')
         feature_d['properties']['geometry'] = getattr(path, 'geometry')
