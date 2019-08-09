@@ -82,8 +82,6 @@ def get_geojson_from_q_path_gdf(gdf):
         feature_d['properties']['id'] = getattr(path, 'id')
         feature_d['properties']['length'] = getattr(path, 'total_length')
         feature_d['properties']['sum_noise_len'] = exps.get_total_noises_len(getattr(path, 'noises'))
-        feature_d['properties']['min_nt'] = getattr(path, 'min_nt')
-        feature_d['properties']['max_nt'] = getattr(path, 'max_nt')
         feature_d['properties']['noises'] = getattr(path, 'noises')
         feature_d['properties']['th_noises'] = getattr(path, 'th_noises')
         feature_d['properties']['nei'] = getattr(path, 'nei')

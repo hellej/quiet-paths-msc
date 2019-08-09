@@ -121,21 +121,6 @@ def get_short_quiet_paths_comparison_for_dicts(paths):
         path['properties']['path_score'] = round((path['properties']['nei_diff'] / path['properties']['len_diff']) * -1, 1) if path['properties']['len_diff'] > 0 else 0
     return comp_paths
 
-def aggregate_quiet_paths(paths_gdf):
-    grouped = paths_gdf.groupby(['type', 'total_length'])
-    gdfs = []
-    for key, group in grouped:
-        max_nt = group['nt'].max()
-        min_nt = group['nt'].min()
-        g_row = dict(group.iloc[0])
-        g_row['min_nt'] = min_nt
-        g_row['max_nt'] = max_nt
-        g_row.pop('nt', None)
-        gdfs.append(g_row)
-    g_gdf = gpd.GeoDataFrame(gdfs, crs=geom_utils.get_etrs_crs())
-    g_gdf = g_gdf.sort_values(by=['type', 'total_length'])
-    return g_gdf
-
 def get_short_quiet_paths(graph, from_latLon, to_latLon, edge_gdf, node_gdf, nts=[], db_costs={}, remove_geom_prop=True, logging=True):
     start_time = time.time()
     # get origin & destination nodes

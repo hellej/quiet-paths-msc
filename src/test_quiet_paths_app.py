@@ -26,20 +26,20 @@ def get_short_quiet_paths(graph, from_latLon, to_latLon, logging=False):
     # get shortest path
     path_list = []
     shortest_path = rt.get_shortest_path(graph, orig_node['node'], dest_node['node'], weight='length')
-    path_geom = nw.aggregate_path_geoms_attrs(graph, shortest_path, weight='length', noises=True)
-    path_list.append({**path_geom, **{'id': 'short_p','type': 'short', 'nt': 0}})
+    path_geom_noises = nw.aggregate_path_geoms_attrs(graph, shortest_path, weight='length', noises=True)
+    path_list.append({**path_geom_noises, **{'id': 'short_p','type': 'short', 'nt': 0}})
     # get quiet paths to list
     for nt in nts:
         noise_cost_attr = 'nc_'+str(nt)
         shortest_path = rt.get_shortest_path(graph, orig_node['node'], dest_node['node'], weight=noise_cost_attr)
-        path_geom = nw.aggregate_path_geoms_attrs(graph, shortest_path, weight=noise_cost_attr, noises=True)
-        path_list.append({**path_geom, **{'id': 'q_'+str(nt), 'type': 'quiet', 'nt': nt}})
+        path_geom_noises = nw.aggregate_path_geoms_attrs(graph, shortest_path, weight=noise_cost_attr, noises=True)
+        path_list.append({**path_geom_noises, **{'id': 'q_'+str(nt), 'type': 'quiet', 'nt': nt}})
     # remove linking edges of the origin / destination nodes
     nw.remove_new_node_and_link_edges(graph, orig_node)
     nw.remove_new_node_and_link_edges(graph, dest_node)
     # collect quiet paths to gdf
-    gdf = gpd.GeoDataFrame(path_list, crs=from_epsg(3879))
-    paths_gdf = rt.aggregate_quiet_paths(gdf)
+    paths_gdf = gpd.GeoDataFrame(path_list, crs=from_epsg(3879))
+    paths_gdf = paths_gdf.drop_duplicates(subset=['type', 'total_length']).sort_values(by=['type', 'total_length'], ascending=[False, True])
     # get exposures to noises along the paths
     paths_gdf['th_noises'] = [exps.get_th_exposures(noises, [55, 60, 65, 70]) for noises in paths_gdf['noises']]
     # add noise exposure index (same as noise cost with noise tolerance: 1)
