@@ -208,35 +208,29 @@ def get_geojson_from_geom(geom):
         }
     return feature
 
-def lines_overlap(geom1, geom2):
+def lines_overlap(geom1, geom2, tolerance=2, length_match=None):
     '''
-    Function for testing if two lines overlap within small tolerance. Multiple geometrical tests can be made:
-    1) Other line should be within a small buffer around the other line and vice versa.
-    2) First points of the lines should be close.
-    3) Distance between the lines should be small.
-    4) Length of the lines should be almost the same.
+    Function for testing if two lines overlap within small tolerance.
+    Note: partial overlap is accepted as line lengths don't need to match.
+
     Args:
-        geom1: <LineString>
-        geom2: <LineString>
+        geom1 (LineString)
+        geom2 (LineString)
+        tolerance (int): tolerance in meters
+        length_match (float): 
     Returns:
-        <bool>
+        bool
     '''
-    point1 = Point(geom1.coords[0])
-    point2 = Point(geom2.coords[0])
-    point2_last = Point(geom2.coords[len(geom2.coords)-1])
-    buffer1 = geom1.buffer(3)
-    buffer2 = geom2.buffer(3)
-    if ((geom1.within(buffer2) == True) and (geom2.within(buffer1) == True)):
-        # print ('line is within')
-        return True
-    dist1 = geom1.distance(geom2)
-    dist2 = point1.distance(point2)
-    dist3 = point1.distance(point2_last)
-    len_diff = geom1.length - geom2.length
-    # print(dist1, dist2, dist3, len_diff)
-    if (dist1 < 1 and len_diff < 10 and (dist2 < 1 or dist3 < 1)):
-        return True
-    return False
+    buffer1 = geom1.buffer(tolerance)
+    buffer2 = geom2.buffer(tolerance)
+    match = False
+    if ((geom1.within(buffer2) == True) or (geom2.within(buffer1) == True)):
+        match = True
+    if (length_match is not None):
+        len_diff_ratio = geom1.length/geom2.length
+        if (len_diff_ratio < length_match):
+            match = False
+    return match
 
 def get_gdf_subset_within_poly(gdf, polygon):
     gdf = gdf.copy()

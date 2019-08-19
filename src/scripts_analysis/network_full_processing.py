@@ -55,6 +55,7 @@ print('Found', len(filt_edge_gdf), 'unwalkable edges within the extent.')
 filt_edges_file = filt_edge_gdf.drop(['oneway', 'access', 'osmid', 'uvkey', 'service', 'junction', 'lanes'], axis=1, errors='ignore')
 filt_edges_filename = graph_name +'_tunnel_edges'
 filt_edges_file.to_file('data/networks.gpkg', layer=filt_edges_filename, driver="GPKG")
+print('exported', filt_edges_filename, 'to data/networks.gpkg')
 # get edge gdf from graph
 edge_gdf = nw.get_edge_gdf(graph, by_nodes=True, attrs=['geometry', 'length', 'osmid'])
 # add osmid as string to edge gdfs
@@ -64,9 +65,10 @@ edge_gdf['osmid_str'] = [nw.osmid_to_string(osmid) for osmid in edge_gdf['osmid'
 edges_to_rm = []
 edges_to_rm_gdfs = []
 for idx, filt_edge in filt_edge_gdf.iterrows():
-    edges_found = edge_gdf.loc[edge_gdf['osmid_str'] == filt_edge['osmid_str']].copy()
+    utils.print_progress(idx, len(filt_edge_gdf), percentages=True)
+    edges_found = edge_gdf.loc[edge_gdf['osmid_str'].str.contains(filt_edge['osmid_str'])].copy()
     if (len(edges_found) > 0):
-        edges_found['filter_match'] = [geom_utils.lines_overlap(filt_edge['geometry'], geom) for geom in edges_found['geometry']]
+        edges_found['filter_match'] = [geom_utils.lines_overlap(filt_edge['geometry'], geom, length_match=0.5) for geom in edges_found['geometry']]
         edges_match = edges_found.loc[edges_found['filter_match'] == True].copy()
         edges_to_rm_gdfs.append(edges_match)
         rm_edges = list(edges_match['uvkey'])
@@ -74,24 +76,28 @@ for idx, filt_edge in filt_edge_gdf.iterrows():
 all_edges_to_rm_gdf = gpd.GeoDataFrame(pd.concat(edges_to_rm_gdfs, ignore_index=True), crs=from_epsg(3879))
 rm_edges_filename = graph_name +'_tunnel_edges_to_rm'
 all_edges_to_rm_gdf.drop(columns=['filter_match', 'uvkey', 'osmid']).to_file('data/networks.gpkg', layer=rm_edges_filename, driver="GPKG")
+print('exported', rm_edges_filename, 'to data/networks.gpkg')
 
 # filter out duplicate edges to remove
 edges_to_rm = list(set(edges_to_rm))
-print('Found', len(edges_to_rm), 'edges to remove (by matching osmid & geometry).')
+print('\nFound', len(edges_to_rm), 'edges to remove (by matching osmid & geometry).')
 
 #%% 3.4 Remove matched unwalkable edges from the graph
 removed = 0
-errors = 0
 for uvkey in edges_to_rm:
     try:
-        graph.remove_edge(uvkey[0], uvkey[1], key=uvkey[2])
+        graph.remove_edge(uvkey[0], uvkey[1])
         removed += 1
     except Exception:
-        errors += 1
+        continue
+    try:
+        graph.remove_edge(uvkey[1], uvkey[0])
+        removed += 1
+    except Exception:
+        continue
 print('Removed', removed, 'edges from the graph')
-print('Could not remove', errors, 'edges (probably due to undirected graph type).')
 
-#%% 4. Remove unnecessary attributes from the graph 
+#%% 4. Remove unnecessary attributes from the graph
 nw.delete_unused_edge_attrs(graph)
 
 #%% 5.1 Remove isolated nodes from the graph
@@ -106,8 +112,15 @@ rm_nodes = []
 for sb in sub_graphs:
     sub_graph = sb.copy()
     print(f'subgraph has {sub_graph.number_of_nodes()} nodes')
-    if (len(sub_graph.nodes) < 30):
+    sub_graph_size = len(sub_graph.nodes)
+    if (sub_graph_size < 40):
         rm_nodes += list(sub_graph.nodes)
+    if (sub_graph_size >= 40 and sub_graph_size < len(graph.nodes)-5000):
+        sub_g_edges = nw.get_edge_gdf(sub_graph, attrs=['geometry', 'length'])
+        sub_g_filename = graph_name +'_large_subgraph_n'+ str(sub_graph_size)
+        sub_g_edges.drop(columns=['uvkey']).to_file('data/networks.gpkg', layer=sub_g_filename, driver="GPKG")
+        print('exported', sub_g_filename, 'to data/networks.gpkg')
+
 print('Found', len(rm_nodes), 'nodes to remove (to remove subgrahs).')
 
 #%% 6.2 Remove subgraphs (by nodes)

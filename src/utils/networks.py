@@ -79,7 +79,8 @@ def add_missing_edge_geometries(graph, edge_dicts):
 def osmid_to_string(osmid):
     if isinstance(osmid, list):
         osm_str = ''
-        for osm_id in osmid:
+        osmid_list = sorted(osmid)
+        for osm_id in osmid_list:
             osm_str += str(osm_id)+'_'
     else:
         osm_str = str(osmid)
