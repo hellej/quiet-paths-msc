@@ -35,6 +35,7 @@ paths['th_noises_diff'] = [ast.literal_eval(th_noises) for th_noises in paths['t
 print('read', len(paths.index), 'paths')
 print('axyind count:', len(paths['from_axyind'].unique()))
 print('paths per axyind:', round(len(paths.index)/len(paths['from_axyind'].unique())))
+print(paths.columns)
 
 #%% mark path stats to -9999 for paths that are actually PT legs (origin happened to be exactly at the PT stop)
 paths = pstats.map_pt_path_props_to_null(paths)
@@ -45,12 +46,6 @@ print('short paths count:', len(s_paths.index))
 
 #%% add & extract dB exposure columnds to df
 s_paths = pstats.extract_th_db_cols(s_paths, ths=[55, 60, 65, 70], valueignore=-9999)
-s_paths['mdB'] = s_paths.apply(lambda row: exps.get_mean_noise_level(row['length'], row['noises']) if type(row['noises']) == dict else -9999, axis=1)
-s_paths.head(2)
-
-#%% calculate path length statistics (compare lengths to reference lengths from DT)
-s_paths = pstats.add_dt_length_diff_cols(s_paths, valueignore=-9999)
-s_paths.head(2)
 
 #%% add bool col for within hel = yes/no
 s_paths = pstats.add_bool_within_hel_poly(s_paths)
@@ -218,7 +213,6 @@ qp_cols = ['od_id', 'path_id', 'len_diff', 'len_diff_r', 'length', 'nei',
 
 #%% filter out null paths & rename id columns
 p = paths.query('length != -9999').copy()
-p['od_id'] = p['path_id']
 p['path_id'] = p['id']
 p['nei_diff_r'] = p['nei_diff_rat']
 p['len_diff_r'] = p['len_diff_rat']
@@ -231,7 +225,6 @@ p = p[p['from_axyind'].isin(axyinds)]
 print('filtered paths count:', len(p))
 
 #%% add & extract dB exposure columnds to df
-p['mdB'] = p.apply(lambda row: exps.get_mean_noise_level(row['length'], row['noises']), axis=1)
 p = pstats.extract_th_db_cols(p, ths=[60, 65, 70], add_ratios=False)
 print(p.columns)
 p = p[qp_cols]
