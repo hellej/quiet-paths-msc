@@ -52,18 +52,22 @@ def get_network_kumpula():
     graph_undir = load_graphml('kumpula-v2_u_g_f_s.graphml', folder='graphs', directed=False, noises=False)
     return graph_undir
 
-def get_network_kumpula_noise(version=2):
+def get_network_kumpula_noise(version=3):
     if (version == 1):
         return load_graphml('kumpula_u_g_n_s.graphml', folder='graphs', directed=False)
     if (version == 2):
         return load_graphml('kumpula-v2_u_g_n2_f_s.graphml', folder='graphs', directed=False)
+    if (version == 3):
+        return load_graphml('kumpula-v3_u_g_n2_f_s.graphml', folder='graphs', directed=False)
     return None
 
-def get_network_full_noise(version=2):
+def get_network_full_noise(version=3):
     if (version == 1):
         return load_graphml('hel_u_g_n2_f_s.graphml', folder='graphs', directed=False)
     if (version == 2):
         return load_graphml('hel-v2_u_g_n2_f_s.graphml', folder='graphs', directed=False)
+    if (version == 3):
+        return load_graphml('hel-v3_u_g_n2_f_s.graphml', folder='graphs', directed=False)
 
 def load_graphml(filename, folder=None, node_type=int, directed=None, noises=True):
     # read the graph from disk

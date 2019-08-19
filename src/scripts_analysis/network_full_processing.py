@@ -14,12 +14,14 @@ import utils.exposures as exps
 import utils.utils as utils
 
 #%% 1. Set graph extent, name and output folder
-graph_name = 'hel-v2'
+graph_name = 'hel-v3'
+# graph_name = 'kumpula-v3'
 out_dir = 'graphs'
 # aoi_poly = files.get_koskela_kumpula_box()
 aoi_poly = files.get_hel_poly(WGS84=True, buffer_m=1000)
 
 #%% 2.1 Get undirected projected graph
+print('\nGraph to construct:', graph_name)
 start_time = time.time()
 graph = nw.get_walkable_network(extent_poly_wgs=aoi_poly)
 utils.print_duration(start_time, 'Graph acquired.', round_n=1)
@@ -168,6 +170,7 @@ def get_edge_noises_df(edge_dicts):
     return edge_noises
 
 #%% 9.2 Extract noise data by edge geometries
+print('Extract contaminated distances to noises...')
 # divide list of all edge dicts to chunks of 3000 edges
 edge_chunks = utils.get_list_chunks(edge_dicts, 3000)
 pool = Pool(processes=4)
@@ -191,8 +194,7 @@ ox.save_graphml(graph, filename=graph_filename, folder='graphs', gephi=False)
 print('Exported graph to file:', graph_filename)
 
 #%% 11. Validate contaminated distances in the exported graph
-# graph_name = 'kumpula-v2'
-# graph_filename = graph_name +'_u_g_n2_f_s.graphml'
+graph_filename = graph_name +'_u_g_n2_f_s.graphml'
 graph = files.load_graphml(graph_filename, folder=out_dir, directed=False)
 # get edge gdf
 edge_gdf = nw.get_edge_gdf(graph, attrs=['geometry', 'length', 'noises'], by_nodes=False)
@@ -215,14 +217,14 @@ edge_gdf = nw.get_edge_gdf(graph, attrs=['geometry', 'length', 'noises'], by_nod
 nw.set_graph_noise_costs(graph, edge_gdf, db_costs=db_costs, nts=nts)
 # get full number of edges (undirected edges x 2)
 edge_gdf_all = nw.get_edge_gdf(graph, by_nodes=True)
-# calculate edges for which the noise costs were set
-edge_gdf_noise_costs_ok = edge_gdf_all[(edge_gdf_all['nc_0.1'] < 1000) & (edge_gdf_all['nc_0.1'] > 0.2)]
-missing_edge_costs_count = len(edge_gdf_all) - len(edge_gdf_noise_costs_ok)
-if (missing_edge_costs_count > 0):
-    missing_ratio = round((missing_edge_costs_count/len(edge_gdf_all)) * 100, 3)
-    print('Edge noise costs not set for:', missing_edge_costs_count, 'edges ('+ str(missing_ratio)+' %)')
+#%% check that set noise costs are ok
+odd_edge_gdf_noise_costs = edge_gdf_all[(edge_gdf_all['nc_0.1'] > 1300) | (edge_gdf_all['nc_0.1'] < 0.02)]
+if (len(odd_edge_gdf_noise_costs) > 0):
+    missing_ratio = round((len(odd_edge_gdf_noise_costs)/len(edge_gdf_all)) * 100, 3)
+    print('Edge noise costs odd for:', len(odd_edge_gdf_noise_costs) , 'edges ('+ str(missing_ratio)+' %)')
+    odd_edge_noise_costs_filename = graph_name +'_odd_edge_noise_costs'
+    odd_edge_gdf_noise_costs.drop(columns=['uvkey']).to_file('data/networks.gpkg', layer=odd_edge_noise_costs_filename, driver="GPKG")
 else:
     print('Edge noise costs ok.')
-
 
 #%%

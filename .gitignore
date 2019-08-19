@@ -29,3 +29,5 @@ src/graphs/kumpula-v2_u_g_f_s.graphml
 src/graphs/kumpula-v2_u_g_n2_f_s.graphml
 src/graphs/hel-v2_u_g_f_s.graphml
 src/graphs/hel-v2_u_g_n2_f_s.graphml
+src/graphs/hel-v3_u_g_f_s.graphml
+src/graphs/hel-v3_u_g_n2_f_s.graphml
