@@ -68,7 +68,7 @@ for idx, filt_edge in filt_edge_gdf.iterrows():
     utils.print_progress(idx, len(filt_edge_gdf), percentages=True)
     edges_found = edge_gdf.loc[edge_gdf['osmid_str'].str.contains(filt_edge['osmid_str'])].copy()
     if (len(edges_found) > 0):
-        edges_found['filter_match'] = [geom_utils.lines_overlap(filt_edge['geometry'], geom, length_match=0.5) for geom in edges_found['geometry']]
+        edges_found['filter_match'] = [geom_utils.lines_overlap(filt_edge['geometry'], geom, min_intersect=0.5) for geom in edges_found['geometry']]
         edges_match = edges_found.loc[edges_found['filter_match'] == True].copy()
         edges_to_rm_gdfs.append(edges_match)
         rm_edges = list(edges_match['uvkey'])
@@ -76,11 +76,11 @@ for idx, filt_edge in filt_edge_gdf.iterrows():
 all_edges_to_rm_gdf = gpd.GeoDataFrame(pd.concat(edges_to_rm_gdfs, ignore_index=True), crs=from_epsg(3879))
 rm_edges_filename = graph_name +'_tunnel_edges_to_rm'
 all_edges_to_rm_gdf.drop(columns=['filter_match', 'uvkey', 'osmid']).to_file('data/networks.gpkg', layer=rm_edges_filename, driver="GPKG")
-print('exported', rm_edges_filename, 'to data/networks.gpkg')
+print('\nexported', rm_edges_filename, 'to data/networks.gpkg')
 
 # filter out duplicate edges to remove
 edges_to_rm = list(set(edges_to_rm))
-print('\nFound', len(edges_to_rm), 'edges to remove (by matching osmid & geometry).')
+print('Found', len(edges_to_rm), 'edges to remove (by matching osmid & geometry).')
 
 #%% 3.4 Remove matched unwalkable edges from the graph
 removed = 0

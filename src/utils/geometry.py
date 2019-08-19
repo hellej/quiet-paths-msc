@@ -208,7 +208,7 @@ def get_geojson_from_geom(geom):
         }
     return feature
 
-def lines_overlap(geom1, geom2, tolerance=2, length_match=None):
+def lines_overlap(geom1, geom2, tolerance=2, min_intersect=None):
     '''
     Function for testing if two lines overlap within small tolerance.
     Note: partial overlap is accepted as line lengths don't need to match.
@@ -217,7 +217,7 @@ def lines_overlap(geom1, geom2, tolerance=2, length_match=None):
         geom1 (LineString)
         geom2 (LineString)
         tolerance (int): tolerance in meters
-        length_match (float): 
+        min_intersect (float): 
     Returns:
         bool
     '''
@@ -226,9 +226,10 @@ def lines_overlap(geom1, geom2, tolerance=2, length_match=None):
     match = False
     if ((geom1.within(buffer2) == True) or (geom2.within(buffer1) == True)):
         match = True
-    if (length_match is not None):
-        len_diff_ratio = geom1.length/geom2.length
-        if (len_diff_ratio < length_match):
+    if (min_intersect is not None):
+        inters_area = buffer1.intersection(buffer2).area
+        inters_ratio = inters_area/buffer2.area
+        if (inters_ratio < min_intersect):
             match = False
     return match
 
