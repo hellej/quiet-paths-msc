@@ -18,7 +18,7 @@ import utils.quiet_paths as qp
 start_time = time.time()
 nts = qp.get_noise_tolerances()
 db_costs = qp.get_db_costs()
-graph = files.get_network_full_noise()
+graph = files.get_network_full_noise(version=3)
 print('Graph of', graph.size(), 'edges read.')
 edge_gdf = nw.get_edge_gdf(graph, attrs=['geometry', 'length', 'noises'])
 node_gdf = nw.get_node_gdf(graph)
@@ -93,6 +93,7 @@ all_home_paths_df = gpd.GeoDataFrame(pd.concat(home_paths_dfs, ignore_index=True
 utils.print_duration(start_time, 'Got paths.')
 axyind_time = round((time.time() - start_time)/len(to_process), 2)
 print('axyind_time (s):', axyind_time)
+
 #%% check paths GDF
 all_home_paths_df.head(3)
 
