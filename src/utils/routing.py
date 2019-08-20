@@ -16,7 +16,7 @@ def find_nearest_edge(xy, edge_gdf):
     # start_time = time.time()
     edges_sind = edge_gdf.sindex
     point_geom = geom_utils.get_point_from_xy(xy)
-    for radius in [80, 150, 250, 350, 450]:
+    for radius in [80, 150, 250, 350, 650]:
         possible_matches_index = list(edges_sind.intersection(point_geom.buffer(radius).bounds))
         if (len(possible_matches_index) > 0):
             possible_matches = edge_gdf.iloc[possible_matches_index].copy()
