@@ -14,6 +14,10 @@ import utils.utils as utils
 import utils.routing as rt
 import utils.quiet_paths as qp
 
+#%%
+# out_filename = 'test_run_1'
+out_filename = 'run_4_set_1'
+
 #%% initialize graph
 start_time = time.time()
 nts = qp.get_noise_tolerances()
@@ -36,9 +40,9 @@ utils.print_duration(start_time, 'Network initialized.')
 home_stops_path = 'outputs/YKR_commutes_output/home_stops'
 axyinds = commutes_utils.get_xyind_filenames(path=home_stops_path)
 to_process = axyinds #[:5]
-# to_process = axyinds_to_process
-# to_process = ['axyind_3933756681125.csv'] # this threw error before
-# to_process = ['axyind_3898756678375.csv'] # this threw error before
+# errors = [3931256683625, 3803756680125, 3806256676125, 3906256684875, 3938756682375] # errors on 20.8.19
+# to_process = ['axyind_'+str(axyind)+'.csv' for axyind in errors]
+
 print('Start processing', len(to_process), 'axyinds')
 
 #%% functions for calculating origin-stop paths
