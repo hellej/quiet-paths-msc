@@ -76,8 +76,12 @@ def get_nearest_node(graph, xy, edge_gdf, node_gdf, nts=[], db_costs={}, orig_no
 
 def get_shortest_path(graph, orig_node, dest_node, weight='length'):
     if (orig_node != dest_node):
-        s_path = nx.shortest_path(G=graph, source=orig_node, target=dest_node, weight=weight)
-        return s_path
+        try:
+            s_path = nx.shortest_path(G=graph, source=orig_node, target=dest_node, weight=weight)
+            return s_path
+        except:
+            print('Could not find paths')
+            return None
     else:
         return None
 
@@ -130,9 +134,18 @@ def get_short_quiet_paths(graph, from_latLon, to_latLon, edge_gdf, node_gdf, nts
     # find/create origin and destination nodes
     orig_node = get_nearest_node(graph, from_xy, edge_gdf, node_gdf, nts=nts, db_costs=db_costs)
     dest_node = get_nearest_node(graph, to_xy, edge_gdf, node_gdf, nts=nts, db_costs=db_costs, orig_node=orig_node)
+    if (orig_node is None):
+        print('could not find origin node at', from_latLon)
+        return None
+    if (dest_node is None):
+        print('could not find destination node at', to_latLon)
+        return None
     # get shortest path
     path_list = []
     shortest_path = get_shortest_path(graph, orig_node['node'], dest_node['node'], weight='length')
+    if (shortest_path is None):
+        print('could not find shortest path')
+        return None
     if (only_short == True):
         return shortest_path
     path_geom_noises = nw.aggregate_path_geoms_attrs(graph, shortest_path, weight='length', noises=True)

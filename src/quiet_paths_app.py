@@ -50,11 +50,19 @@ def get_short_quiet_paths(from_lat, from_lon, to_lat, to_lon):
     # find/create origin and destination nodes
     orig_node = rt.get_nearest_node(graph, from_xy, edge_gdf, node_gdf, nts=nts, db_costs=db_costs)
     dest_node = rt.get_nearest_node(graph, to_xy, edge_gdf, node_gdf, nts=nts, db_costs=db_costs, orig_node=orig_node)
+    if (orig_node is None):
+        print('could not find origin node at', from_latLon)
+        return jsonify({'error': 'Origin not found'})
+    if (dest_node is None):
+        print('could not find destination node at', to_latLon)
+        return jsonify({'error': 'Destination not found'})
     utils.print_duration(start_time, 'Origin & destination nodes set.')
     # get shortest path
     start_time = time.time()
     path_list = []
     shortest_path = rt.get_shortest_path(graph, orig_node['node'], dest_node['node'], weight='length')
+    if (shortest_path is None):
+        return jsonify({'error': 'Could not find paths'})
     path_geom_noises = nw.aggregate_path_geoms_attrs(graph, shortest_path, weight='length', noises=True)
     path_list.append({**path_geom_noises, **{'id': 'short_p','type': 'short', 'nt': 0}})
     # get quiet paths to list
