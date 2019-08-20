@@ -165,7 +165,7 @@ print('merged:', len(grid_stats))
 grid_stats = gpd.GeoDataFrame(grid_stats, geometry='grid_geom', crs=from_epsg(3067))
 
 #%% export axyind stats with grid geometry to file
-grid_stats.drop(columns=['grid_centr']).to_file('outputs/YKR_commutes_output/axyind_stats.gpkg', layer='axyind_stats_v3', drive='GPKG')
+grid_stats.drop(columns=['grid_centr']).to_file('outputs/YKR_commutes_output/axyind_stats.gpkg', layer='axyind_stats_v3', driver='GPKG')
 
 #### PATH NOISE STATS #####
 ###########################

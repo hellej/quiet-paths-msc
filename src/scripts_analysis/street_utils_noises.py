@@ -143,7 +143,8 @@ edge_utils_gdf['nei_norm'] = edge_utils_gdf.apply(lambda row: round(row['nei'] /
 
 #%% export edges with noise & util attributes to file
 all_path_lists_file = edge_utils_gdf.drop(columns=['uvkey', 'noises', 'edge_id'])
-all_path_lists_file.to_file('outputs/YKR_commutes_output/edge_stats.gpkg', layer='edge_utils_test_1', drive='GPKG')
+all_path_lists_file = all_path_lists_file.query('util > 0')
+all_path_lists_file.to_file('outputs/YKR_commutes_output/edge_stats.gpkg', layer='edge_utils_test_1', driver='GPKG')
 
 #%%
 # TODO plot mean dBs against utils
