@@ -34,7 +34,7 @@ def map_pt_path_props_to_null(df):
     paths['th_noises'] = paths.apply(lambda row: -9999 if row['to_pt_mode'] == 'WALK' else row['th_noises'], axis=1)
     print('mapped', len(paths.query("length == -9999")), 'lengths to -9999')
     return paths
-    
+
 def extract_th_db_cols(paths_gdf, ths=[60, 65], valueignore=-9999, add_ratios=True):
     gdf = paths_gdf.copy()
     def get_db_len_ratio(row, th_len_col):
