@@ -15,6 +15,9 @@ import utils.routing as rt
 import utils.exposures as exps
 import utils.quiet_paths as qp
 
+edges_out_file = 'street_utils_run_1'
+problem_axyinds = [3933756673875] # routing will be skipped from these
+
 #%% initialize graph & extract edge_gdf
 start_time = time.time()
 nts = qp.get_noise_tolerances()
@@ -58,6 +61,9 @@ def get_origin_stop_paths(from_latLon=None, to_latLon=None):
 # function for calculating short path
 def get_origin_stops_paths(home_stops_file):
     from_axyind = commutes_utils.get_xyind_from_filename(home_stops_file)
+    if (from_axyind in problem_axyinds):
+        print('skipping problematic axyind')
+        return from_axyind
     try:
         home_stops = pd.read_csv(home_stops_path+'/'+home_stops_file)
         home_stops['DT_origin_latLon'] = [ast.literal_eval(d) for d in home_stops['DT_origin_latLon']]
@@ -80,8 +86,7 @@ def get_origin_stops_paths(home_stops_file):
 #%% Read ODs of the first walks of the commutes
 home_stops_path = 'outputs/YKR_commutes_output/home_stops'
 axyinds = commutes_utils.get_xyind_filenames(path=home_stops_path)
-# TODO: filter out problematic axyinds
-to_process = axyinds[:100] 
+to_process = axyinds #[:10]
 print('Start processing', len(to_process), 'axyinds')
 
 #%% routing analysis
@@ -144,7 +149,7 @@ edge_utils_gdf['nei_norm'] = edge_utils_gdf.apply(lambda row: round(row['nei'] /
 #%% export edges with noise & util attributes to file
 all_path_lists_file = edge_utils_gdf.drop(columns=['uvkey', 'noises', 'edge_id'])
 all_path_lists_file = all_path_lists_file.query('util > 0')
-all_path_lists_file.to_file('outputs/YKR_commutes_output/edge_stats.gpkg', layer='edge_utils_test_1', driver='GPKG')
+all_path_lists_file.to_file('outputs/YKR_commutes_output/edge_stats.gpkg', layer=edges_out_file, driver='GPKG')
 
 #%%
 # TODO plot mean dBs against utils
