@@ -16,6 +16,7 @@ import utils.exposures as exps
 walks_in_file = 'run_5_set_1'
 problem_axyinds = [3933756673875]
 
+
 #### READ & PROCESS WALKS & GRID ####
 #####################################
 
@@ -65,6 +66,7 @@ s_paths_work = s_paths.query("to_pt_mode == 'none'")
 print('short paths to pt count:', len(s_paths_pt.index), '(of', str(count_before)+')')
 print('short paths to work count:', len(s_paths_work.index), '(of', str(count_before)+')')
 
+
 #### PATH LENGTH STATISTICS ####
 ################################
 
@@ -90,17 +92,18 @@ path_len_stats
 #%% plot DT len diff stats
 s_paths_filt = pstats.filter_by_min_value(s_paths, 'length', 20)
 s_paths_filt = pstats.filter_by_max_value(s_paths_filt, 'DT_len_diff', 7000)
-fig = plots.scatterplot(s_paths_filt, xcol='length', ycol='DT_len', yignore=-9999, xlabel='Length (m)', ylabel='Ref. length (m)')
+fig = plots.scatterplot(s_paths_filt, xcol='length', ycol='DT_len', yignore=-9999, xlabel='Length (m)', ylabel='Ref. length (m)', line='xy')
 fig.savefig('plots/paths_len_ref_len_scatter.png', format='png', dpi=300)
 fig = plots.scatterplot(s_paths_filt, xcol='length', ycol='DT_len_diff', yignore=-9999, xlabel='Length (m)', ylabel='Ref. length diff. (m)')
 fig.savefig('plots/paths_DT_len_diff_scatter.png', format='png', dpi=300)
 fig = plots.boxplot(s_paths_filt, col='DT_len_diff', valignore=-9999, label='Ref. length diff. (m)')
 fig.savefig('plots/paths_DT_len_diff_boxplot.png', format='png', dpi=300)
-fig = plots.scatterplot(s_paths_filt, xcol='length', ycol='DT_len_diff_rat', yignore=-9999, xlabel='Length (m)', ylabel='Ref. length diff. (%)')
+fig = plots.scatterplot(s_paths_filt, xcol='length', ycol='DT_len_diff_rat', yignore=-9999, xlabel='Length (m)', ylabel='Diff. to ref. length (%)', line='y0')
 fig.savefig('plots/paths_DT_len_diff_rat_scatter.png', format='png', dpi=300)
 
 #%% export paths with stats to file
-s_paths.to_file('outputs/YKR_commutes_output/home_paths.gpkg', layer='run_3_stats', driver='GPKG')
+s_paths.to_file('outputs/YKR_commutes_output/home_paths.gpkg', layer=walks_in_file+'_stats', driver='GPKG')
+
 
 #### FILTER OUT PATHS FROM PROBLEMATIC AXYINDS ####
 ###################################################
@@ -116,6 +119,7 @@ s_paths_work = s_paths_work[~s_paths_work['from_axyind'].isin(skip_axyinds)]
 
 count_after = len(s_paths)
 print('Filtered out:', count_before-count_after, 'shortest paths')
+
 
 #### STATFI GRID LEVEL NOISE STATISTICS ####
 ############################################

@@ -7,6 +7,8 @@ from matplotlib import rcParams
 rcParams['font.family'] = 'sans-serif'
 rcParams['font.sans-serif'] = ['Arial']
 import matplotlib.pyplot as plt
+import matplotlib.lines as mlines
+import matplotlib.transforms as mtransforms
 
 def set_plot_style():
     plt.style.use('default')
@@ -80,7 +82,14 @@ def plot_exposure_times(exp_times):
 
     return fig
 
-def scatterplot(data_df, xcol=None, ycol=None, yignore=None, xlabel=None, ylabel=None):
+def abline(slope, intercept):
+    '''Plot a line from slope and intercept'''
+    axes = plt.gca()
+    x_vals = np.array(axes.get_xlim())
+    y_vals = intercept + slope * x_vals
+    plt.plot(x_vals, y_vals, color='red', linestyle='dashed')
+
+def scatterplot(data_df, xcol=None, ycol=None, yignore=None, line=None, xlabel=None, ylabel=None):
     if (yignore is not None):
         df = data_df.query(f'''{ycol} != {yignore}''')
         print('filtered:', len(data_df)-len(df), 'rows with y value:', yignore)
@@ -91,9 +100,19 @@ def scatterplot(data_df, xcol=None, ycol=None, yignore=None, xlabel=None, ylabel
 
     fig, ax = plt.subplots(figsize=(8,5))
 
-    ax.scatter(df[xcol], df[ycol], c='black', s=6)
+    ax.scatter(df[xcol], df[ycol], c='black', s=3)
     ax.set_ylabel(ylabel)
     ax.set_xlabel(xlabel)
+    
+    if (line is not None):
+        if (line == 'xy'):
+            abline(1, 0)
+            # line = mlines.Line2D([0, 1], [0, 1], color='red')
+            # transform = ax.transAxes
+            # line.set_transform(transform)
+            # ax.add_line(line)
+        if (line == 'y0'): 
+            abline(0, 0)
 
     ax.xaxis.label.set_size(18)
     ax.yaxis.label.set_size(18)
