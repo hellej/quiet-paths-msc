@@ -39,6 +39,10 @@ print('axyind count:', len(paths['from_axyind'].unique()))
 print('paths per axyind:', round(len(paths.index)/len(paths['from_axyind'].unique())))
 print(paths.columns)
 
+#%% fix dt len diff ratio - only needed for run_5_set_1 and older (fixed routing script)
+paths = pstats.fix_dt_len_diff(paths) # TODO disable for run_6 paths and newer
+paths.head()
+
 #%% mark path stats to -9999 for paths that are actually PT legs (origin happened to be exactly at the PT stop)
 paths = pstats.map_pt_path_props_to_null(paths)
 

@@ -20,6 +20,11 @@ def add_bool_within_hel_poly(gdf):
     print('count outside:', outside_count)
     return gdf
 
+def fix_dt_len_diff(df):
+    paths = df.copy()
+    paths['DT_len_diff_rat'] = paths.apply(lambda row: round((row['DT_len_diff']/row['DT_len'])*100,2), axis=1)
+    return paths
+
 def map_pt_path_props_to_null(df):
     paths = df.copy()
     print('PT_path_walk_paths', len(paths.query("to_pt_mode == 'WALK'")))

@@ -73,7 +73,7 @@ def get_origin_stops_paths_df(home_stops_file):
             paths_df['prob'] = row['prob']
             paths_df['DT_len'] = round(row['DT_walk_dist'], 1)
             paths_df['DT_len_diff'] = [round(length - row['DT_walk_dist'],1) for length in paths_df['length']]
-            paths_df['DT_len_diff_rat'] = paths_df.apply(lambda row: round((row['DT_len_diff']/row['length'])*100,2), axis=1)
+            paths_df['DT_len_diff_rat'] = paths_df.apply(lambda row: round((row['DT_len_diff']/row['DT_len'])*100,2), axis=1)
             home_paths.append(paths_df)
         # collect
         return pd.concat(home_paths, ignore_index=True)
