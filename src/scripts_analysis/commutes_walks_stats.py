@@ -15,7 +15,7 @@ import utils.exposures as exps
 
 walks_in_file = 'run_5_set_1'
 problem_axyinds = [3933756673875]
-
+axyind_stats_out_file = 'axyind_stats_v4'
 
 #### READ & PROCESS WALKS & GRID ####
 #####################################
@@ -112,7 +112,8 @@ s_paths.to_file('outputs/YKR_commutes_output/home_paths.gpkg', layer=walks_in_fi
 
 #%% filter out paths from specific axyinds
 count_before = len(s_paths)
-skip_axyinds = [3933756673875, 3863756670125]
+# skip_axyinds = [3933756673875, 3863756670125]
+skip_axyinds = problem_axyinds
 
 paths = paths[~paths['from_axyind'].isin(skip_axyinds)]
 s_paths = s_paths[~s_paths['from_axyind'].isin(skip_axyinds)]
@@ -178,7 +179,8 @@ print('merged:', len(grid_stats))
 grid_stats = gpd.GeoDataFrame(grid_stats, geometry='grid_geom', crs=from_epsg(3067))
 
 #%% export axyind stats with grid geometry to file
-grid_stats.drop(columns=['grid_centr']).to_file('outputs/YKR_commutes_output/axyind_stats.gpkg', layer='axyind_stats_v3', driver='GPKG')
+grid_stats.drop(columns=['grid_centr']).to_file('outputs/YKR_commutes_output/axyind_stats.gpkg', layer=axyind_stats_out_file, driver='GPKG')
+
 
 #### PATH NOISE STATS #####
 ###########################
@@ -215,6 +217,7 @@ sp_pt_stats.append(pstats.calc_basic_stats(s_paths_pt, '70dBr', weight='util', p
 sp_pt_stats = pd.DataFrame(sp_pt_stats, columns=sp_pt_stats[0].keys())
 sp_pt_stats.to_csv('outputs/path_stats/sp_pt_noise_stats.csv')
 sp_pt_stats
+
 
 #### QUIET PATH NOISE STATS #####
 #################################
