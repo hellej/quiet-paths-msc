@@ -7,8 +7,6 @@ from matplotlib import rcParams
 rcParams['font.family'] = 'sans-serif'
 rcParams['font.sans-serif'] = ['Arial']
 import matplotlib.pyplot as plt
-import matplotlib.lines as mlines
-import matplotlib.transforms as mtransforms
 
 def set_plot_style():
     plt.style.use('default')
@@ -90,6 +88,7 @@ def abline(slope, intercept):
     plt.plot(x_vals, y_vals, color='red', linestyle='dashed')
 
 def scatterplot(data_df, xcol=None, ycol=None, yignore=None, line=None, xlabel=None, ylabel=None):
+    # filter out null values (e.g. -9999)
     if (yignore is not None):
         df = data_df.query(f'''{ycol} != {yignore}''')
         print('filtered:', len(data_df)-len(df), 'rows with y value:', yignore)
@@ -104,13 +103,10 @@ def scatterplot(data_df, xcol=None, ycol=None, yignore=None, line=None, xlabel=N
     ax.set_ylabel(ylabel)
     ax.set_xlabel(xlabel)
     
+    # plot abline
     if (line is not None):
         if (line == 'xy'):
             abline(1, 0)
-            # line = mlines.Line2D([0, 1], [0, 1], color='red')
-            # transform = ax.transAxes
-            # line.set_transform(transform)
-            # ax.add_line(line)
         if (line == 'y0'): 
             abline(0, 0)
 
