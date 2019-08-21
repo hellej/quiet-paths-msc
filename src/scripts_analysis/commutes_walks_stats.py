@@ -13,8 +13,10 @@ import utils.files as files
 import utils.plots as plots
 import utils.exposures as exps
 
-#### READ & PROCESS PATHS & GRID ####
-##################################### 
+walks_in_file = 'run_5_set_1'
+
+#### READ & PROCESS WALKS & GRID ####
+#####################################
 
 #%% read statfi xy-grid
 grid = files.get_statfi_grid()
@@ -27,7 +29,7 @@ grid = grid[['xyind', 'grid_geom', 'grid_centr']]
 grid.head()
 
 #%% read all paths
-paths =  gpd.read_file('outputs/YKR_commutes_output/home_paths.gpkg', layer='run_3_all')
+paths =  gpd.read_file('outputs/YKR_commutes_output/home_paths.gpkg', layer=walks_in_file)
 paths['noises'] = [ast.literal_eval(noises) for noises in paths['noises']]
 paths['th_noises'] = [ast.literal_eval(th_noises) for th_noises in paths['th_noises']]
 paths['th_noises_diff'] = [ast.literal_eval(th_noises) for th_noises in paths['th_noises_diff']]

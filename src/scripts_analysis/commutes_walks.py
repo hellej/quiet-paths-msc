@@ -14,9 +14,8 @@ import utils.utils as utils
 import utils.routing as rt
 import utils.quiet_paths as qp
 
-#%%
-# out_filename = 'test_run_1'
-out_filename = 'run_4_set_1'
+# walks_out_file = 'test_run_1'
+walks_out_file = 'run_5_set_1'
 
 #%% initialize graph
 start_time = time.time()
@@ -103,7 +102,8 @@ print('axyind_time (s):', axyind_time)
 all_home_paths_df.head(3)
 
 #%% export paths GDF
-all_home_paths_df.to_file('outputs/YKR_commutes_output/home_paths.gpkg', layer=out_filename, driver='GPKG')
+all_home_paths_df.to_file('outputs/YKR_commutes_output/home_paths.gpkg', layer=walks_out_file, driver='GPKG')
+print('exported paths to file:', walks_out_file)
 
 #%% combine path sets to GDF of all paths
 # paths_1 = gpd.read_file('outputs/YKR_commutes_output/home_paths.gpkg', layer='run_3_set_1')
