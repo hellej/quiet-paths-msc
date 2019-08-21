@@ -85,6 +85,8 @@ path_len_stats.append(pstats.calc_basic_stats(s_paths, 'DT_len_diff', weight=Non
 path_len_stats.append(pstats.calc_basic_stats(s_paths, 'DT_len_diff_rat', weight=None, percs=[5, 10, 15, 25, 75, 85, 90, 95], valueignore=-9999, col_prefix='DT_lendiff_rat', add_varname=True, add_n=True))
 path_len_stats.append(pstats.calc_basic_stats(s_paths, 'DT_len_diff', weight=None, min_length=20, percs=[5, 10, 15, 25, 75, 85, 90, 95], valueignore=-9999, col_prefix='DT_lendiff_filt', add_varname=True, add_n=True, printing=True))
 path_len_stats.append(pstats.calc_basic_stats(s_paths, 'DT_len_diff_rat', weight=None, min_length=20, percs=[5, 10, 15, 25, 75, 85, 90, 95], valueignore=-9999, col_prefix='DT_lendiff_rat_filt', add_varname=True, add_n=True))
+path_len_stats.append(pstats.calc_basic_stats(s_paths, 'orig_offset', weight=None, percs=[5, 10, 15, 25, 75, 85, 90, 95], valueignore=-9999, col_prefix='orig_offset', add_varname=True, add_n=True))
+path_len_stats.append(pstats.calc_basic_stats(s_paths, 'dest_offset', weight=None, percs=[5, 10, 15, 25, 75, 85, 90, 95], valueignore=-9999, col_prefix='dest_offset', add_varname=True, add_n=True))
 path_len_stats = pd.DataFrame(path_len_stats, columns=path_len_stats[0].keys())
 path_len_stats.to_csv('outputs/path_stats/path_len_diff_stats.csv')
 path_len_stats
