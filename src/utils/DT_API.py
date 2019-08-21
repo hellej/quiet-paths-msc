@@ -132,7 +132,7 @@ def parse_itin_attributes(itins, from_id, to_id, utilization=1):
     stop_dicts = []
     # print('itins:', len(itins), 'weight(yht):', weight, 'itin_weight:', itin_weight)
     for itin in itins:
-        walk_leg = itin['legs'][0]
+        walk_leg = itin['legs'][0] #TODO fix when origin is at the PT stop, first leg will not be walk but PT (BUS etc.)
         try:
             pt_leg = itin['legs'][1]
         except IndexError:
