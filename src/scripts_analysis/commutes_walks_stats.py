@@ -14,6 +14,7 @@ import utils.plots as plots
 import utils.exposures as exps
 
 walks_in_file = 'run_5_set_1'
+problem_axyinds = [3933756673875]
 
 #### READ & PROCESS WALKS & GRID ####
 #####################################
@@ -69,9 +70,9 @@ print('short paths to work count:', len(s_paths_work.index), '(of', str(count_be
 
 #%% calculate weighted statistics of path lengths
 path_len_stats = []
-path_len_stats.append(pstats.calc_basic_stats(s_paths, 'length', weight='util', percs=[10, 25, 75, 90], valuemap=(-9999, 0), col_prefix='length_all', add_varname=True, add_n=True))
-path_len_stats.append(pstats.calc_basic_stats(s_paths_pt, 'length', weight='util', percs=[10, 25, 75, 90], valuemap=(-9999, 0), col_prefix='length_pt', add_varname=True, add_n=True))
-path_len_stats.append(pstats.calc_basic_stats(s_paths_work, 'length', weight='util', percs=[10, 25, 75, 90], valuemap=(-9999, 0), col_prefix='length_work', add_varname=True, add_n=True))
+path_len_stats.append(pstats.calc_basic_stats(s_paths, 'length', weight='util', percs=[10, 25, 75, 90], valuemap=(-9999, 0), axyindsignore=problem_axyinds, col_prefix='length_all', add_varname=True, add_n=True))
+path_len_stats.append(pstats.calc_basic_stats(s_paths_pt, 'length', weight='util', percs=[10, 25, 75, 90], valuemap=(-9999, 0), axyindsignore=problem_axyinds, col_prefix='length_pt', add_varname=True, add_n=True))
+path_len_stats.append(pstats.calc_basic_stats(s_paths_work, 'length', weight='util', percs=[10, 25, 75, 90], valuemap=(-9999, 0), axyindsignore=problem_axyinds, col_prefix='length_work', add_varname=True, add_n=True))
 path_len_stats = pd.DataFrame(path_len_stats, columns=path_len_stats[0].keys())
 path_len_stats.to_csv('outputs/path_stats/path_len_stats.csv')
 path_len_stats

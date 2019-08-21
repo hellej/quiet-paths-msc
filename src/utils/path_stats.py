@@ -101,9 +101,17 @@ def filter_out_problem_paths(data_df, printing=False):
     if (printing == True): print('Filtered out:', count_before-count_after, 'paths of:', count_before, 'with: orig_offset < 110')
     return df
 
-def calc_basic_stats(data_gdf, var_col, valuemap=None, valueignore=None, weight=None, min_length=None, percs=None, col_prefix='', printing=False, add_varname=False, add_n=False):
+def calc_basic_stats(data_gdf, var_col, valuemap=None, valueignore=None, axyindsignore=None, weight=None, min_length=None, percs=None, col_prefix='', printing=False, add_varname=False, add_n=False):
     gdf = data_gdf.copy()
     if (printing == True): print('\n-min_length:', min_length, '-weight:', weight, '-col:', var_col)
+    
+    # filter out paths from problematic axyinds (if given)
+    if (axyindsignore is not None):
+        count_before = len(gdf)
+        for axyind in axyindsignore:
+            gdf = gdf[gdf['from_axyind'] != axyind]
+        count_after = len(gdf)
+        if (printing == True): print('Filtered out:', count_before-count_after, 'paths from problematic axyinds')
 
     if (valueignore is not None):
         count_before = len(gdf)
