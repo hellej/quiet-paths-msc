@@ -157,7 +157,7 @@ all_path_lists_file.to_file('outputs/YKR_commutes_output/edge_stats.gpkg', layer
 #### READ & ANALYSE STREET STATS ####
 #####################################
 
-#%% TODO plot mean dBs against utils
+#%% read edge stats
 edges =  gpd.read_file('outputs/YKR_commutes_output/edge_stats.gpkg', layer=edges_out_file)
 edges.head()
 
@@ -167,10 +167,31 @@ fig = plots.scatterplot(edges_filt, xcol='util', ycol='mdB', xlabel='Street util
 fig.savefig('plots/street_util_mdB.png', format='png', dpi=300)
 
 #%% calculate basic statistic of mdB and utilizations
-street_stats = []
-street_stats.append(pstats.calc_basic_stats(edges, 'util', weight=None, percs=[5, 10, 15, 25, 75, 85, 90, 95], col_prefix='util', add_varname=True, add_n=True))
-street_stats.append(pstats.calc_basic_stats(edges, 'mdB', weight=None, percs=[5, 10, 15, 25, 75, 85, 90, 95], col_prefix='mdB', add_varname=True, add_n=True))
+util_stats  = pstats.calc_basic_stats(edges, 'util', weight=None, percs=[5, 10, 15, 25, 75, 80, 85, 90, 95], col_prefix='util', add_varname=True, add_n=True)
+db_stats = pstats.calc_basic_stats(edges, 'mdB', weight=None, percs=[5, 10, 15, 25, 75, 80, 85, 90, 95], col_prefix='mdB', add_varname=True, add_n=True)
+street_stats = [util_stats, db_stats]
 street_stats = pd.DataFrame(street_stats, columns=street_stats[0].keys())
 street_stats
+
+#%% extract highest overlapping percentiles of db and util
+percs = ['p75', 'p80', 'p85', 'p90', 'p95']
+for perc in percs:
+    perc_edges = edges.query(f'''util > {util_stats[perc]} and mdB > {db_stats[perc]}''')
+    perc_edges_ratio = round(100*len(perc_edges)/len(edges),2)
+    print(perc, len(perc_edges), 'of', len(edges), '-',perc_edges_ratio, '% -', db_stats[perc], 'dB,', round(util_stats[perc]), 'util')
+
+#%% extract percentile info to edges
+edges['perc'] = 'p0'
+def get_street_pc_value(row, perc):
+    if (row['util'] > util_stats[perc] and row['mdB'] > db_stats[perc]):
+        return perc
+    else:
+        return row['perc']
+
+for perc in percs:
+    edges['perc'] = edges.apply(lambda row: get_street_pc_value(row, perc), axis=1)
+
+#%% export edges with percentile info to file
+edges.to_file('outputs/YKR_commutes_output/edge_stats.gpkg', layer=edges_out_file+'percs', driver='GPKG')
 
 #%%
