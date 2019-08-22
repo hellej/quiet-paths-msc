@@ -173,6 +173,10 @@ db_stats = pstats.calc_basic_stats(edges_with_util, 'mdB', percs=[5, 10, 15, 25,
 street_stats = [util_stats, db_stats]
 street_stats = pd.DataFrame(street_stats, columns=street_stats[0].keys())
 street_stats
+# street_utils_run_2 stats:
+#	name	n	mean	median	std	p5	p10	p15	p25	p75	p80	p85	p90	p95
+#0   util	79782	45.135	11.65	107.538	0.33	0.66	1.0	2.33	46.32	60.82	81.977	115.99	188.96
+#1	mdB	79782	56.560	57.50	10.302	42.50	42.50	42.5	47.50	67.01	67.50	67.500	69.66	72.50
 
 #%% extract highest overlapping percentiles of db and util
 percs = ['p75', 'p80', 'p85', 'p90', 'p95']
