@@ -181,17 +181,34 @@ for perc in percs:
     print(perc, len(perc_edges), 'of', len(edges), '-',perc_edges_ratio, '% -', db_stats[perc], 'dB,', round(util_stats[perc]), 'util')
 
 #%% extract percentile info to edges
-edges['perc'] = 'p0'
-def get_street_pc_value(row, perc):
+edges['perc_comb'] = 'p0'
+edges['perc_util'] = 'p0'
+edges['perc_mdB'] = 'p0'
+
+def get_street_comb_perc_value(row, perc):
     if (row['util'] > util_stats[perc] and row['mdB'] > db_stats[perc]):
         return perc
     else:
-        return row['perc']
+        return row['perc_comb']
+
+def get_street_var_perc_value(row, perc, var):
+    if (var == 'util'):
+        if (row['util'] > util_stats[perc]):
+            return perc
+        else:
+            return row['perc_util']
+    if var == 'mdB':
+        if (row['mdB'] > db_stats[perc]):
+            return perc
+        else:
+            return row['perc_mdB']
 
 for perc in percs:
-    edges['perc'] = edges.apply(lambda row: get_street_pc_value(row, perc), axis=1)
+    edges['perc_comb'] = edges.apply(lambda row: get_street_comb_perc_value(row, perc), axis=1)
+    edges['perc_util'] = edges.apply(lambda row: get_street_var_perc_value(row, perc, 'util'), axis=1)
+    edges['perc_mdB'] = edges.apply(lambda row: get_street_var_perc_value(row, perc, 'mdB'), axis=1)
 
 #%% export edges with percentile info to file
-edges.to_file('outputs/YKR_commutes_output/edge_stats.gpkg', layer=edges_out_file+'percs', driver='GPKG')
+edges.to_file('outputs/YKR_commutes_output/edge_stats.gpkg', layer=edges_out_file+'_percs', driver='GPKG')
 
 #%%
