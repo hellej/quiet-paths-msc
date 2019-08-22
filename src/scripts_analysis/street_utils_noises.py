@@ -14,6 +14,8 @@ import utils.utils as utils
 import utils.routing as rt
 import utils.exposures as exps
 import utils.quiet_paths as qp
+import utils.plots as plots 
+import utils.path_stats as pstats
 
 edges_out_file = 'street_utils_run_1'
 problem_axyinds = [3933756673875] # routing will be skipped from these
@@ -151,5 +153,24 @@ all_path_lists_file = edge_utils_gdf.drop(columns=['uvkey', 'noises', 'edge_id']
 all_path_lists_file = all_path_lists_file.query('util > 0')
 all_path_lists_file.to_file('outputs/YKR_commutes_output/edge_stats.gpkg', layer=edges_out_file, driver='GPKG')
 
+
+#### READ & ANALYSE STREET STATS ####
+#####################################
+
+#%% TODO plot mean dBs against utils
+edges =  gpd.read_file('outputs/YKR_commutes_output/edge_stats.gpkg', layer=edges_out_file)
+edges.head()
+
+#%% plot util vs mdB
+edges_filt = edges.query('util < 2000')
+fig = plots.scatterplot(edges_filt, xcol='util', ycol='mdB', xlabel='Street utilization', ylabel='Mean dB')
+fig.savefig('plots/street_util_mdB.png', format='png', dpi=300)
+
+#%% calculate basic statistic of mdB and utilizations
+street_stats = []
+street_stats.append(pstats.calc_basic_stats(edges, 'util', weight=None, percs=[5, 10, 15, 25, 75, 85, 90, 95], col_prefix='util', add_varname=True, add_n=True))
+street_stats.append(pstats.calc_basic_stats(edges, 'mdB', weight=None, percs=[5, 10, 15, 25, 75, 85, 90, 95], col_prefix='mdB', add_varname=True, add_n=True))
+street_stats = pd.DataFrame(street_stats, columns=street_stats[0].keys())
+street_stats
+
 #%%
-# TODO plot mean dBs against utils
