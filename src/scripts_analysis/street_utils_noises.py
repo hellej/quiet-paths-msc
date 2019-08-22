@@ -17,7 +17,7 @@ import utils.quiet_paths as qp
 import utils.plots as plots 
 import utils.path_stats as pstats
 
-edges_out_file = 'street_utils_run_1'
+edges_out_file = 'street_utils_run_2'
 problem_axyinds = [3933756673875] # routing will be skipped from these
 
 #%% initialize graph & extract edge_gdf
@@ -149,26 +149,27 @@ edge_utils_gdf['nei'] = [round(exps.get_noise_cost(noises=noises, db_costs=db_co
 edge_utils_gdf['nei_norm'] = edge_utils_gdf.apply(lambda row: round(row['nei'] / (0.6 * row['length']), 4), axis=1)
 
 #%% export edges with noise & util attributes to file
-all_path_lists_file = edge_utils_gdf.drop(columns=['uvkey', 'noises', 'edge_id'])
-all_path_lists_file = all_path_lists_file.query('util > 0')
-all_path_lists_file.to_file('outputs/YKR_commutes_output/edge_stats.gpkg', layer=edges_out_file, driver='GPKG')
-
+edge_utils_gdf_file = edge_utils_gdf.drop(columns=['uvkey', 'noises', 'edge_id'])
+# edge_utils_gdf_file = edge_utils_gdf_file.query('util > 0')
+edge_utils_gdf_file.to_file('outputs/YKR_commutes_output/edge_stats.gpkg', layer=edges_out_file, driver='GPKG')
+print('exported file:', edges_out_file)
 
 #### READ & ANALYSE STREET STATS ####
 #####################################
 
 #%% read edge stats
 edges =  gpd.read_file('outputs/YKR_commutes_output/edge_stats.gpkg', layer=edges_out_file)
-edges.head()
+# edges = edge_utils_gdf_file.copy()
 
 #%% plot util vs mdB
-edges_filt = edges.query('util < 2000')
+edges_filt = edges.query('util < 2000 and util > 0')
 fig = plots.scatterplot(edges_filt, xcol='util', ycol='mdB', xlabel='Street utilization', ylabel='Mean dB')
 fig.savefig('plots/street_util_mdB.png', format='png', dpi=300)
 
 #%% calculate basic statistic of mdB and utilizations
-util_stats  = pstats.calc_basic_stats(edges, 'util', weight=None, percs=[5, 10, 15, 25, 75, 80, 85, 90, 95], col_prefix='util', add_varname=True, add_n=True)
-db_stats = pstats.calc_basic_stats(edges, 'mdB', weight=None, percs=[5, 10, 15, 25, 75, 80, 85, 90, 95], col_prefix='mdB', add_varname=True, add_n=True)
+edges_with_util = edges.query('util > 0')
+util_stats  = pstats.calc_basic_stats(edges_with_util, 'util', percs=[5, 10, 15, 25, 75, 80, 85, 90, 95], col_prefix='util', add_varname=True, add_n=True)
+db_stats = pstats.calc_basic_stats(edges_with_util, 'mdB', percs=[5, 10, 15, 25, 75, 80, 85, 90, 95], col_prefix='mdB', add_varname=True, add_n=True)
 street_stats = [util_stats, db_stats]
 street_stats = pd.DataFrame(street_stats, columns=street_stats[0].keys())
 street_stats
@@ -197,7 +198,7 @@ def get_street_var_perc_value(row, perc, var):
             return perc
         else:
             return row['perc_util']
-    if var == 'mdB':
+    if (var == 'mdB'):
         if (row['mdB'] > db_stats[perc]):
             return perc
         else:
@@ -210,5 +211,6 @@ for perc in percs:
 
 #%% export edges with percentile info to file
 edges.to_file('outputs/YKR_commutes_output/edge_stats.gpkg', layer=edges_out_file+'_percs', driver='GPKG')
+print('exported file:', edges_out_file +'_percs')
 
 #%%
