@@ -157,20 +157,40 @@ def calc_basic_stats(data_gdf, var_col, valuemap=None, valueignore=None, axyinds
     return d
 
 def get_best_quiet_paths_of_max_len_diffs(od_id=None, df=None, sp=None, max_len_diffs=None):
-    od_qp_stats = {'od_id': od_id, 'length': sp['length'], 'nei': sp['nei_norm'], 'util': sp['util'] }
+    # od_qp_stats = {'od_id': od_id, 'length': sp['length'], 'nei_norm': sp['nei_norm'], 'util': sp['util'] }
+    qp_stats = {}
     for max_len in max_len_diffs:
         qps = df.query(f'''len_diff < {max_len}''')
         found_qps = len(qps) > 0
         qps = qps.sort_values('len_diff', ascending=False) if found_qps == True else None
         qp = qps.to_dict(orient='records')[0] if found_qps == True else {}
         # od_qp_stats['len_qp'+str(max_len)] = qp['length'] if found_qps == True else -9999
-        od_qp_stats['len_diff_qp'+str(max_len)] = qp['len_diff'] if found_qps == True else -9999
-        od_qp_stats['len_diff_r_qp'+str(max_len)] = qp['len_diff_r'] if found_qps == True else -9999
-        od_qp_stats['nei_qp'+str(max_len)] = qp['nei_norm'] if found_qps == True else -9999
-        od_qp_stats['nei_diff_r_qp'+str(max_len)] = qp['nei_diff_r'] if found_qps == True else -9999
-        od_qp_stats['mdB_diff_qp'+str(max_len)] = qp['mdB_diff'] if found_qps == True else -9999
-        od_qp_stats['60dB_diff_qp'+str(max_len)] = qp['60dB_diff'] if found_qps == True else -9999
-        od_qp_stats['65dB_diff_qp'+str(max_len)] = qp['65dB_diff'] if found_qps == True else -9999
-        od_qp_stats['60dB_diff_r_qp'+str(max_len)] = qp['60dB_diff_r'] if found_qps == True else -9999
-        od_qp_stats['65dB_diff_r_qp'+str(max_len)] = qp['65dB_diff_r'] if found_qps == True else -9999
-    return od_qp_stats
+        qp_stats['len_diff_qp'+str(max_len)] = qp['len_diff'] if found_qps == True else -9999
+        qp_stats['len_diff_r_qp'+str(max_len)] = qp['len_diff_r'] if found_qps == True else -9999
+        qp_stats['nei_qp'+str(max_len)] = qp['nei_norm'] if found_qps == True else -9999
+        qp_stats['nei_diff_r_qp'+str(max_len)] = qp['nei_diff_r'] if found_qps == True else -9999
+        qp_stats['mdB_diff_qp'+str(max_len)] = qp['mdB_diff'] if found_qps == True else -9999
+        qp_stats['60dB_diff_qp'+str(max_len)] = qp['60dB_diff'] if found_qps == True else -9999
+        qp_stats['65dB_diff_qp'+str(max_len)] = qp['65dB_diff'] if found_qps == True else -9999
+        qp_stats['60dB_diff_r_qp'+str(max_len)] = qp['60dB_diff_r'] if found_qps == True else -9999
+        qp_stats['65dB_diff_r_qp'+str(max_len)] = qp['65dB_diff_r'] if found_qps == True else -9999
+    return qp_stats
+
+def filter_out_paths_outside_hel(paths):
+    gdf = paths.copy()
+    gdf = add_bool_within_hel_poly(gdf)
+    gdf_filt = gdf.query("b_inside_hel == 'yes'")
+    print('Filtered out:', len(gdf)-len(gdf_filt), 'paths outside hel -', round(100*(len(gdf)-len(gdf_filt))/len(gdf), 1), '%')
+    return gdf_filt
+
+def filter_out_paths_from_axyinds(paths, axyinds: list):
+    gdf = paths.copy()
+    gdf_filt = gdf[~gdf['from_axyind'].isin(axyinds)]
+    print('Filtered out:', len(gdf)-len(gdf_filt), 'paths from axyinds -', round(100*(len(gdf)-len(gdf_filt))/len(gdf), 1), '%')
+    return gdf_filt
+
+def filter_out_null_paths(paths, null_val=-9999):
+    gdf = paths.copy()
+    gdf_filt = gdf.query(f'''length != {null_val}''')
+    print('Filtered out:', len(gdf)-len(gdf_filt), 'null paths -', round(100*(len(gdf)-len(gdf_filt))/len(gdf), 1), '%')
+    return gdf_filt

@@ -85,28 +85,37 @@ def abline(slope, intercept):
     axes = plt.gca()
     x_vals = np.array(axes.get_xlim())
     y_vals = intercept + slope * x_vals
-    plt.plot(x_vals, y_vals, color='red', linestyle='dashed')
+    plt.plot(x_vals, y_vals, color='red', linewidth=1, linestyle='dashed')
 
-def scatterplot(data_df, xcol=None, ycol=None, yignore=None, line=None, xlabel=None, ylabel=None):
+def scatterplot(data_df, xcol=None, ycol=None, yignore=None, yvaluemap=None, line=None, xlabel=None, ylabel=None):
     # filter out null values (e.g. -9999)
     if (yignore is not None):
-        df = data_df.query(f'''{ycol} != {yignore}''')
-        print('filtered:', len(data_df)-len(df), 'rows with y value:', yignore)
+        # df = data_df.query(f'''{ycol} != {yignore}''')
+        df = data_df[data_df[ycol] != yignore]
+        print('filtered:', len(data_df)-len(df), 'rows with y value:', yignore, round((len(data_df)-len(df))*100/len(data_df)), '%')
     else:
         df = data_df.copy()
+
+    xvals = list(df[xcol])
+    yvals = list(df[ycol])
+    
+    if (yvaluemap is not None):
+        print('mapped:', yvals.count(yvaluemap[0]), 'rows with y value:', yvaluemap[0], 'to', yvaluemap[1], round(yvals.count(yvaluemap[0])*100/len(yvals)), '%')
+        yvals = [value if value != yvaluemap[0] else yvaluemap[1] for value in yvals]
     
     set_plot_style()
-
     fig, ax = plt.subplots(figsize=(8,5))
 
-    ax.scatter(df[xcol], df[ycol], c='black', s=3)
-    ax.set_ylabel(ylabel)
-    ax.set_xlabel(xlabel)
+    ax.scatter(xvals, yvals, c='black', s=3)
+    ax.set_ylabel(ylabel if ylabel is not None else ycol)
+    ax.set_xlabel(xlabel if xlabel is not None else xcol)
     
     # plot abline
     if (line is not None):
         if (line == 'xy'):
             abline(1, 0)
+        if (line == '-xy'):
+            abline(-1, 0)
         if (line == 'y0'): 
             abline(0, 0)
 
