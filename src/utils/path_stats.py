@@ -101,7 +101,7 @@ def filter_out_problem_paths(data_df, printing=False):
     if (printing == True): print('Filtered out:', count_before-count_after, 'paths of:', count_before, 'with: orig_offset < 110')
     return df
 
-def calc_basic_stats(data_gdf, var_col, valuemap=None, valueignore=None, axyindsignore=None, weight=None, min_length=None, percs=None, col_prefix='', printing=False, add_varname=False, add_n=False):
+def calc_basic_stats(data_gdf, var_col, valuemap=None, valueignore=None, axyindsignore=None, weight=None, minmax=False, min_length=None, percs=None, col_prefix='', printing=False, add_varname=False, add_n=False):
     gdf = data_gdf.copy()
     if (printing == True): print('\n-min_length:', min_length, '-weight:', weight, '-col:', var_col)
     
@@ -151,6 +151,10 @@ def calc_basic_stats(data_gdf, var_col, valuemap=None, valueignore=None, axyinds
     if (percs is not None):
         for per in percs:
             d['p'+str(per)] = np.percentile(var_array, per)
+
+    if (minmax == True):
+        d['min'] = round(np.min(var_array), 3)
+        d['max'] = round(np.max(var_array), 3)
 
     if (printing == True): print('STATS:', d)
 
