@@ -189,6 +189,9 @@ grid_stats.drop(columns=['grid_centr']).to_file('outputs/YKR_commutes_output/axy
 #%% print column names
 print(s_paths.columns)
 
+#%% filter out paths outside hel
+s_paths = s_paths.query("b_inside_hel == 'yes'")
+
 #%%# ALL SHORTEST PATHS ###
 sp_stats = []
 sp_stats.append(pstats.calc_basic_stats(s_paths, 'nei', weight='util', percs=[10, 25, 75, 90], valuemap=(-9999, 0), printing=False, add_varname=True, add_n=True))
