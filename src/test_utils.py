@@ -78,5 +78,5 @@ def test_aggregate_exposures():
 
 def test_mean_noise_level():
     noises = { 55: 25, 60: 16, 70: 200 }
-    mean_noise_level = exps.get_mean_noise_level(300, noises)
+    mean_noise_level = exps.get_mean_noise_level(noises, 300)
     assert mean_noise_level == 64.82
