@@ -87,7 +87,7 @@ def abline(slope, intercept):
     y_vals = intercept + slope * x_vals
     plt.plot(x_vals, y_vals, color='red', linewidth=1, linestyle='dashed')
 
-def scatterplot(data_df, xcol=None, ycol=None, yignore=None, yvaluemap=None, line=None, xlabel=None, ylabel=None):
+def scatterplot(data_df, xcol=None, ycol=None, yignore=None, yvaluemap=None, point_s=3, line=None, xlabel=None, ylabel=None):
     # filter out null values (e.g. -9999)
     if (yignore is not None):
         # df = data_df.query(f'''{ycol} != {yignore}''')
@@ -106,7 +106,7 @@ def scatterplot(data_df, xcol=None, ycol=None, yignore=None, yvaluemap=None, lin
     set_plot_style()
     fig, ax = plt.subplots(figsize=(8,5))
 
-    ax.scatter(xvals, yvals, c='black', s=3)
+    ax.scatter(xvals, yvals, c='black', s=point_s)
     ax.set_ylabel(ylabel if ylabel is not None else ycol)
     ax.set_xlabel(xlabel if xlabel is not None else xcol)
     

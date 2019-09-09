@@ -102,17 +102,60 @@ od_stats_df.head()
 od_stats_len_300_600 = od_stats_df.query('length > 300 and length < 600')
 od_stats_len_700_1300 = od_stats_df.query('length > 700 and length < 1300')
 
-#%% create scatterplots
-#%% mdB
-fig = plots.scatterplot(od_stats_len_700_1300, 'mdB', 'mdB_diff_qp200', yvaluemap=(-9999, 0))
-#%%
-fig = plots.scatterplot(od_stats_len_700_1300, '60dBl', '60dB_diff_qp200', yvaluemap=(-9999, 0), line='-xy')
-#%%
-fig = plots.scatterplot(od_stats_len_700_1300, '65dBl', '65dB_diff_qp200', yvaluemap=(-9999, 0), line='-xy')
-#%%
-fig = plots.scatterplot(od_stats_len_700_1300, '65dBl', '65dB_diff_r_qp200', yvaluemap=(-9999, 0))
-#%%
-fig = plots.scatterplot(od_stats_len_700_1300, '60dBl', '60dB_diff_qp200', yvaluemap=(-9999, 0), line='-xy')
+# describe subsets of paths
+print(pstats.calc_basic_stats(od_stats_len_300_600, 'length', valuemap=(-9999, 0), add_n=True))
+# {'n': 7107, 'mean': 443.234, 'median': 439.17, 'std': 86.377}
+print(pstats.calc_basic_stats(od_stats_len_700_1300, 'length', valuemap=(-9999, 0), add_n=True))
+# {'n': 11335, 'mean': 976.778, 'median': 966.79, 'std': 170.323}
+
+#%% print quiet path length stats
+print(pstats.calc_basic_stats(od_stats_len_300_600, 'len_diff_qp100', valuemap=(-9999, 0), add_n=True))
+# {'n': 7107, 'mean': 15.122, 'median': 0.0, 'std': 26.272}
+print(pstats.calc_basic_stats(od_stats_len_300_600, 'len_diff_qp200', valuemap=(-9999, 0), add_n=True))
+# {'n': 7107, 'mean': 35.705, 'median': 0.0, 'std': 54.234}
+print(pstats.calc_basic_stats(od_stats_len_300_600, 'len_diff_qp300', valuemap=(-9999, 0), add_n=True))
+# {'n': 7107, 'mean': 53.043, 'median': 3.3, 'std': 78.432}
+print(pstats.calc_basic_stats(od_stats_len_700_1300, 'len_diff_qp100', valuemap=(-9999, 0), add_n=True))
+# {'n': 11335, 'mean': 27.591, 'median': 14.2, 'std': 31.607}
+print(pstats.calc_basic_stats(od_stats_len_700_1300, 'len_diff_qp200', valuemap=(-9999, 0), add_n=True))
+# {'n': 11335, 'mean': 67.408, 'median': 53.7, 'std': 63.523}
+print(pstats.calc_basic_stats(od_stats_len_700_1300, 'len_diff_qp300', valuemap=(-9999, 0), add_n=True))
+# {'n': 11335, 'mean': 102.866, 'median': 84.4, 'std': 92.745}
+
+
+## plot quiet path noise stats
+qp_names = ['qp100', 'qp200', 'qp300']
+
+#%% mdB - paths 300-600 m
+for qp_name in qp_names:
+    fig = plots.scatterplot(od_stats_len_300_600, 'mdB', 'mdB_diff_'+ qp_name, xlabel='Mean dB', ylabel='Diff. in mean dB', yvaluemap=(-9999, 0), point_s=2)
+    fig.savefig('plots/quiet_path_plots/p300_600_mdB_'+ qp_name +'.png', format='png', dpi=300)
+
+#%% 60 dBl - paths 300-600 m
+for qp_name in qp_names:
+    fig = plots.scatterplot(od_stats_len_300_600, '60dBl', '60dB_diff_'+ qp_name, xlabel='> 60 dB dist. (m)', ylabel='Diff. in > 60 dB dist. (m)', yvaluemap=(-9999, 0), line='-xy', point_s=2)
+    fig.savefig('plots/quiet_path_plots/p300_600_60dBl_'+ qp_name +'.png', format='png', dpi=300)
+
+#%% 65 dBl - paths 300-600 m
+for qp_name in qp_names:
+    fig = plots.scatterplot(od_stats_len_300_600, '65dBl', '65dB_diff_'+ qp_name, xlabel='> 65 dB dist. (m)', ylabel='Diff. in > 65 dB dist. (m)', yvaluemap=(-9999, 0), line='-xy', point_s=2)
+    fig.savefig('plots/quiet_path_plots/p300_600_65dBl_'+ qp_name +'.png', format='png', dpi=300)
+
+#%% mdB - paths 700-1300 m
+for qp_name in qp_names:
+    fig = plots.scatterplot(od_stats_len_700_1300, 'mdB', 'mdB_diff_'+ qp_name, xlabel='Mean dB', ylabel='Diff. in mean dB', yvaluemap=(-9999, 0), point_s=2)
+    fig.savefig('plots/quiet_path_plots/p700_1300_mdB_'+ qp_name +'.png', format='png', dpi=300)
+
+#%% 60 dBl - paths 700-1300 m
+for qp_name in qp_names:
+    fig = plots.scatterplot(od_stats_len_700_1300, '60dBl', '60dB_diff_'+ qp_name, xlabel='> 60 dB dist. (m)', ylabel='Diff. in > 60 dB dist. (m)', yvaluemap=(-9999, 0), line='-xy', point_s=2)
+    fig.savefig('plots/quiet_path_plots/p700_1300_60dBl_'+ qp_name +'.png', format='png', dpi=300)
+
+#%% 65 dBl - paths 700-1300 m
+for qp_name in qp_names:
+    fig = plots.scatterplot(od_stats_len_700_1300, '65dBl', '65dB_diff_'+ qp_name, xlabel='> 65 dB dist. (m)', ylabel='Diff. in > 65 dB dist. (m)', yvaluemap=(-9999, 0), line='-xy', point_s=2)
+    fig.savefig('plots/quiet_path_plots/p700_1300_65dBl_'+ qp_name +'.png', format='png', dpi=300)
+
 
 #%% qp stats in terms of noise attribute 65dBr
 qp_names = ['qp100', 'qp200', 'qp300']
