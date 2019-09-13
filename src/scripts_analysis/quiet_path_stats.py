@@ -64,10 +64,11 @@ p = pstats.extract_th_db_cols(p, ths=[60, 65, 70], add_ratios=True)
 p = p[qp_cols]
 p[['path_id', 'len_diff', 'len_diff_r', '60dBl', '60dBr']].head()
 
-#%%
+#%% Calculate quiet path stats per od
 # group by od id (short and quiet paths of OD-pair are in the same group)
 all_od_stats = []
 print('OD count:', len(p['od_id'].unique()))
+# OD count: 30100
 grouped = p.groupby('od_id')
 for key, group in grouped:
     # if (key != '3801256680625_HSL:1320224' and key != '3801256680875_HSL:1320111'):
@@ -95,6 +96,7 @@ for key, group in grouped:
 #%% collect od stats
 od_stats_df = pd.DataFrame(all_od_stats, columns=all_od_stats[0].keys())
 print('od stats count:', len(od_stats_df))
+# od stats count: 30097
 od_stats_df.head()
 
 #%% select subset of od stats based on path length ranges
@@ -179,31 +181,30 @@ for qp_name in qp_names:
     print(od_qp_stats_df)
 
 # qp name: qp100 noise col: 65dBr qp_noise_diff_col: 65dB_diff_r_qp100
-# qp len diff stats: {'name': 'len_diff_qp100', 'n': 4, 'mean': 20.8, 'median': 0.0, 'std': 36.027}
-# name     10_40   40_70  70_100
-# n       41.000  14.000   4.000
-# mean   -21.707 -37.857 -19.250
-# median -11.000 -24.500   0.000
-# std     29.030  37.973  33.342
+# qp len diff stats: {'name': 'len_diff_qp100', 'n': 1109, 'mean': 34.495, 'median': 22.5, 'std': 33.861}
+# name       10_40     40_70    70_100
+# n       4455.000  2216.000  1109.000
+# mean     -21.146   -31.932   -29.655
+# median     0.000   -28.000   -25.000
+# std       29.483    31.022    29.416
 
 # qp name: qp200 noise col: 65dBr qp_noise_diff_col: 65dB_diff_r_qp200
-# qp len diff stats: {'name': 'len_diff_qp200', 'n': 4, 'mean': 130.775, 'median': 140.1, 'std': 28.609}
-# name     10_40   40_70  70_100
-# n       41.000  14.000   4.000
-# mean   -25.146 -52.857 -84.750
-# median -17.000 -53.500 -85.500
-# std     29.250  28.605   9.311
+# qp len diff stats: {'name': 'len_diff_qp200', 'n': 1109, 'mean': 86.89, 'median': 85.7, 'std': 64.885}
+# name       10_40     40_70    70_100
+# n       4455.000  2216.000  1109.000
+# mean     -28.999   -46.272   -45.674
+# median   -20.000   -49.000   -51.000
+# std       32.351    30.740    30.412
 
 # qp name: qp300 noise col: 65dBr qp_noise_diff_col: 65dB_diff_r_qp300
-# qp len diff stats: {'name': 'len_diff_qp300', 'n': 4, 'mean': 176.6, 'median': 149.9, 'std': 52.517}
-# name     10_40   40_70  70_100
-# n       41.000  14.000   4.000
-# mean   -28.878 -70.357 -88.500
-# median -18.000 -75.000 -93.000
-# std     31.881  16.189   8.411
+# qp len diff stats: {'name': 'len_diff_qp300', 'n': 1109, 'mean': 150.613, 'median': 161.4, 'std': 93.892}
+# name       10_40     40_70    70_100
+# n       4455.000  2216.000  1109.000
+# mean     -32.203   -53.467   -55.326
+# median   -27.000   -58.500   -62.000
+# std       33.291    28.922    27.439
 
 #%% qp stats in terms of noise attribute dBmean
-#%% qp stats in terms of noise attribute 65dBr
 qp_names = ['qp100', 'qp200', 'qp300']
 noise_col = 'mdB'
 for qp_name in qp_names:
@@ -222,5 +223,30 @@ for qp_name in qp_names:
     print('\nqp name:', qp_name, 'noise col:', noise_col, 'qp_noise_diff_col:', qp_noise_diff_col)
     print('qp len diff stats:', qp_len_diff_stats)
     print(od_qp_stats_df)
+
+# qp name: qp100 noise col: mdB qp_noise_diff_col: mdB_diff_qp100
+# qp len diff stats: {'name': 'len_diff_qp100', 'n': 1581, 'mean': 33.797, 'median': 21.2, 'std': 34.116}
+# name       55_60     60_65     65_75
+# n       2907.000  2259.000  1581.000
+# mean      -2.261    -3.499    -4.543
+# median    -1.300    -2.360    -3.120
+# std        2.682     3.890     4.797
+
+# qp name: qp200 noise col: mdB qp_noise_diff_col: mdB_diff_qp200
+# qp len diff stats: {'name': 'len_diff_qp200', 'n': 1581, 'mean': 85.697, 'median': 85.1, 'std': 64.726}
+# name       55_60     60_65     65_75
+# n       2907.000  2259.000  1581.000
+# mean      -3.461    -5.597    -7.459
+# median    -3.000    -5.320    -7.690
+# std        3.046     4.260     5.359
+
+# qp name: qp300 noise col: mdB qp_noise_diff_col: mdB_diff_qp300
+# qp len diff stats: {'name': 'len_diff_qp300', 'n': 1581, 'mean': 144.322, 'median': 149.2, 'std': 93.93}
+# name       55_60     60_65     65_75
+# n       2907.000  2259.000  1581.000
+# mean      -4.138    -6.893    -9.390
+# median    -3.880    -7.040   -10.110
+# std        3.204     4.301     5.342
+
 
 #%%
