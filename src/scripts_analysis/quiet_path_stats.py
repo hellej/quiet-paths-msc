@@ -216,7 +216,7 @@ for qp_name in qp_names:
     qp_noise_diff_col = 'mdB_diff_'+qp_name
     qp_len_diff_col = 'len_diff_'+qp_name
     all_od_qp_stats = []
-    for db_range in [(55, 60), (60, 65), (65, 75)]:
+    for db_range in [(55, 60), (60, 65), (65, 80)]:
         od_stats = od_stats_len_700_1300[(od_stats_len_700_1300[noise_col] >= db_range[0]) & (od_stats_len_700_1300[noise_col] <= db_range[1])]
         col_name = str(db_range[0])+'_'+str(db_range[1])
         od_qp_stats = pstats.calc_basic_stats(od_stats, qp_noise_diff_col, col_prefix=col_name, add_varname=True, valuemap=(-9999, 0), add_n=True)
@@ -227,25 +227,25 @@ for qp_name in qp_names:
     print(od_qp_stats_df)
 
 # qp name: qp100 noise col: mdB qp_noise_diff_col: mdB_diff_qp100
-# name       55_60     60_65     65_75
-# n       2907.000  2259.000  1581.000
-# mean      -2.261    -3.499    -4.543
-# median    -1.300    -2.360    -3.120
-# std        2.682     3.890     4.797
+# name       55_60     60_65     65_80
+# n       2907.000  2259.000  1582.000
+# mean      -2.261    -3.499    -4.542
+# median    -1.300    -2.360    -3.125
+# std        2.682     3.890     4.795
 
 # qp name: qp200 noise col: mdB qp_noise_diff_col: mdB_diff_qp200
-# name       55_60     60_65     65_75
-# n       2907.000  2259.000  1581.000
-# mean      -3.461    -5.597    -7.459
-# median    -3.000    -5.320    -7.690
-# std        3.046     4.260     5.359
+# name       55_60     60_65     65_80
+# n       2907.000  2259.000  1582.000
+# mean      -3.461    -5.597    -7.468
+# median    -3.000    -5.320    -7.695
+# std        3.046     4.260     5.370
 
 # qp name: qp300 noise col: mdB qp_noise_diff_col: mdB_diff_qp300
-# name       55_60     60_65     65_75
-# n       2907.000  2259.000  1581.000
-# mean      -4.138    -6.893    -9.390
-# median    -3.880    -7.040   -10.110
-# std        3.204     4.301     5.342
+# name       55_60     60_65     65_80
+# n       2907.000  2259.000  1582.000
+# mean      -4.138    -6.893    -9.398
+# median    -3.880    -7.040   -10.115
+# std        3.204     4.301     5.351
 
 
 #%%
