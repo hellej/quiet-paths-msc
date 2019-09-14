@@ -104,7 +104,7 @@ od_stats_df.head()
 od_stats_len_300_600 = od_stats_df.query('length > 300 and length < 600')
 od_stats_len_700_1300 = od_stats_df.query('length > 700 and length < 1300')
 
-# describe subsets of paths
+#%% describe subsets of paths
 print(pstats.calc_basic_stats(od_stats_len_300_600, 'length', valuemap=(-9999, 0), add_n=True))
 # {'n': 7107, 'mean': 443.234, 'median': 439.17, 'std': 86.377}
 print(pstats.calc_basic_stats(od_stats_len_700_1300, 'length', valuemap=(-9999, 0), add_n=True))
@@ -143,6 +143,11 @@ for qp_name in qp_names:
     fig = plots.scatterplot(od_stats_len_300_600, '65dBl', '65dB_diff_'+ qp_name, xlabel='> 65 dB dist. (m)', ylabel='Diff. in > 65 dB dist. (m)', yvaluemap=(-9999, 0), line='-xy', point_s=2)
     fig.savefig('plots/quiet_path_plots/p300_600_65dBl_'+ qp_name +'.png', format='png', dpi=300)
 
+#%% nei - paths 300-600 m
+for qp_name in qp_names:
+    fig = plots.scatterplot(od_stats_len_300_600, 'nei', 'nei_diff_'+ qp_name, xlabel='Noise exposure (index)', ylabel='Diff. in noise exposure (index)', yvaluemap=(-9999, 0), line='-xy', point_s=2)
+    fig.savefig('plots/quiet_path_plots/p300_600_nei_'+ qp_name +'.png', format='png', dpi=300)
+
 #%% mdB - paths 700-1300 m
 for qp_name in qp_names:
     fig = plots.scatterplot(od_stats_len_700_1300, 'mdB', 'mdB_diff_'+ qp_name, xlabel='Mean dB', ylabel='Diff. in mean dB', yvaluemap=(-9999, 0), point_s=2)
@@ -158,6 +163,10 @@ for qp_name in qp_names:
     fig = plots.scatterplot(od_stats_len_700_1300, '65dBl', '65dB_diff_'+ qp_name, xlabel='> 65 dB dist. (m)', ylabel='Diff. in > 65 dB dist. (m)', yvaluemap=(-9999, 0), line='-xy', point_s=2)
     fig.savefig('plots/quiet_path_plots/p700_1300_65dBl_'+ qp_name +'.png', format='png', dpi=300)
 
+#%% nei - paths 700-1300 m
+for qp_name in qp_names:
+    fig = plots.scatterplot(od_stats_len_700_1300, 'nei', 'nei_diff_'+ qp_name, xlabel='Noise exposure (index)', ylabel='Diff. in noise exposure (index)', yvaluemap=(-9999, 0), line='-xy', point_s=2)
+    fig.savefig('plots/quiet_path_plots/p700_1300_nei_'+ qp_name +'.png', format='png', dpi=300)
 
 #%% qp stats in terms of noise attribute 65dBr
 qp_names = ['qp100', 'qp200', 'qp300']
@@ -173,15 +182,12 @@ for qp_name in qp_names:
         col_name = str(min_lim)+'_'+str(max_lim)
         od_qp_stats = pstats.calc_basic_stats(od_stats, qp_noise_diff_col, col_prefix=col_name, add_varname=True, valuemap=(-9999, 0), add_n=True)
         all_od_qp_stats.append(od_qp_stats)
-    qp_len_diff_stats = pstats.calc_basic_stats(od_stats, qp_len_diff_col, add_varname=True, valuemap=(-9999, 0), add_n=True)
     od_qp_stats_df = pd.DataFrame(all_od_qp_stats, columns=all_od_qp_stats[0].keys())
     od_qp_stats_df = od_qp_stats_df.set_index('name').transpose()
     print('\nqp name:', qp_name, 'noise col:', noise_col, 'qp_noise_diff_col:', qp_noise_diff_col)
-    print('qp len diff stats:', qp_len_diff_stats)
     print(od_qp_stats_df)
 
 # qp name: qp100 noise col: 65dBr qp_noise_diff_col: 65dB_diff_r_qp100
-# qp len diff stats: {'name': 'len_diff_qp100', 'n': 1109, 'mean': 34.495, 'median': 22.5, 'std': 33.861}
 # name       10_40     40_70    70_100
 # n       4455.000  2216.000  1109.000
 # mean     -21.146   -31.932   -29.655
@@ -189,7 +195,6 @@ for qp_name in qp_names:
 # std       29.483    31.022    29.416
 
 # qp name: qp200 noise col: 65dBr qp_noise_diff_col: 65dB_diff_r_qp200
-# qp len diff stats: {'name': 'len_diff_qp200', 'n': 1109, 'mean': 86.89, 'median': 85.7, 'std': 64.885}
 # name       10_40     40_70    70_100
 # n       4455.000  2216.000  1109.000
 # mean     -28.999   -46.272   -45.674
@@ -197,7 +202,6 @@ for qp_name in qp_names:
 # std       32.351    30.740    30.412
 
 # qp name: qp300 noise col: 65dBr qp_noise_diff_col: 65dB_diff_r_qp300
-# qp len diff stats: {'name': 'len_diff_qp300', 'n': 1109, 'mean': 150.613, 'median': 161.4, 'std': 93.892}
 # name       10_40     40_70    70_100
 # n       4455.000  2216.000  1109.000
 # mean     -32.203   -53.467   -55.326
@@ -217,15 +221,12 @@ for qp_name in qp_names:
         col_name = str(db_range[0])+'_'+str(db_range[1])
         od_qp_stats = pstats.calc_basic_stats(od_stats, qp_noise_diff_col, col_prefix=col_name, add_varname=True, valuemap=(-9999, 0), add_n=True)
         all_od_qp_stats.append(od_qp_stats)
-    qp_len_diff_stats = pstats.calc_basic_stats(od_stats, qp_len_diff_col, add_varname=True, valuemap=(-9999, 0), add_n=True)
     od_qp_stats_df = pd.DataFrame(all_od_qp_stats, columns=all_od_qp_stats[0].keys())
     od_qp_stats_df = od_qp_stats_df.set_index('name').transpose()
     print('\nqp name:', qp_name, 'noise col:', noise_col, 'qp_noise_diff_col:', qp_noise_diff_col)
-    print('qp len diff stats:', qp_len_diff_stats)
     print(od_qp_stats_df)
 
 # qp name: qp100 noise col: mdB qp_noise_diff_col: mdB_diff_qp100
-# qp len diff stats: {'name': 'len_diff_qp100', 'n': 1581, 'mean': 33.797, 'median': 21.2, 'std': 34.116}
 # name       55_60     60_65     65_75
 # n       2907.000  2259.000  1581.000
 # mean      -2.261    -3.499    -4.543
@@ -233,7 +234,6 @@ for qp_name in qp_names:
 # std        2.682     3.890     4.797
 
 # qp name: qp200 noise col: mdB qp_noise_diff_col: mdB_diff_qp200
-# qp len diff stats: {'name': 'len_diff_qp200', 'n': 1581, 'mean': 85.697, 'median': 85.1, 'std': 64.726}
 # name       55_60     60_65     65_75
 # n       2907.000  2259.000  1581.000
 # mean      -3.461    -5.597    -7.459
@@ -241,7 +241,6 @@ for qp_name in qp_names:
 # std        3.046     4.260     5.359
 
 # qp name: qp300 noise col: mdB qp_noise_diff_col: mdB_diff_qp300
-# qp len diff stats: {'name': 'len_diff_qp300', 'n': 1581, 'mean': 144.322, 'median': 149.2, 'std': 93.93}
 # name       55_60     60_65     65_75
 # n       2907.000  2259.000  1581.000
 # mean      -4.138    -6.893    -9.390
