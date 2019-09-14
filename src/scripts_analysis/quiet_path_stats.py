@@ -154,6 +154,9 @@ def print_quiet_path_length_diff_stats(paths_subset, qp_names):
         qp_len_diff_stats = pstats.calc_basic_stats(paths_subset, len_diff_col, valuemap=(-9999, 0), add_n=True)
         print('Stats of:', len_diff_col +':', qp_len_diff_stats)
 
+
+### LONGER PATHS (700-1300 M) ###
+
 #%% qp stats in terms of noise attribute 65dBr
 noise_col = '65dBr'
 od_subset = od_stats_len_700_1300[(od_stats_len_700_1300[noise_col] >= 10) & (od_stats_len_700_1300[noise_col] <= 100)]
@@ -249,5 +252,102 @@ for qp_name in qp_names:
 # median    -3.880    -7.040   -10.115
 # std        3.204     4.301     5.351
 
+
+### SHORTER PATHS (300-400 M) ###
+
+#%% qp stats in terms of noise attribute 65dBr
+noise_col = '65dBr'
+od_subset = od_stats_len_300_600[(od_stats_len_300_600[noise_col] >= 10) & (od_stats_len_300_600[noise_col] <= 100)]
+print('path subset length stats:', pstats.calc_basic_stats(od_subset, 'length', valuemap=(-9999, 0), add_n=True), '\n')
+print_quiet_path_length_diff_stats(od_subset, qp_names)
+for qp_name in qp_names:
+    # qp_name = 'qp100'
+    qp_noise_diff_col = '65dB_diff_r_'+qp_name
+    qp_len_diff_col = 'len_diff_'+qp_name
+    all_od_qp_stats = []
+    for min_lim in [10, 40, 70]:
+        max_lim = min_lim + 30
+        od_stats = od_stats_len_300_600[(od_stats_len_300_600[noise_col] >= min_lim) & (od_stats_len_300_600[noise_col] <= max_lim)]
+        col_name = str(min_lim)+'_'+str(max_lim)
+        od_qp_stats = pstats.calc_basic_stats(od_stats, qp_noise_diff_col, col_prefix=col_name, add_varname=True, valuemap=(-9999, 0), add_n=True)
+        all_od_qp_stats.append(od_qp_stats)
+    od_qp_stats_df = pd.DataFrame(all_od_qp_stats, columns=all_od_qp_stats[0].keys())
+    od_qp_stats_df = od_qp_stats_df.set_index('name').transpose()
+    print('\nqp name:', qp_name, 'noise col:', noise_col, 'qp_noise_diff_col:', qp_noise_diff_col)
+    print(od_qp_stats_df)
+
+# path subset length stats: {'n': 4353, 'mean': 447.379, 'median': 444.03, 'std': 86.149} 
+
+# Stats of: len_diff_qp100: {'n': 4353, 'mean': 18.119, 'median': 0.0, 'std': 28.083}
+# Stats of: len_diff_qp200: {'n': 4353, 'mean': 43.53, 'median': 12.4, 'std': 57.537}
+# Stats of: len_diff_qp300: {'n': 4353, 'mean': 64.796, 'median': 20.9, 'std': 83.026}
+
+# qp name: qp100 noise col: 65dBr qp_noise_diff_col: 65dB_diff_r_qp100
+# name       10_40     40_70   70_100
+# n       2452.000  1101.000  801.000
+# mean     -12.487   -22.567  -20.469
+# median     0.000     0.000    0.000
+# std       25.845    30.900   27.331
+
+# qp name: qp200 noise col: 65dBr qp_noise_diff_col: 65dB_diff_r_qp200
+# name       10_40     40_70   70_100
+# n       2452.000  1101.000  801.000
+# mean     -16.175   -32.321  -31.236
+# median     0.000   -26.000  -28.000
+# std       28.611    33.331   30.078
+
+# qp name: qp300 noise col: 65dBr qp_noise_diff_col: 65dB_diff_r_qp300
+# name       10_40     40_70   70_100
+# n       2452.000  1101.000  801.000
+# mean     -17.554   -36.409  -38.187
+# median     0.000   -36.000  -41.000
+# std       29.596    33.740   30.593
+
+#%% qp stats in terms of noise attribute dBmean
+noise_col = 'mdB'
+od_subset = od_stats_len_300_600[(od_stats_len_300_600[noise_col] >= 55) & (od_stats_len_300_600[noise_col] <= 80)]
+print('path subset length stats:', pstats.calc_basic_stats(od_subset, 'length', valuemap=(-9999, 0), add_n=True), '\n')
+print_quiet_path_length_diff_stats(od_subset, qp_names)
+for qp_name in qp_names:
+    # qp_name = 'qp100'
+    qp_noise_diff_col = 'mdB_diff_'+qp_name
+    qp_len_diff_col = 'len_diff_'+qp_name
+    all_od_qp_stats = []
+    for db_range in [(55, 60), (60, 65), (65, 80)]:
+        od_stats = od_stats_len_300_600[(od_stats_len_300_600[noise_col] >= db_range[0]) & (od_stats_len_300_600[noise_col] <= db_range[1])]
+        col_name = str(db_range[0])+'_'+str(db_range[1])
+        od_qp_stats = pstats.calc_basic_stats(od_stats, qp_noise_diff_col, col_prefix=col_name, add_varname=True, valuemap=(-9999, 0), add_n=True)
+        all_od_qp_stats.append(od_qp_stats)
+    od_qp_stats_df = pd.DataFrame(all_od_qp_stats, columns=all_od_qp_stats[0].keys())
+    od_qp_stats_df = od_qp_stats_df.set_index('name').transpose()
+    print('\nqp name:', qp_name, 'noise col:', noise_col, 'qp_noise_diff_col:', qp_noise_diff_col)
+    print(od_qp_stats_df)
+
+# path subset length stats: {'n': 4077, 'mean': 443.856, 'median': 438.53, 'std': 86.273} 
+
+# Stats of: len_diff_qp100: {'n': 4077, 'mean': 18.938, 'median': 0.0, 'std': 28.514}
+# Stats of: len_diff_qp200: {'n': 4077, 'mean': 47.321, 'median': 15.8, 'std': 59.381}
+# Stats of: len_diff_qp300: {'n': 4077, 'mean': 72.22, 'median': 31.6, 'std': 86.285}
+
+# qp name: qp100 noise col: mdB qp_noise_diff_col: mdB_diff_qp100
+# name       55_60     60_65     65_80
+# n       1624.000  1357.000  1107.000
+# mean      -1.565    -2.562    -2.758
+# median     0.000     0.000     0.000
+# std        2.542     3.921     3.976
+
+# qp name: qp200 noise col: mdB qp_noise_diff_col: mdB_diff_qp200
+# name       55_60     60_65     65_80
+# n       1624.000  1357.000  1107.000
+# mean      -2.364    -4.285    -4.959
+# median    -0.500    -2.970    -3.550
+# std        3.095     4.590     5.228
+
+# qp name: qp300 noise col: mdB qp_noise_diff_col: mdB_diff_qp300
+# name       55_60     60_65     65_80
+# n       1624.000  1357.000  1107.000
+# mean      -2.815    -5.156    -6.417
+# median    -1.170    -4.960    -5.940
+# std        3.348     4.862     5.769
 
 #%%
