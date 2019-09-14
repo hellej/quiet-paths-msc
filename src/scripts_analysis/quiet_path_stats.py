@@ -104,28 +104,7 @@ od_stats_df.head()
 od_stats_len_300_600 = od_stats_df.query('length > 300 and length < 600')
 od_stats_len_700_1300 = od_stats_df.query('length > 700 and length < 1300')
 
-#%% describe subsets of paths
-print(pstats.calc_basic_stats(od_stats_len_300_600, 'length', valuemap=(-9999, 0), add_n=True))
-# {'n': 7107, 'mean': 443.234, 'median': 439.17, 'std': 86.377}
-print(pstats.calc_basic_stats(od_stats_len_700_1300, 'length', valuemap=(-9999, 0), add_n=True))
-# {'n': 11335, 'mean': 976.778, 'median': 966.79, 'std': 170.323}
-
-#%% print quiet path length stats
-print(pstats.calc_basic_stats(od_stats_len_300_600, 'len_diff_qp100', valuemap=(-9999, 0), add_n=True))
-# {'n': 7107, 'mean': 15.122, 'median': 0.0, 'std': 26.272}
-print(pstats.calc_basic_stats(od_stats_len_300_600, 'len_diff_qp200', valuemap=(-9999, 0), add_n=True))
-# {'n': 7107, 'mean': 35.705, 'median': 0.0, 'std': 54.234}
-print(pstats.calc_basic_stats(od_stats_len_300_600, 'len_diff_qp300', valuemap=(-9999, 0), add_n=True))
-# {'n': 7107, 'mean': 53.043, 'median': 3.3, 'std': 78.432}
-print(pstats.calc_basic_stats(od_stats_len_700_1300, 'len_diff_qp100', valuemap=(-9999, 0), add_n=True))
-# {'n': 11335, 'mean': 27.591, 'median': 14.2, 'std': 31.607}
-print(pstats.calc_basic_stats(od_stats_len_700_1300, 'len_diff_qp200', valuemap=(-9999, 0), add_n=True))
-# {'n': 11335, 'mean': 67.408, 'median': 53.7, 'std': 63.523}
-print(pstats.calc_basic_stats(od_stats_len_700_1300, 'len_diff_qp300', valuemap=(-9999, 0), add_n=True))
-# {'n': 11335, 'mean': 102.866, 'median': 84.4, 'std': 92.745}
-
-
-## plot quiet path noise stats
+#%% set quiet path names
 qp_names = ['qp100', 'qp200', 'qp300']
 
 #%% mdB - paths 300-600 m
@@ -168,9 +147,18 @@ for qp_name in qp_names:
     fig = plots.scatterplot(od_stats_len_700_1300, 'nei', 'nei_diff_'+ qp_name, xlabel='Noise exposure (index)', ylabel='Diff. in noise exposure (index)', yvaluemap=(-9999, 0), line='-xy', point_s=2)
     fig.savefig('plots/quiet_path_plots/p700_1300_nei_'+ qp_name +'.png', format='png', dpi=300)
 
+#%% print quiet path length stats
+def print_quiet_path_length_diff_stats(paths_subset, qp_names):
+    for qp_name in qp_names:
+        len_diff_col = 'len_diff_'+ qp_name
+        qp_len_diff_stats = pstats.calc_basic_stats(paths_subset, len_diff_col, valuemap=(-9999, 0), add_n=True)
+        print('Stats of:', len_diff_col +':', qp_len_diff_stats)
+
 #%% qp stats in terms of noise attribute 65dBr
-qp_names = ['qp100', 'qp200', 'qp300']
 noise_col = '65dBr'
+od_subset = od_stats_len_700_1300[(od_stats_len_700_1300[noise_col] >= 10) & (od_stats_len_700_1300[noise_col] <= 100)]
+print('path subset length stats:', pstats.calc_basic_stats(od_subset, 'length', valuemap=(-9999, 0), add_n=True), '\n')
+print_quiet_path_length_diff_stats(od_subset, qp_names)
 for qp_name in qp_names:
     # qp_name = 'qp100'
     qp_noise_diff_col = '65dB_diff_r_'+qp_name
@@ -186,6 +174,12 @@ for qp_name in qp_names:
     od_qp_stats_df = od_qp_stats_df.set_index('name').transpose()
     print('\nqp name:', qp_name, 'noise col:', noise_col, 'qp_noise_diff_col:', qp_noise_diff_col)
     print(od_qp_stats_df)
+
+# path subset length stats: {'n': 7780, 'mean': 981.686, 'median': 973.065, 'std': 170.272} 
+
+# Stats of: len_diff_qp100: {'n': 7780, 'mean': 30.369, 'median': 19.1, 'std': 32.207}
+# Stats of: len_diff_qp200: {'n': 7780, 'mean': 74.653, 'median': 66.7, 'std': 63.338}
+# Stats of: len_diff_qp300: {'n': 7780, 'mean': 117.032, 'median': 107.0, 'std': 93.031}
 
 # qp name: qp100 noise col: 65dBr qp_noise_diff_col: 65dB_diff_r_qp100
 # name       10_40     40_70    70_100
@@ -209,8 +203,10 @@ for qp_name in qp_names:
 # std       33.291    28.922    27.439
 
 #%% qp stats in terms of noise attribute dBmean
-qp_names = ['qp100', 'qp200', 'qp300']
 noise_col = 'mdB'
+od_subset = od_stats_len_700_1300[(od_stats_len_700_1300[noise_col] >= 55) & (od_stats_len_700_1300[noise_col] <= 80)]
+print('path subset length stats:', pstats.calc_basic_stats(od_subset, 'length', valuemap=(-9999, 0), add_n=True), '\n')
+print_quiet_path_length_diff_stats(od_subset, qp_names)
 for qp_name in qp_names:
     # qp_name = 'qp100'
     qp_noise_diff_col = 'mdB_diff_'+qp_name
@@ -225,6 +221,12 @@ for qp_name in qp_names:
     od_qp_stats_df = od_qp_stats_df.set_index('name').transpose()
     print('\nqp name:', qp_name, 'noise col:', noise_col, 'qp_noise_diff_col:', qp_noise_diff_col)
     print(od_qp_stats_df)
+
+# path subset length stats: {'n': 6742, 'mean': 978.106, 'median': 968.32, 'std': 169.195} 
+
+# Stats of: len_diff_qp100: {'n': 6742, 'mean': 31.376, 'median': 21.0, 'std': 32.478}
+# Stats of: len_diff_qp200: {'n': 6742, 'mean': 78.985, 'median': 74.7, 'std': 63.502}
+# Stats of: len_diff_qp300: {'n': 6742, 'mean': 126.094, 'median': 121.6, 'std': 92.84}
 
 # qp name: qp100 noise col: mdB qp_noise_diff_col: mdB_diff_qp100
 # name       55_60     60_65     65_80
