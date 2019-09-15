@@ -186,6 +186,7 @@ print(s_paths.columns)
 
 #%% filter out paths outside hel
 s_paths = s_paths.query("b_inside_hel == 'yes'")
+s_paths_pt = s_paths_pt.query("b_inside_hel == 'yes'")
 
 #%%# ALL SHORTEST PATHS ###
 sp_stats = []
@@ -200,7 +201,18 @@ sp_stats.append(pstats.calc_basic_stats(s_paths, '65dBr', weight='util', percs=[
 sp_stats.append(pstats.calc_basic_stats(s_paths, '70dBr', weight='util', percs=[10, 25, 75, 90], valueignore=-9999, printing=False, add_varname=True, add_n=True))
 sp_stats = pd.DataFrame(sp_stats, columns=sp_stats[0].keys())
 sp_stats.to_csv('outputs/path_stats/sp_noise_stats.csv')
-sp_stats
+
+print(sp_stats)
+# name      n     mean  median      std    p10    p25     p75     p90
+# 0       nei  30160   99.659   73.50   93.015  14.60  35.30  135.10  220.70
+# 1  nei_norm  30097    0.361    0.34    0.218   0.07   0.19    0.53    0.66
+# 2       mdB  30097   57.545   57.46    7.450  47.49  52.19   63.32   67.37
+# 3     60dBl  30160  210.138  142.32  214.735  12.89  63.96  292.65  496.86
+# 4     65dBl  30160  135.926   75.36  175.588   0.00  21.61  179.49  342.39
+# 5     70dBl  30160   52.591    8.31  101.213   0.00   0.00   64.26  150.49
+# 6     60dBr  30097   46.221   40.76   32.729   4.10  18.40   73.97   99.99
+# 7     65dBr  30097   29.929   20.51   29.753   0.00   5.12   47.19   79.38
+# 8     70dBr  30097   11.683    1.90   20.244   0.00   0.00   14.17   37.18
 
 #%%# SHORTEST PATHS TO PT STOPS ###
 sp_pt_stats = []
@@ -215,4 +227,17 @@ sp_pt_stats.append(pstats.calc_basic_stats(s_paths_pt, '65dBr', weight='util', p
 sp_pt_stats.append(pstats.calc_basic_stats(s_paths_pt, '70dBr', weight='util', percs=[10, 25, 75, 90], valueignore=-9999, printing=False, add_varname=True, add_n=True))
 sp_pt_stats = pd.DataFrame(sp_pt_stats, columns=sp_pt_stats[0].keys())
 sp_pt_stats.to_csv('outputs/path_stats/sp_pt_noise_stats.csv')
-sp_pt_stats
+
+print(sp_pt_stats)
+# name      n     mean  median      std    p10    p25     p75     p90
+# 0       nei  17892   96.193   71.80   87.263  14.70  34.90  131.10  212.00
+# 1  nei_norm  17829    0.363    0.34    0.218   0.08   0.19    0.53    0.66
+# 2       mdB  17829   57.633   57.55    7.435  47.61  52.28   63.36   67.43
+# 3     60dBl  17892  203.155  139.65  203.464  14.81  63.63  283.49  474.97
+# 4     65dBl  17892  130.214   73.85  164.957   0.00  21.61  172.85  330.34
+# 5     70dBl  17892   49.868    7.91   94.374   0.00   0.00   62.74  141.91
+# 6     60dBr  17829   46.584   41.19   32.805   4.47  18.63   74.53   99.99
+# 7     65dBr  17829   30.058   20.70   29.857   0.00   5.17   47.30   79.78
+# 8     70dBr  17829   11.700    1.86   20.357   0.00   0.00   14.14   37.23
+
+#%%
