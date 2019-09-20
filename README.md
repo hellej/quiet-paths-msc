@@ -30,5 +30,5 @@ $ git clone git@github.com:hellej/quiet-paths-msc.git
 $ cd quiet-paths-msc/src
 
 $ conda env create -f env-gis-flask.yml
-$ conda activate gis
+$ conda activate gis-flask
 ```
