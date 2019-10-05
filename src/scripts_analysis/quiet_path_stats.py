@@ -55,7 +55,7 @@ print(p[['od_id', 'path_id']].head())
 
 #%% select subset of paths
 axyinds = p['from_axyind'].unique()
-axyinds = axyinds[:100]
+# axyinds = axyinds[:100]
 p = p[p['from_axyind'].isin(axyinds)]
 print('filtered paths count:', len(p))
 
@@ -105,51 +105,51 @@ od_stats_len_300_600 = od_stats_df.query('length > 300 and length < 600')
 od_stats_len_700_1300 = od_stats_df.query('length > 700 and length < 1300')
 
 #%% set quiet path names
-qp_names = ['qp100', 'qp200', 'qp300']
+qps = {'qp100': 'Diff. in dist. < 100 m', 'qp200': 'Diff. in dist. < 200 m', 'qp300': 'Diff. in dist. < 300 m'}
 
 #%% mdB - paths 300-600 m
-for qp_name in qp_names:
-    fig = plots.scatterplot(od_stats_len_300_600, 'mdB', 'mdB_diff_'+ qp_name, xlabel='Mean dB', ylabel='Diff. in mean dB', yvaluemap=(-9999, 0), point_s=2)
+for qp_name in qps.keys():
+    fig = plots.scatterplot(od_stats_len_300_600, 'mdB', 'mdB_diff_'+ qp_name, yrange=(0, -20), xlabel='Mean dB', ylabel='Diff. in mean dB', title=qps[qp_name], large_text=True, yvaluemap=(-9999, 0), point_s=2)
     fig.savefig('plots/quiet_path_plots/p300_600_mdB_'+ qp_name +'.png', format='png', dpi=300)
 
 #%% 60 dBl - paths 300-600 m
-for qp_name in qp_names:
-    fig = plots.scatterplot(od_stats_len_300_600, '60dBl', '60dB_diff_'+ qp_name, xlabel='> 60 dB dist. (m)', ylabel='Diff. in > 60 dB dist. (m)', yvaluemap=(-9999, 0), line='-xy', point_s=2)
+for qp_name in qps.keys():
+    fig = plots.scatterplot(od_stats_len_300_600, '60dBl', '60dB_diff_'+ qp_name, xlabel='> 60 dB dist. (m)', ylabel='Diff. in > 60 dB dist. (m)', title=qps[qp_name], large_text=True, yvaluemap=(-9999, 0), line='-xy', point_s=2)
     fig.savefig('plots/quiet_path_plots/p300_600_60dBl_'+ qp_name +'.png', format='png', dpi=300)
 
 #%% 65 dBl - paths 300-600 m
-for qp_name in qp_names:
-    fig = plots.scatterplot(od_stats_len_300_600, '65dBl', '65dB_diff_'+ qp_name, xlabel='> 65 dB dist. (m)', ylabel='Diff. in > 65 dB dist. (m)', yvaluemap=(-9999, 0), line='-xy', point_s=2)
+for qp_name in qps.keys():
+    fig = plots.scatterplot(od_stats_len_300_600, '65dBl', '65dB_diff_'+ qp_name, xlabel='> 65 dB dist. (m)', ylabel='Diff. in > 65 dB dist. (m)', title=qps[qp_name], large_text=True, yvaluemap=(-9999, 0), line='-xy', point_s=2)
     fig.savefig('plots/quiet_path_plots/p300_600_65dBl_'+ qp_name +'.png', format='png', dpi=300)
 
 #%% nei - paths 300-600 m
-for qp_name in qp_names:
-    fig = plots.scatterplot(od_stats_len_300_600, 'nei', 'nei_diff_'+ qp_name, xlabel='Noise exposure (index)', ylabel='Diff. in noise exposure (index)', yvaluemap=(-9999, 0), line='-xy', point_s=2)
+for qp_name in qps.keys():
+    fig = plots.scatterplot(od_stats_len_300_600, 'nei', 'nei_diff_'+ qp_name, xlabel='Noise exposure (index)', ylabel='Diff. in noise exposure (index)', title=qps[qp_name], large_text=True, yvaluemap=(-9999, 0), line='-xy', point_s=2)
     fig.savefig('plots/quiet_path_plots/p300_600_nei_'+ qp_name +'.png', format='png', dpi=300)
 
 #%% mdB - paths 700-1300 m
-for qp_name in qp_names:
-    fig = plots.scatterplot(od_stats_len_700_1300, 'mdB', 'mdB_diff_'+ qp_name, xlabel='Mean dB', ylabel='Diff. in mean dB', yvaluemap=(-9999, 0), point_s=2)
+for qp_name in qps.keys():
+    fig = plots.scatterplot(od_stats_len_700_1300, 'mdB', 'mdB_diff_'+ qp_name, xlabel='Mean dB', ylabel='Diff. in mean dB', title=qps[qp_name], large_text=True, yvaluemap=(-9999, 0), point_s=2)
     fig.savefig('plots/quiet_path_plots/p700_1300_mdB_'+ qp_name +'.png', format='png', dpi=300)
 
 #%% 60 dBl - paths 700-1300 m
-for qp_name in qp_names:
-    fig = plots.scatterplot(od_stats_len_700_1300, '60dBl', '60dB_diff_'+ qp_name, xlabel='> 60 dB dist. (m)', ylabel='Diff. in > 60 dB dist. (m)', yvaluemap=(-9999, 0), line='-xy', point_s=2)
+for qp_name in qps.keys():
+    fig = plots.scatterplot(od_stats_len_700_1300, '60dBl', '60dB_diff_'+ qp_name, xlabel='> 60 dB dist. (m)', ylabel='Diff. in > 60 dB dist. (m)', title=qps[qp_name], large_text=True, yvaluemap=(-9999, 0), line='-xy', point_s=2)
     fig.savefig('plots/quiet_path_plots/p700_1300_60dBl_'+ qp_name +'.png', format='png', dpi=300)
 
 #%% 65 dBl - paths 700-1300 m
-for qp_name in qp_names:
-    fig = plots.scatterplot(od_stats_len_700_1300, '65dBl', '65dB_diff_'+ qp_name, xlabel='> 65 dB dist. (m)', ylabel='Diff. in > 65 dB dist. (m)', yvaluemap=(-9999, 0), line='-xy', point_s=2)
+for qp_name in qps.keys():
+    fig = plots.scatterplot(od_stats_len_700_1300, '65dBl', '65dB_diff_'+ qp_name, xlabel='> 65 dB dist. (m)', ylabel='Diff. in > 65 dB dist. (m)', title=qps[qp_name], large_text=True, yvaluemap=(-9999, 0), line='-xy', point_s=2)
     fig.savefig('plots/quiet_path_plots/p700_1300_65dBl_'+ qp_name +'.png', format='png', dpi=300)
 
 #%% nei - paths 700-1300 m
-for qp_name in qp_names:
-    fig = plots.scatterplot(od_stats_len_700_1300, 'nei', 'nei_diff_'+ qp_name, xlabel='Noise exposure (index)', ylabel='Diff. in noise exposure (index)', yvaluemap=(-9999, 0), line='-xy', point_s=2)
+for qp_name in qps.keys():
+    fig = plots.scatterplot(od_stats_len_700_1300, 'nei', 'nei_diff_'+ qp_name, xlabel='Noise exposure (index)', ylabel='Diff. in noise exposure (index)', title=qps[qp_name], large_text=True, yvaluemap=(-9999, 0), line='-xy', point_s=2)
     fig.savefig('plots/quiet_path_plots/p700_1300_nei_'+ qp_name +'.png', format='png', dpi=300)
 
 #%% print quiet path length stats
-def print_quiet_path_length_diff_stats(paths_subset, qp_names):
-    for qp_name in qp_names:
+def print_quiet_path_length_diff_stats(paths_subset, qps):
+    for qp_name in qps.keys():
         len_diff_col = 'len_diff_'+ qp_name
         qp_len_diff_stats = pstats.calc_basic_stats(paths_subset, len_diff_col, valuemap=(-9999, 0), add_n=True)
         print('Stats of:', len_diff_col +':', qp_len_diff_stats)
@@ -161,8 +161,8 @@ def print_quiet_path_length_diff_stats(paths_subset, qp_names):
 noise_col = '65dBr'
 od_subset = od_stats_len_700_1300[(od_stats_len_700_1300[noise_col] >= 10) & (od_stats_len_700_1300[noise_col] <= 100)]
 print('path subset length stats:', pstats.calc_basic_stats(od_subset, 'length', valuemap=(-9999, 0), add_n=True), '\n')
-print_quiet_path_length_diff_stats(od_subset, qp_names)
-for qp_name in qp_names:
+print_quiet_path_length_diff_stats(od_subset, qps)
+for qp_name in qps.keys():
     # qp_name = 'qp100'
     qp_noise_diff_col = '65dB_diff_r_'+qp_name
     qp_len_diff_col = 'len_diff_'+qp_name
@@ -209,8 +209,8 @@ for qp_name in qp_names:
 noise_col = 'mdB'
 od_subset = od_stats_len_700_1300[(od_stats_len_700_1300[noise_col] >= 55) & (od_stats_len_700_1300[noise_col] <= 80)]
 print('path subset length stats:', pstats.calc_basic_stats(od_subset, 'length', valuemap=(-9999, 0), add_n=True), '\n')
-print_quiet_path_length_diff_stats(od_subset, qp_names)
-for qp_name in qp_names:
+print_quiet_path_length_diff_stats(od_subset, qps)
+for qp_name in qps.keys():
     # qp_name = 'qp100'
     qp_noise_diff_col = 'mdB_diff_'+qp_name
     qp_len_diff_col = 'len_diff_'+qp_name
@@ -259,8 +259,8 @@ for qp_name in qp_names:
 noise_col = '65dBr'
 od_subset = od_stats_len_300_600[(od_stats_len_300_600[noise_col] >= 10) & (od_stats_len_300_600[noise_col] <= 100)]
 print('path subset length stats:', pstats.calc_basic_stats(od_subset, 'length', valuemap=(-9999, 0), add_n=True), '\n')
-print_quiet_path_length_diff_stats(od_subset, qp_names)
-for qp_name in qp_names:
+print_quiet_path_length_diff_stats(od_subset, qps)
+for qp_name in qps.keys():
     # qp_name = 'qp100'
     qp_noise_diff_col = '65dB_diff_r_'+qp_name
     qp_len_diff_col = 'len_diff_'+qp_name
@@ -307,8 +307,8 @@ for qp_name in qp_names:
 noise_col = 'mdB'
 od_subset = od_stats_len_300_600[(od_stats_len_300_600[noise_col] >= 55) & (od_stats_len_300_600[noise_col] <= 80)]
 print('path subset length stats:', pstats.calc_basic_stats(od_subset, 'length', valuemap=(-9999, 0), add_n=True), '\n')
-print_quiet_path_length_diff_stats(od_subset, qp_names)
-for qp_name in qp_names:
+print_quiet_path_length_diff_stats(od_subset, qps)
+for qp_name in qps.keys():
     # qp_name = 'qp100'
     qp_noise_diff_col = 'mdB_diff_'+qp_name
     qp_len_diff_col = 'len_diff_'+qp_name

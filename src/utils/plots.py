@@ -87,7 +87,7 @@ def abline(slope, intercept):
     y_vals = intercept + slope * x_vals
     plt.plot(x_vals, y_vals, color='red', linewidth=1, linestyle='dashed')
 
-def scatterplot(data_df, xcol=None, ycol=None, yignore=None, yvaluemap=None, point_s=3, line=None, xlabel=None, ylabel=None):
+def scatterplot(data_df, xcol=None, ycol=None, yrange=None, yignore=None, yvaluemap=None, point_s=3, line=None, xlabel=None, ylabel=None, title=None, large_text=False):
     # filter out null values (e.g. -9999)
     if (yignore is not None):
         # df = data_df.query(f'''{ycol} != {yignore}''')
@@ -104,7 +104,15 @@ def scatterplot(data_df, xcol=None, ycol=None, yignore=None, yvaluemap=None, poi
         yvals = [value if value != yvaluemap[0] else yvaluemap[1] for value in yvals]
     
     set_plot_style()
-    fig, ax = plt.subplots(figsize=(8,5))
+    fig, ax = plt.subplots(figsize=(7,7))
+
+    # set y ticks
+    if (yrange == (0, -20)):
+        yticks = list(range(0, -25, -5))
+        yticks = [int(tick) for tick in yticks]
+        ax.set_yticks(yticks)
+        ax.set_yticklabels(yticks, fontsize=15)
+        ax.set_ylim(top=5, bottom=-25)
 
     ax.scatter(xvals, yvals, c='black', s=point_s)
     ax.set_ylabel(ylabel if ylabel is not None else ycol)
@@ -118,10 +126,17 @@ def scatterplot(data_df, xcol=None, ycol=None, yignore=None, yvaluemap=None, poi
             abline(-1, 0)
         if (line == 'y0'): 
             abline(0, 0)
+    
 
-    ax.xaxis.label.set_size(18)
-    ax.yaxis.label.set_size(18)
-    ax.tick_params(axis='both', which='major', labelsize=15)
+    label_font_size = 18 if large_text == False else 23
+    tick_font_size = 15 if large_text == False else 20
+
+    if (title is not None):
+        ax.set_title(title, fontsize=25, y = 1.04)
+
+    ax.xaxis.label.set_size(label_font_size)
+    ax.yaxis.label.set_size(label_font_size)
+    ax.tick_params(axis='both', which='major', labelsize=tick_font_size)
 
     ax.xaxis.labelpad = 10
     ax.yaxis.labelpad = 10
