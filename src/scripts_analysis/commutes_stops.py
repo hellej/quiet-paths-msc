@@ -13,6 +13,7 @@ import utils.files as files
 import utils.utils as utils
 import utils.commutes as commutes_utils
 import utils.networks as nw
+import ast
 
 #%% read graph
 graph = files.get_network_full_noise()
@@ -73,7 +74,7 @@ districts = districts.to_crs(epsg=3067)
 districts['geom_distr_point'] = [geometry.centroid for geometry in districts['geom_distr_poly']]
 # join district info to workplaces
 workplaces_distr_join = commutes_utils.get_workplaces_distr_join(workplaces, districts)
-#%% add valid district center geometries (in central workplace are of the district)
+#%% add valid district center geometries (a central workplace within the district)
 districts_gdf = commutes_utils.get_valid_distr_geom(districts, workplaces_distr_join)
 districts_gdf.head()
 # validate district center points with DT Api
@@ -166,3 +167,26 @@ print('Average origin processing time:', avg_origin_time, 's')
 # print('sum prob', all_home_walks_gdf['prob'].sum())
 # all_home_walks_gdf.plot()
 # all_home_walks_gdf.head(50)
+
+#% Read home stops from csv & export to geopackage for visualization
+#%% find unprocessed axyinds for path calculation loop
+# read commutes stops
+home_stops_path = 'outputs/YKR_commutes_output/home_stops'
+axyinds = commutes_utils.get_xyind_filenames(path=home_stops_path)
+to_process = axyinds #[:5]
+print(len(to_process))
+
+#%%
+all_home_stops = []
+for home_stops_file in to_process:
+    home_stops = pd.read_csv(home_stops_path+'/'+home_stops_file)
+    home_stops['dest_latLon'] = [ast.literal_eval(d) for d in home_stops['dest_latLon']]
+    all_home_stops.append(home_stops)
+
+all_home_stops_df = gpd.GeoDataFrame(pd.concat(all_home_stops, ignore_index=True), crs=from_epsg(4326))
+all_home_stops_df['geometry'] = [geom_utils.get_point_from_lat_lon(latLon) for latLon in all_home_stops_df['dest_latLon']]
+
+#%%
+all_home_stops_df.to_file('outputs/YKR_commutes_output/home_stops_vis.gpkg', layer='pt_stop_points', driver='GPKG')
+
+#%%
