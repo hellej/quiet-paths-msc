@@ -109,42 +109,42 @@ qps = {'qp100': 'Diff. in dist. < 100 m', 'qp200': 'Diff. in dist. < 200 m', 'qp
 
 #%% mdB - paths 300-600 m
 for qp_name in qps.keys():
-    fig = plots.scatterplot(od_stats_len_300_600, 'mdB', 'mdB_diff_'+ qp_name, yrange=(0, -20), xlabel='Mean dB', ylabel='Diff. in mean dB', title=qps[qp_name], large_text=True, yvaluemap=(-9999, 0), point_s=2)
+    fig = plots.scatterplot(od_stats_len_300_600, 'mdB', 'mdB_diff_'+ qp_name, linreg=True, yrange=(0, -20), xlabel='Mean dB', ylabel='Diff. in mean dB', title=qps[qp_name], large_text=True, yvaluemap=(-9999, 0), point_s=2)
     fig.savefig('plots/quiet_path_plots/p300_600_mdB_'+ qp_name +'.png', format='png', dpi=300)
 
 #%% 60 dBl - paths 300-600 m
 for qp_name in qps.keys():
-    fig = plots.scatterplot(od_stats_len_300_600, '60dBl', '60dB_diff_'+ qp_name, xlabel='> 60 dB dist. (m)', ylabel='Diff. in > 60 dB dist. (m)', title=qps[qp_name], large_text=True, yvaluemap=(-9999, 0), line='-xy', point_s=2)
+    fig = plots.scatterplot(od_stats_len_300_600, '60dBl', '60dB_diff_'+ qp_name, linreg=True, xlabel='> 60 dB dist. (m)', ylabel='Diff. in > 60 dB dist. (m)', title=qps[qp_name], large_text=True, yvaluemap=(-9999, 0), line='-xy', point_s=2)
     fig.savefig('plots/quiet_path_plots/p300_600_60dBl_'+ qp_name +'.png', format='png', dpi=300)
 
 #%% 65 dBl - paths 300-600 m
 for qp_name in qps.keys():
-    fig = plots.scatterplot(od_stats_len_300_600, '65dBl', '65dB_diff_'+ qp_name, xlabel='> 65 dB dist. (m)', ylabel='Diff. in > 65 dB dist. (m)', title=qps[qp_name], large_text=True, yvaluemap=(-9999, 0), line='-xy', point_s=2)
+    fig = plots.scatterplot(od_stats_len_300_600, '65dBl', '65dB_diff_'+ qp_name, linreg=True, xlabel='> 65 dB dist. (m)', ylabel='Diff. in > 65 dB dist. (m)', title=qps[qp_name], large_text=True, yvaluemap=(-9999, 0), line='-xy', point_s=2)
     fig.savefig('plots/quiet_path_plots/p300_600_65dBl_'+ qp_name +'.png', format='png', dpi=300)
 
 #%% nei - paths 300-600 m
 for qp_name in qps.keys():
-    fig = plots.scatterplot(od_stats_len_300_600, 'nei', 'nei_diff_'+ qp_name, xlabel='Noise exposure (index)', ylabel='Diff. in noise exposure (index)', title=qps[qp_name], large_text=True, yvaluemap=(-9999, 0), line='-xy', point_s=2)
+    fig = plots.scatterplot(od_stats_len_300_600, 'nei', 'nei_diff_'+ qp_name, linreg=True, xlabel='Noise exposure (index)', ylabel='Diff. in noise exposure (index)', title=qps[qp_name], large_text=True, yvaluemap=(-9999, 0), line='-xy', point_s=2)
     fig.savefig('plots/quiet_path_plots/p300_600_nei_'+ qp_name +'.png', format='png', dpi=300)
 
 #%% mdB - paths 700-1300 m
 for qp_name in qps.keys():
-    fig = plots.scatterplot(od_stats_len_700_1300, 'mdB', 'mdB_diff_'+ qp_name, xlabel='Mean dB', ylabel='Diff. in mean dB', title=qps[qp_name], large_text=True, yvaluemap=(-9999, 0), point_s=2)
+    fig = plots.scatterplot(od_stats_len_700_1300, 'mdB', 'mdB_diff_'+ qp_name, linreg=True, xlabel='Mean dB', ylabel='Diff. in mean dB', title=qps[qp_name], large_text=True, yvaluemap=(-9999, 0), point_s=2)
     fig.savefig('plots/quiet_path_plots/p700_1300_mdB_'+ qp_name +'.png', format='png', dpi=300)
 
 #%% 60 dBl - paths 700-1300 m
 for qp_name in qps.keys():
-    fig = plots.scatterplot(od_stats_len_700_1300, '60dBl', '60dB_diff_'+ qp_name, xlabel='> 60 dB dist. (m)', ylabel='Diff. in > 60 dB dist. (m)', title=qps[qp_name], large_text=True, yvaluemap=(-9999, 0), line='-xy', point_s=2)
+    fig = plots.scatterplot(od_stats_len_700_1300, '60dBl', '60dB_diff_'+ qp_name, linreg=True, xlabel='> 60 dB dist. (m)', ylabel='Diff. in > 60 dB dist. (m)', title=qps[qp_name], large_text=True, yvaluemap=(-9999, 0), line='-xy', point_s=2)
     fig.savefig('plots/quiet_path_plots/p700_1300_60dBl_'+ qp_name +'.png', format='png', dpi=300)
 
 #%% 65 dBl - paths 700-1300 m
 for qp_name in qps.keys():
-    fig = plots.scatterplot(od_stats_len_700_1300, '65dBl', '65dB_diff_'+ qp_name, xlabel='> 65 dB dist. (m)', ylabel='Diff. in > 65 dB dist. (m)', title=qps[qp_name], large_text=True, yvaluemap=(-9999, 0), line='-xy', point_s=2)
+    fig = plots.scatterplot(od_stats_len_700_1300, '65dBl', '65dB_diff_'+ qp_name, linreg=True, xlabel='> 65 dB dist. (m)', ylabel='Diff. in > 65 dB dist. (m)', title=qps[qp_name], large_text=True, yvaluemap=(-9999, 0), line='-xy', point_s=2)
     fig.savefig('plots/quiet_path_plots/p700_1300_65dBl_'+ qp_name +'.png', format='png', dpi=300)
 
 #%% nei - paths 700-1300 m
 for qp_name in qps.keys():
-    fig = plots.scatterplot(od_stats_len_700_1300, 'nei', 'nei_diff_'+ qp_name, xlabel='Noise exposure (index)', ylabel='Diff. in noise exposure (index)', title=qps[qp_name], large_text=True, yvaluemap=(-9999, 0), line='-xy', point_s=2)
+    fig = plots.scatterplot(od_stats_len_700_1300, 'nei', 'nei_diff_'+ qp_name, linreg=True, xlabel='Noise exposure (index)', ylabel='Diff. in noise exposure (index)', title=qps[qp_name], large_text=True, yvaluemap=(-9999, 0), line='-xy', point_s=2)
     fig.savefig('plots/quiet_path_plots/p700_1300_nei_'+ qp_name +'.png', format='png', dpi=300)
 
 #%% print quiet path length stats

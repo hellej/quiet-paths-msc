@@ -3,6 +3,7 @@ import geopandas as gpd
 import math
 import ast
 import numpy as np
+from scipy import stats
 from matplotlib import rcParams
 rcParams['font.family'] = 'sans-serif'
 rcParams['font.sans-serif'] = ['Arial']
@@ -80,14 +81,13 @@ def plot_exposure_times(exp_times):
 
     return fig
 
-def abline(slope, intercept):
+def abline(x_vals, slope, intercept, color='green'):
     '''Plot a line from slope and intercept'''
-    axes = plt.gca()
-    x_vals = np.array(axes.get_xlim())
+    print(x_vals)
     y_vals = intercept + slope * x_vals
-    plt.plot(x_vals, y_vals, color='red', linewidth=1, linestyle='dashed')
+    plt.plot(x_vals, y_vals, color=color, linewidth=1, linestyle='dashed')
 
-def scatterplot(data_df, xcol=None, ycol=None, yrange=None, yignore=None, yvaluemap=None, point_s=3, line=None, xlabel=None, ylabel=None, title=None, large_text=False):
+def scatterplot(data_df, xcol=None, ycol=None, linreg=False, yrange=None, yignore=None, yvaluemap=None, point_s=3, line=None, xlabel=None, ylabel=None, title=None, large_text=False):
     # filter out null values (e.g. -9999)
     if (yignore is not None):
         # df = data_df.query(f'''{ycol} != {yignore}''')
@@ -117,16 +117,34 @@ def scatterplot(data_df, xcol=None, ycol=None, yrange=None, yignore=None, yvalue
     ax.scatter(xvals, yvals, c='black', s=point_s)
     ax.set_ylabel(ylabel if ylabel is not None else ycol)
     ax.set_xlabel(xlabel if xlabel is not None else xcol)
+
+    # get x vals for plotting ablines
+    x_vals = np.array(ax.get_xlim())
+
+    def get_p_string(p_value):
+        if p_value < 0.001: return 'p < 0.001'
+        if p_value < 0.01: return 'p < 0.01'
+        if p_value < 0.1: return 'p < 0.1'
+        return 'p = '+ str(round(p_value, 2))
+
+    if (linreg == True):
+        slope, intercept, r_value, p_value, std_err = stats.linregress(xvals, yvals)
+        print('slope:', slope, 'intercept:', intercept, 'r_value:', r_value, 'p_value:', p_value, 'std_err:', std_err)
+        abline(x_vals, slope, intercept, color='red')
+        func_string = 'y = '+ str(round(intercept,1)) + ' + '+ str(round(slope, 2)) +'x'
+        ax.text(0.06, 0.05, 'R = '+ str(round(r_value, 2)) +'\n'+ get_p_string(p_value)+ '\n'+ func_string,
+                verticalalignment='bottom', horizontalalignment='left',
+                transform=ax.transAxes,
+                color='black', fontsize=13, linespacing=1.5)
     
     # plot abline
     if (line is not None):
         if (line == 'xy'):
-            abline(1, 0)
+            abline(x_vals, 1, 0)
         if (line == '-xy'):
-            abline(-1, 0)
-        if (line == 'y0'): 
-            abline(0, 0)
-    
+            abline(x_vals, -1, 0)
+        if (line == 'y0'):
+            abline(x_vals, 0, 0)
 
     label_font_size = 18 if large_text == False else 23
     tick_font_size = 15 if large_text == False else 20
