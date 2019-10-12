@@ -86,7 +86,7 @@ def abline(x_vals, slope, intercept, color='green'):
     y_vals = intercept + slope * x_vals
     plt.plot(x_vals, y_vals, color=color, linewidth=1, linestyle='dashed')
 
-def scatterplot(data_df, xcol=None, ycol=None, linreg=False, yrange=None, ylims=None, yignore=None, yvaluemap=None, point_s=3, line=None, xlabel=None, ylabel=None, title=None, large_text=False):
+def scatterplot(data_df, xcol=None, ycol=None, linreg='', yrange=None, ylims=None, yignore=None, yvaluemap=None, point_s=3, line=None, xlabel=None, ylabel=None, title=None, large_text=False):
     # filter out null values (e.g. -9999)
     if (yignore is not None):
         # df = data_df.query(f'''{ycol} != {yignore}''')
@@ -126,13 +126,14 @@ def scatterplot(data_df, xcol=None, ycol=None, linreg=False, yrange=None, ylims=
         if p_value < 0.1: return 'p < 0.1'
         return 'p = '+ str(round(p_value, 2))
 
-    if (linreg == True):
+    if (linreg is not ''):
         slope, intercept, r_value, p_value, std_err = stats.linregress(xvals, yvals)
         print('slope:', slope, 'intercept:', intercept, 'r_value:', r_value, 'p_value:', p_value, 'std_err:', std_err)
         abline(x_vals, slope, intercept, color='red')
         func_string = 'y = '+ str(round(intercept,1)) + ' + '+ str(round(slope, 2)) +'x'
-        ax.text(0.06, 0.05, 'R = '+ str(round(r_value, 2)) +'\n'+ get_p_string(p_value)+ '\n'+ func_string,
-                verticalalignment='bottom', horizontalalignment='left',
+        position = (0.05, 0.95, 'top') if linreg == 'topleft' else (0.06, 0.05, 'bottom')
+        ax.text(position[0], position[1], 'R = '+ str(round(r_value, 2)) +'\n'+ get_p_string(p_value)+ '\n'+ func_string,
+                verticalalignment=position[2], horizontalalignment='left',
                 transform=ax.transAxes,
                 color='black', fontsize=13, linespacing=1.5)
     

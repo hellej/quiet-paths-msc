@@ -116,7 +116,7 @@ od_stats_p0_3000m = od_stats_df[(od_stats_df['length'] < 3000)]
 od_stats_mdB_60_70 = od_stats_df[(od_stats_df['mdB'] > 60) & (od_stats_df['mdB'] < 70) & (od_stats_df['length'] < 3000)]
 
 #%% qp counts regression
-fig = plots.scatterplot(od_stats_p0_3000m, 'length_km', 'count_qp', linreg=True, xlabel='Shortest path length (km)', ylabel='Quiet path count',  large_text=True, yvaluemap=(-9999, 0), point_s=1)
+fig = plots.scatterplot(od_stats_p0_3000m, 'length_km', 'count_qp', linreg='topleft', xlabel='Shortest path length (km)', ylabel='Quiet path count',  large_text=True, yvaluemap=(-9999, 0), point_s=1)
 fig.savefig('plots/quiet_path_plots/len-qp_count_linreg.png', format='png', dpi=300)
 
 #%% OD distance - mdB diff qp 200
