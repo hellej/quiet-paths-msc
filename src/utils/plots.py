@@ -83,11 +83,10 @@ def plot_exposure_times(exp_times):
 
 def abline(x_vals, slope, intercept, color='green'):
     '''Plot a line from slope and intercept'''
-    print(x_vals)
     y_vals = intercept + slope * x_vals
     plt.plot(x_vals, y_vals, color=color, linewidth=1, linestyle='dashed')
 
-def scatterplot(data_df, xcol=None, ycol=None, linreg=False, yrange=None, yignore=None, yvaluemap=None, point_s=3, line=None, xlabel=None, ylabel=None, title=None, large_text=False):
+def scatterplot(data_df, xcol=None, ycol=None, linreg=False, yrange=None, ylims=None, yignore=None, yvaluemap=None, point_s=3, line=None, xlabel=None, ylabel=None, title=None, large_text=False):
     # filter out null values (e.g. -9999)
     if (yignore is not None):
         # df = data_df.query(f'''{ycol} != {yignore}''')
@@ -146,6 +145,12 @@ def scatterplot(data_df, xcol=None, ycol=None, linreg=False, yrange=None, yignor
         if (line == 'y0'):
             abline(x_vals, 0, 0)
 
+    y_lims = np.array(ax.get_ylim())
+    print('y_lims:', y_lims)
+
+    if (ylims is not None):
+        ax.set_ylim(top=ylims[0], bottom=ylims[1])
+
     label_font_size = 18 if large_text == False else 23
     tick_font_size = 15 if large_text == False else 20
 
@@ -160,6 +165,44 @@ def scatterplot(data_df, xcol=None, ycol=None, linreg=False, yrange=None, yignor
     ax.yaxis.labelpad = 10
 
     fig.tight_layout()
+    return fig
+
+def boxplots_qp_counts(od_stats_df, large_text = True, xlabel=None, ylabel=None, title=None):
+
+    qp_counts = range(0, 9)
+
+    qp_count_groups = []
+    for i in qp_counts:
+        ed_stats_qp_i = od_stats_df[od_stats_df['count_qp'] == i]
+        qp_count_groups.append(ed_stats_qp_i['length_km'])
+
+    # Create a figure instance
+    fig = plt.figure(1, figsize=(9, 8))
+
+    # Create an axes instance
+    ax = fig.add_subplot(111)
+
+    # Create the boxplot
+    ax.boxplot(qp_count_groups, labels=qp_counts, vert=False)
+
+    ax.set_ylabel(ylabel if ylabel is not None else '')
+    ax.set_xlabel(xlabel if xlabel is not None else '')
+
+    label_font_size = 18 if large_text == False else 23
+    tick_font_size = 15 if large_text == False else 18
+
+    if (title is not None):
+        ax.set_title(title, fontsize=25, y = 1.04)
+
+    ax.xaxis.label.set_size(label_font_size)
+    ax.yaxis.label.set_size(label_font_size)
+    ax.tick_params(axis='both', which='major', labelsize=tick_font_size)
+
+    ax.xaxis.labelpad = 10
+    ax.yaxis.labelpad = 10
+
+    fig.tight_layout()
+
     return fig
 
 def boxplot(data_df, col=None, valignore=None, label=None):

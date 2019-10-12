@@ -168,7 +168,7 @@ def get_best_quiet_paths_of_max_len_diffs(od_id=None, df=None, sp=None, max_len_
         found_qps = len(qps) > 0
         qps = qps.sort_values('len_diff', ascending=False) if found_qps == True else None
         qp = qps.to_dict(orient='records')[0] if found_qps == True else {}
-        # od_qp_stats['len_qp'+str(max_len)] = qp['length'] if found_qps == True else -9999
+        qp_stats['count_qp'+str(max_len)] = len(qps) if found_qps == True else 0
         qp_stats['len_diff_qp'+str(max_len)] = qp['len_diff'] if found_qps == True else -9999
         qp_stats['len_diff_r_qp'+str(max_len)] = qp['len_diff_r'] if found_qps == True else -9999
         qp_stats['nei_qp'+str(max_len)] = qp['nei_norm'] if found_qps == True else -9999
