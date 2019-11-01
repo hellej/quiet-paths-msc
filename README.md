@@ -1,10 +1,10 @@
 # MSc thesis
 ## Assessing and minimizing pedestrians' exposure to traffic noise with spatial analysis and Web GIS (working title)
 This repository contains (or is linked to) the main components of my master's thesis, including:
+* [Quiet path route optimization application](https://github.com/DigitalGeographyLab/hope-green-path-server)
+* Quiet path route planner UI: [github.com/DigitalGeographyLab/hope-green-path-ui](https://github.com/DigitalGeographyLab/hope-green-path-ui) / [Live demo](https://green-paths.web.app/)
 * Scripts for [construction, processing and analysis](https://github.com/DigitalGeographyLab/hope-green-path-server/blob/develop/src/graphs/graph_construction.py) of walkable street network (graph)
 * [Analysis](https://github.com/hellej/quiet-paths-msc/tree/master/src/scripts_analysis) and [utilities](https://github.com/DigitalGeographyLab/hope-green-path-server/blob/develop/src/utils/noise_exposures.py) for assessing pedestrians exposure to traffic noise
-* [Quiet path route optimization application](https://github.com/DigitalGeographyLab/hope-green-path-server)
-* Quiet path route planner UI: [github.com/DigitalGeographyLab/hope-green-path-ui](https://github.com/DigitalGeographyLab/hope-green-path-ui) / [Live demo](https://quietpath.web.app/)
 
 ## Docs
 * [Research plan (doc)](thesis/research_plan_doc.pdf)
