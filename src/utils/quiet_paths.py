@@ -4,8 +4,27 @@ import utils.exposures as exps
 def get_noise_tolerances():
     return [ 0.1, 0.15, 0.25, 0.5, 1, 1.5, 2, 4, 6, 10, 20, 40 ]
 
-def get_db_costs():
-    return { 50: 0.1, 55: 0.2, 60: 0.3, 65: 0.4, 70: 0.5, 75: 0.6 }
+def calc_db_cost_v2(db):
+    if (db <= 40): 
+        return 0
+    db_cost = (db-40) / (75-40)
+    return round(db_cost, 2)
+
+def calc_db_cost_v3(db):
+    if (db <= 40): return 0
+    db_cost = 0.125 * pow(2, (db-45)/10)
+    return round(db_cost, 3)
+
+def get_db_costs(version: int = 1):
+    dbs = [45, 50, 55, 60, 65, 70, 75]
+    if (version == 1):
+        return { 50: 0.1, 55: 0.2, 60: 0.3, 65: 0.4, 70: 0.5, 75: 0.6 }
+    elif (version == 2):
+        return { db: calc_db_cost_v2(db) for db in dbs }
+    elif (version == 3):
+        return { db: calc_db_cost_v3(db) for db in dbs }
+    else:
+        raise ValueError('Parameter version must be either 1, 2 or 3')
 
 def get_similar_length_paths(paths, path):
     path_len = path['properties']['length']
