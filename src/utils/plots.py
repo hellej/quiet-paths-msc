@@ -225,3 +225,29 @@ def boxplot(data_df, col=None, valignore=None, label=None):
     ax.yaxis.labelpad = 10
     fig.tight_layout()
     return fig
+
+def plot_db_costs(dbs, db_costs_v2, db_costs_v3, xlabel='', ylabel='', title=''):
+    fig, ax = plt.subplots(figsize=(8,7))
+    ax.plot(dbs, db_costs_v2, c='black', label='Eq. 3')
+    ax.plot(dbs, db_costs_v3, c='red', label='Eq. 4')
+    
+    label_font_size = 23
+    tick_font_size = 20
+
+    if (title is not None):
+        ax.set_title(title, fontsize=25, y = 1.04)
+
+    ax.set_ylabel(ylabel if ylabel is not None else '')
+    ax.set_xlabel(xlabel if xlabel is not None else '')
+
+    ax.xaxis.label.set_size(label_font_size)
+    ax.yaxis.label.set_size(label_font_size)
+    ax.tick_params(axis='both', which='major', labelsize=tick_font_size)
+
+    ax.xaxis.labelpad = 10
+    ax.yaxis.labelpad = 10
+
+    ax.legend(prop={'size': 20}, edgecolor='white')
+
+    fig.tight_layout()
+    return fig
