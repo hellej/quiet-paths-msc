@@ -20,13 +20,15 @@ def calc_db_cost_v3(db):
 def get_db_costs(version: int = 1):
     dbs = [45, 50, 55, 60, 65, 70, 75]
     if (version == 1):
-        return { 50: 0.1, 55: 0.2, 60: 0.3, 65: 0.4, 70: 0.5, 75: 0.6 }
+        db_costs = { 50: 0.1, 55: 0.2, 60: 0.3, 65: 0.4, 70: 0.5, 75: 0.6 }
     elif (version == 2):
-        return { db: calc_db_cost_v2(db) for db in dbs }
+        db_costs = { db: calc_db_cost_v2(db) for db in dbs }
     elif (version == 3):
-        return { db: calc_db_cost_v3(db) for db in dbs }
+        db_costs = { db: calc_db_cost_v3(db) for db in dbs }
     else:
         raise ValueError('Parameter: version must be either 1, 2 or 3')
+    print('Using dB costs v'+ str(version) + ': '+ str(db_costs))
+    return db_costs
 
 def get_similar_length_paths(paths, path):
     path_len = path['properties']['length']
