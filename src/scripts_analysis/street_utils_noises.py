@@ -146,7 +146,7 @@ print('merged rows:', len(edge_utils_gdf))
 #%% add noise indexes to edge utils gdf
 edge_utils_gdf['mdB'] = edge_utils_gdf.apply(lambda row: exps.get_mean_noise_level(row['noises'], row['length']), axis=1)
 edge_utils_gdf['nei'] = [round(exps.get_noise_cost(noises=noises, db_costs=db_costs), 1) for noises in edge_utils_gdf['noises']]
-edge_utils_gdf['nei_norm'] = edge_utils_gdf.apply(lambda row: round(row['nei'] / (0.6 * row['length']), 4), axis=1)
+edge_utils_gdf['nei_norm'] = edge_utils_gdf.apply(lambda row: exps.get_nei_norm(row.nei, row.total_length, db_costs), axis=1)
 
 #%% export edges with noise & util attributes to file
 edge_utils_gdf_file = edge_utils_gdf.drop(columns=['uvkey', 'noises', 'edge_id'])

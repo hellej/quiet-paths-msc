@@ -180,3 +180,6 @@ def compare_lens_noises_lens(edge_gdf):
     gdf['len_from_noises'] = [get_total_noises_len(noises) for noises in gdf['noises']]
     gdf['len_noise_error'] = gdf.apply(lambda row: row['length'] - row['len_from_noises'], axis=1)
     return gdf
+
+def get_nei_norm(nei: float, length: float, db_costs: dict):
+    return round(nei / (length * db_costs[75]), 4)

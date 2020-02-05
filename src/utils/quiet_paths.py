@@ -14,7 +14,7 @@ def calc_db_cost_v2(db):
 def calc_db_cost_v3(db):
     # Equation 4
     if (db <= 40): return 0
-    db_cost = 0.125 * pow(2, (db-45)/10)
+    db_cost = (pow(10, (0.3 * db)/10)) / 100
     return round(db_cost, 3)
 
 def get_db_costs(version: int = 1):

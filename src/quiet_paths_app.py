@@ -19,9 +19,9 @@ CORS(app)
 # INITIALIZE GRAPH
 start_time = time.time()
 nts = qp.get_noise_tolerances()
-db_costs = qp.get_db_costs()
 graph = files.get_network_full_noise()
 # graph = files.get_network_kumpula_noise()
+db_costs = qp.get_db_costs(version=3)
 print('Graph of', graph.size(), 'edges read.')
 edge_gdf = nw.get_edge_gdf(graph, attrs=['geometry', 'length', 'noises'])
 node_gdf = nw.get_node_gdf(graph)
@@ -87,7 +87,7 @@ def get_short_quiet_paths(from_lat, from_lon, to_lat, to_lon):
     paths_gdf['mdB'] = paths_gdf.apply(lambda row: exps.get_mean_noise_level(row['noises'], row['total_length']), axis=1)
     # calculate noise exposure index (same as noise cost but without noise tolerance coefficient)
     paths_gdf['nei'] = [round(exps.get_noise_cost(noises=noises, db_costs=db_costs), 1) for noises in paths_gdf['noises']]
-    paths_gdf['nei_norm'] = paths_gdf.apply(lambda row: round(row.nei / (0.6 * row.total_length), 4), axis=1)
+    paths_gdf['nei_norm'] = paths_gdf.apply(lambda row: exps.get_nei_norm(row.nei, row.total_length, db_costs), axis=1)
     # gdf to dicts
     path_dicts = qp.get_geojson_from_q_path_gdf(paths_gdf)
     # group paths with nearly identical geometries

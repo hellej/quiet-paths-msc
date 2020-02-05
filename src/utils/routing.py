@@ -170,7 +170,7 @@ def get_short_quiet_paths(graph, from_latLon, to_latLon, edge_gdf, node_gdf, nts
     paths_gdf['mdB'] = paths_gdf.apply(lambda row: exps.get_mean_noise_level(row['noises'], row['total_length']), axis=1)
     # calculate noise exposure index (same as noise cost but without noise tolerance coefficient)
     paths_gdf['nei'] = [round(exps.get_noise_cost(noises=noises, db_costs=db_costs), 1) for noises in paths_gdf['noises']]
-    paths_gdf['nei_norm'] = paths_gdf.apply(lambda row: round(row.nei / (0.6 * row.total_length), 4), axis=1)
+    paths_gdf['nei_norm'] = paths_gdf.apply(lambda row: exps.get_nei_norm(row.nei, row.total_length, db_costs), axis=1)
     # gdf to dicts
     path_dicts = qp.get_geojson_from_q_path_gdf(paths_gdf)
     # group paths with nearly identical geometries
