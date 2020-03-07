@@ -30,71 +30,66 @@ def get_db_costs(version: int = 1):
     print('Using dB costs v'+ str(version) + ': '+ str(db_costs))
     return db_costs
 
-def get_similar_length_paths(paths, path):
-    path_len = path['properties']['length']
-    similar_len_paths = [path for path in paths if (path['properties']['length'] < (path_len + 25)) & (path['properties']['length'] > (path_len - 25))]
-    return similar_len_paths
+def get_path_overlay_candidates_by_len(by_path, all_paths: list, len_diff: int = 25) -> list:
+    """Returns paths with length difference not greater or less than specified in [len_diff] (m)
+    compared to the length of [path]. If [all_paths] contains [param_path], the latter is included in the returned list.
+    """
+    p_length = by_path['properties']['length']
+    overlay_candidates = [path for path in all_paths if (abs(path['properties']['length'] - p_length) < len_diff)]
+    return overlay_candidates
 
-def get_overlapping_paths(compare_paths, path, tolerance=None):
-    overlapping = [path]
-    path_geom = path['properties']['geometry']
-    path_geom_buff = path_geom.buffer(tolerance)
-    for compare_path in [compare_path for compare_path in compare_paths if path['properties']['id'] != compare_path['properties']['id']]:
-        comp_path_geom = compare_path['properties']['geometry']
-        if (comp_path_geom.within(path_geom_buff)):
-            # print('found overlap:', path['properties']['id'], compare_path['properties']['id'])
-            overlapping.append(compare_path)
-    return overlapping
+def get_overlapping_paths(by_path, compare_paths: list, buffer_m: int = None) -> list:
+    """Returns [compare_paths] that are within a buffered geometry of [param_path].
+    """
+    overlapping_paths = [by_path]
+    path_geom_buff = by_path['properties']['geometry'].buffer(buffer_m)
+    for compare_path in [compare_path for compare_path in compare_paths if compare_path['properties']['id'] != by_path['properties']['id']]:
+        bool_within = compare_path['properties']['geometry'].within(path_geom_buff)
+        if (bool_within == True):
+            overlapping_paths.append(compare_path)
+    return overlapping_paths
 
-def get_best_path(paths):
+def get_least_cost_path(paths, cost_attr):
     ordered = paths.copy()
     def get_score(path):
-        return path['properties']['nei_norm']
+        return path['properties'][cost_attr]
     ordered.sort(key=get_score)
-    # print('ordered (best=[0]):', [(path['properties']['id'], path['properties']['nei_norm']) for path in ordered])
+    # if (len(ordered) > 1):
+    #     print('ordered (best=[0]):', [(path['properties']['id'], path['properties']['nei']) for path in ordered])
     return ordered[0]
 
+def get_path_length(path):
+    return path['properties']['length']
+
 def remove_duplicate_geom_paths(paths, tolerance=None, remove_geom_prop=True, logging=True):
-    all_overlapping_paths = []
-    filtered_paths_ids = []
     filtered_paths = []
-    quiet_paths = [path for path in paths if path['properties']['type'] == 'quiet']
-    shortest_path = [path for path in paths if path['properties']['type'] == 'short'][0]
+    filtered_paths_names = []
+    paths_already_overlapped = []
+
     # function for returning better of two paths
-    for path in quiet_paths:
-        if (path['properties']['type'] != 'short'):
-            path_id = path['properties']['id']
-            if (path_id in filtered_paths_ids or path_id in all_overlapping_paths):
-                continue
-            similar_len_paths = get_similar_length_paths(paths, path)
-            overlapping_paths = get_overlapping_paths(similar_len_paths, path, tolerance)
-            if (len(overlapping_paths) > 1):
-                best_overlapping_path = get_best_path(overlapping_paths)
-                best_overlapping_id = best_overlapping_path['properties']['id']
-                if (best_overlapping_id not in filtered_paths_ids):
-                    filtered_paths.append(best_overlapping_path)
-                    filtered_paths_ids.append(best_overlapping_id)
-                all_overlapping_paths += [path['properties']['id'] for path in overlapping_paths]
-            else:
-                if (path_id not in filtered_paths_ids):
-                    filtered_paths.append(path)
-                    filtered_paths_ids.append(path_id)
-    # check if shortest path is shorter than shortest quiet path
-    shortest_quiet_path = filtered_paths[0]
-    if (shortest_quiet_path['properties']['length'] - shortest_path['properties']['length'] > 10):
-        # print('set shortest path as shortest')
-        if ('short_p' not in filtered_paths_ids):
-            filtered_paths.append(shortest_path)
-    else:
-        # print('set shortest quiet path as shortest')
-        if ('short_p' not in filtered_paths_ids):
-            filtered_paths[0]['properties']['type'] = 'short'
-            filtered_paths[0]['properties']['id'] = 'short_p'
+    for path in paths:
+        path_name = path['properties']['id']
+        if (path_name not in filtered_paths_names and path_name not in paths_already_overlapped):
+            overlay_candidates = get_path_overlay_candidates_by_len(path, paths, len_diff=tolerance)
+            overlapping_paths = get_overlapping_paths(path, overlay_candidates, buffer_m=tolerance)
+            best_overlapping_path = get_least_cost_path(overlapping_paths, cost_attr='nei')
+            if (best_overlapping_path['properties']['id'] not in filtered_paths_names):
+                filtered_paths_names.append(best_overlapping_path['properties']['id'])
+                filtered_paths.append(best_overlapping_path)
+            paths_already_overlapped += [path['properties']['id'] for path in overlapping_paths]
+
+    filtered_paths.sort(key=get_path_length)
+
+    if ('short_p' not in filtered_paths_names):
+        filtered_paths[0]['properties']['id'] = 'short_p'
+        filtered_paths[0]['properties']['type'] = 'short'
+
     # delete shapely geometries from path dicts
     if (remove_geom_prop == True):
         for path in filtered_paths:
             del path['properties']['geometry']
-    if logging == True: print('found', len(paths), 'of which returned', len(filtered_paths), 'unique paths.')
+    if logging == True: 
+        print('found', len(paths), 'of which returned', len(filtered_paths), 'unique paths.')
     return filtered_paths
 
 def get_geojson_from_q_path_gdf(gdf):
