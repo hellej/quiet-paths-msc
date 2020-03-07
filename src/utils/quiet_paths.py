@@ -2,7 +2,7 @@ import utils.geometry as geom_utils
 import utils.exposures as exps
 
 def get_noise_tolerances():
-    return [ 0.1, 0.15, 0.25, 0.5, 1, 1.5, 2, 4, 6, 10, 20, 40 ]
+    return [ 0.1, 0.15, 0.25, 0.35, 0.5, 1, 1.5, 2, 4, 6, 10, 20, 40 ]
 
 def calc_db_cost_v2(db):
     # Equation 3
@@ -14,8 +14,8 @@ def calc_db_cost_v2(db):
 def calc_db_cost_v3(db):
     # Equation 4
     if (db <= 40): return 0
-    db_cost = (pow(10, (0.3 * db)/10)) / 100
-    return round(db_cost, 3)
+    db_cost = pow(10, (0.3 * db)/10)
+    return round(db_cost / 100, 3)
 
 def get_db_costs(version: int = 1):
     dbs = [45, 50, 55, 60, 65, 70, 75]
