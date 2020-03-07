@@ -15,12 +15,12 @@ import utils.routing as rt
 import utils.quiet_paths as qp
 
 # walks_out_file = 'test_run_1'
-walks_out_file = 'run_5_set_1'
+walks_out_file = 'run_6_set_1'
 
 #%% initialize graph
 start_time = time.time()
 nts = qp.get_noise_tolerances()
-db_costs = qp.get_db_costs()
+db_costs = qp.get_db_costs(version=3)
 graph = files.get_network_full_noise(version=3)
 print('Graph of', graph.size(), 'edges read.')
 edge_gdf = nw.get_edge_gdf(graph, attrs=['geometry', 'length', 'noises'])
@@ -99,7 +99,7 @@ axyind_time = round((time.time() - start_time)/len(to_process), 2)
 print('axyind_time (s):', axyind_time)
 
 #%% check paths GDF
-all_home_paths_df.head(3)
+# all_home_paths_df.head(3)
 
 #%% export paths GDF
 all_home_paths_df.to_file('outputs/YKR_commutes_output/home_paths.gpkg', layer=walks_out_file, driver='GPKG')

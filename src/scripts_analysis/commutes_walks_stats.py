@@ -12,9 +12,9 @@ import utils.files as files
 import utils.plots as plots
 import utils.exposures as exps
 
-walks_in_file = 'run_5_set_1'
+walks_in_file = 'run_6_set_1'
 problem_axyinds = [3933756673875]
-axyind_stats_out_file = 'axyind_stats_v4'
+axyind_stats_out_file = 'axyind_stats_v6'
 
 #### READ & PROCESS WALKS & GRID ####
 #####################################
@@ -40,8 +40,6 @@ print('axyind count:', len(paths['from_axyind'].unique()))
 print('paths per axyind:', round(len(paths.index)/len(paths['from_axyind'].unique())))
 print(paths.columns)
 
-#%% fix dt len diff ratio - only needed for run_5_set_1 and older (fixed routing script)
-paths = pstats.fix_dt_len_diff(paths) # TODO disable for run_6 paths and newer
 #%% mark path stats to -9999 for paths that are actually PT legs (origin happened to be exactly at the PT stop)
 paths = pstats.map_pt_path_props_to_null(paths)
 
@@ -204,15 +202,15 @@ sp_stats.to_csv('outputs/path_stats/sp_noise_stats.csv')
 
 print(sp_stats)
 # name      n     mean  median      std    p10    p25     p75     p90
-# 0       nei  30160   99.659   73.50   93.015  14.60  35.30  135.10  220.70
-# 1  nei_norm  30097    0.361    0.34    0.218   0.07   0.19    0.53    0.66
-# 2       mdB  30097   57.545   57.46    7.450  47.49  52.19   63.32   67.37
-# 3     60dBl  30160  210.138  142.32  214.735  12.89  63.96  292.65  496.86
-# 4     65dBl  30160  135.926   75.36  175.588   0.00  21.61  179.49  342.39
-# 5     70dBl  30160   52.591    8.31  101.213   0.00   0.00   64.26  150.49
-# 6     60dBr  30097   46.221   40.76   32.729   4.10  18.40   73.97   99.99
-# 7     65dBr  30097   29.929   20.51   29.753   0.00   5.12   47.19   79.38
-# 8     70dBr  30097   11.683    1.90   20.244   0.00   0.00   14.17   37.18
+# 0       nei  30156  251.946  192.10  222.823  47.00  99.00  333.60  534.00
+# 1  nei_norm  30093    0.304    0.29    0.167   0.10   0.19    0.41    0.52
+# 2       mdB  30093   57.495   57.41    7.457  47.46  52.09   63.27   67.36
+# 3     60dBl  30156  209.392  141.66  214.894  12.89  63.59  289.33  497.85
+# 4     65dBl  30156  134.849   73.99  175.509   0.00  21.59  177.84  341.05
+# 5     70dBl  30156   51.683    7.91  100.541   0.00   0.00   63.22  146.32
+# 6     60dBr  30093   46.055   40.60   32.746   4.14  18.18   73.93   99.99
+# 7     65dBr  30093   29.683   19.84   29.717   0.00   5.00   46.79   79.05
+# 8     70dBr  30093   11.528    1.79   20.198   0.00   0.00   13.87   36.64
 
 #%%# SHORTEST PATHS TO PT STOPS ###
 sp_pt_stats = []
@@ -230,14 +228,13 @@ sp_pt_stats.to_csv('outputs/path_stats/sp_pt_noise_stats.csv')
 
 print(sp_pt_stats)
 # name      n     mean  median      std    p10    p25     p75     p90
-# 0       nei  17892   96.193   71.80   87.263  14.70  34.90  131.10  212.00
-# 1  nei_norm  17829    0.363    0.34    0.218   0.08   0.19    0.53    0.66
-# 2       mdB  17829   57.633   57.55    7.435  47.61  52.28   63.36   67.43
-# 3     60dBl  17892  203.155  139.65  203.464  14.81  63.63  283.49  474.97
-# 4     65dBl  17892  130.214   73.85  164.957   0.00  21.61  172.85  330.34
-# 5     70dBl  17892   49.868    7.91   94.374   0.00   0.00   62.74  141.91
-# 6     60dBr  17829   46.584   41.19   32.805   4.47  18.63   74.53   99.99
-# 7     65dBr  17829   30.058   20.70   29.857   0.00   5.17   47.30   79.78
-# 8     70dBr  17829   11.700    1.86   20.357   0.00   0.00   14.14   37.23
-
+# 0       nei  17888  242.906  187.80  208.093  47.00  97.80  326.70  512.80
+# 1  nei_norm  17825    0.306    0.29    0.166   0.10   0.19    0.41    0.52
+# 2       mdB  17825   57.581   57.52    7.438  47.54  52.17   63.33   67.41
+# 3     60dBl  17888  202.384  138.45  203.502  14.81  63.10  281.16  475.60
+# 4     65dBl  17888  129.150   72.44  164.780   0.00  21.59  170.56  328.14
+# 5     70dBl  17888   49.017    7.21   93.767   0.00   0.00   62.15  139.78
+# 6     60dBr  17825   46.410   40.86   32.816   4.45  18.37   74.41   99.99
+# 7     65dBr  17825   29.804   19.95   29.809   0.00   5.12   46.96   79.38
+# 8     70dBr  17825   11.541    1.74   20.292   0.00   0.00   13.78   36.64
 #%%

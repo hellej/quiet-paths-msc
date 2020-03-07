@@ -121,7 +121,7 @@ def calc_basic_stats(data_gdf, var_col, valuemap=None, valueignore=None, axyinds
     
     if (min_length is not None):
         count_before = len(gdf)
-        gdf = gdf.query(f'''length > {min_length}''')
+        gdf = gdf.query(f'''DT_len > {min_length}''')
         count_after = len(gdf)
         if (printing == True): print('Filtered out:', count_before-count_after, 'paths shorter than', min_length, 'm')
     
