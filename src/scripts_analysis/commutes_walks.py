@@ -16,6 +16,7 @@ import utils.quiet_paths as qp
 
 # walks_out_file = 'test_run_1'
 walks_out_file = 'run_6_set_1'
+print('starting:', walks_out_file)
 
 #%% initialize graph
 start_time = time.time()
