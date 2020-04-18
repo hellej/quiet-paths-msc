@@ -1,23 +1,20 @@
 # MSc thesis
-## Assessing and minimizing pedestrians' exposure to traffic noise with spatial analysis and Web GIS (working title)
-This repository contains (or is linked to) the main components of my master's thesis, including:
-* [Quiet path route optimization application](https://github.com/DigitalGeographyLab/hope-green-path-server)
-* Quiet path route planner UI: [github.com/DigitalGeographyLab/hope-green-path-ui](https://github.com/DigitalGeographyLab/hope-green-path-ui) / [Live demo](https://green-paths.web.app/)
-* Scripts for [construction, processing and analysis](https://github.com/DigitalGeographyLab/hope-green-path-server/blob/develop/src/graphs/graph_construction.py) of walkable street network (graph)
-* [Analysis](https://github.com/hellej/quiet-paths-msc/tree/master/src/scripts_analysis) and [utilities](https://github.com/DigitalGeographyLab/hope-green-path-server/blob/develop/src/utils/noise_exposures.py) for assessing pedestrians exposure to traffic noise
-
-## Docs
-* [Research plan (doc)](thesis/research_plan_doc.pdf)
-* [Research plan (slides)](thesis/research_plan_slides.pdf)
-* [Methods & results (slides)](thesis/methods_results.pdf)
-* [Draft of the thesis](thesis/thesis.docx)
+## Quiet paths for people: developing routing analysis and Web GIS application
+This repository features (and is linked to) the main components of my master's thesis, including:
+* [Quiet path routing application](https://github.com/DigitalGeographyLab/hope-green-path-server)
+* [Quiet path route planner UI](https://github.com/DigitalGeographyLab/hope-green-path-ui) / [Live demo](https://green-paths.web.app/)
+* [Research plan (pdf)](thesis/research_plan_doc.pdf)
+* [Methods & results (slides / pdf)](thesis/helle_msc_slides.pdf)
+* [Draft of the thesis (pdf)](thesis/helle_msc_draft.pdf)
 
 ## Tech
 * Python (3.6)
 * Shapely
 * GeoPandas
 * NetworkX (+ OSMnx)
+* igraph
 * Flask
+* Gunicorn
 
 ## Materials
 * [Traffic noise zones in Helsinki 2017](https://hri.fi/data/en_GB/dataset/helsingin-kaupungin-meluselvitys-2017)
