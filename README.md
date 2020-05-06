@@ -1,11 +1,11 @@
 # MSc thesis
 ## Quiet paths for people: developing routing analysis and Web GIS application
 This repository features (and is linked to) the main components of my master's thesis, including:
-* [Quiet path routing application](https://github.com/DigitalGeographyLab/hope-green-path-server)
+* [MSc thesis (pdf)](thesis/Joose_MScThesis.pdf)
 * [Quiet path route planner UI](https://github.com/DigitalGeographyLab/hope-green-path-ui) / [Live demo](https://green-paths.web.app/)
-* [Research plan (pdf)](thesis/research_plan_doc.pdf)
-* [Methods & results (slides / pdf)](thesis/helle_msc_slides.pdf)
-* [Draft of the thesis (pdf)](thesis/helle_msc_draft.pdf)
+* [Quiet path routing application](https://github.com/DigitalGeographyLab/hope-green-path-server)
+* [Methods & results (slides / pdf)](thesis/archive/helle_msc_slides.pdf)
+* [Research plan (pdf)](thesis/archive/research_plan_doc.pdf)
 
 ## Tech
 * Python (3.6)
