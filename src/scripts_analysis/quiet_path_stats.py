@@ -105,6 +105,14 @@ od_stats_df['length_km'] = [length / 1000.0 for length in od_stats_df['length']]
 od_stats_len_300_600 = od_stats_df.query('length > 300 and length < 600')
 od_stats_len_700_1300 = od_stats_df.query('length > 700 and length < 1300')
 
+#%% print od counts
+print(f'total count of ODs in regression analysis={len(od_stats_len_300_600) + len(od_stats_len_700_1300)}')
+print(f'od_stats_len_300_600 n={len(od_stats_len_300_600)}')
+print(f'od_stats_len_700_1300 n={len(od_stats_len_700_1300)}')
+# total count of ODs in regression analysis=18446
+# od_stats_len_300_600 n=7091
+# od_stats_len_700_1300 n=11355
+
 #%% set quiet path names
 qps = {'qp100': 'Diff. in dist. < 100 m', 'qp200': 'Diff. in dist. < 200 m', 'qp300': 'Diff. in dist. < 300 m'}
 
