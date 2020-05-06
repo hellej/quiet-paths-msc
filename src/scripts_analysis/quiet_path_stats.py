@@ -124,6 +124,16 @@ fig.savefig('plots/quiet_path_plots/len-mdB_diff_qp200.png', format='png', dpi=3
 fig = plots.boxplots_qp_counts(od_stats_p0_3000m, xlabel='Shortest path length (km)', ylabel='Quiet path count', large_text=True)
 fig.savefig('plots/quiet_path_plots/len-qp_count_boxplot.png', format='png', dpi=300)
 
+#%% db_diff histograms 300-600 m
+for qp_name in qps.keys():
+    fig = plots.plot_db_diff_histogram(od_stats_len_300_600, 'mdB_diff_'+ qp_name, yrange=5100, title=qps[qp_name],  xlabel='Diff. in mean dB', ylabel='Frequency', yvaluemap=(-9999, 0))
+    fig.savefig(f'plots/quiet_path_plots/p300_600_mdB_diff_hist_{qp_name}.png', format='png', dpi=300)
+
+#%% db_diff histograms 700-1300 m
+for qp_name in qps.keys():
+    fig = plots.plot_db_diff_histogram(od_stats_len_700_1300, 'mdB_diff_'+ qp_name, yrange=7100, title=qps[qp_name],  xlabel='Diff. in mean dB', ylabel='Frequency', yvaluemap=(-9999, 0))
+    fig.savefig(f'plots/quiet_path_plots/p700_1300_mdB_diff_hist_{qp_name}.png', format='png', dpi=300)
+
 #%% mdB - paths 300-600 m
 for qp_name in qps.keys():
     fig = plots.scatterplot(od_stats_len_300_600, 'mdB', 'mdB_diff_'+ qp_name, linreg=True, yrange=(0, -20), xlabel='Mean dB', ylabel='Diff. in mean dB', title=qps[qp_name], large_text=True, yvaluemap=(-9999, 0), point_s=2)

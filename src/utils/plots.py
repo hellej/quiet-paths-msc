@@ -251,3 +251,47 @@ def plot_db_costs(dbs, db_costs_v2, db_costs_v3, xlabel='', ylabel='', title='')
 
     fig.tight_layout()
     return fig
+
+
+def plot_db_diff_histogram(df, db_diff_col, yrange=None, title=None, ylabel=None, xlabel=None, yvaluemap=None):
+    db_diffs_raw = list(df[db_diff_col])
+    if (yvaluemap is not None):
+        db_diffs = [value if value != yvaluemap[0] else yvaluemap[1] for value in db_diffs_raw]
+    else:
+        db_diffs = db_diffs_raw
+    fig, ax = plt.subplots(figsize=(8,7))
+    ax.hist(db_diffs, color = 'black', edgecolor = 'black')
+
+    # set y ticks
+    if (yrange is not None):
+        yticks = list(range(0,  yrange, 1000))
+        yticks = [int(tick) for tick in yticks]
+        ax.set_yticks(yticks)
+        ax.set_yticklabels(yticks, fontsize=15)
+        ax.set_ylim(top=yrange, bottom=0)
+
+    # set y ticks
+    if (yrange is not None):
+        xticks = list(range(-20, 5, 5))
+        xticks = [int(tick) for tick in xticks]
+        ax.set_xticks(xticks)
+        ax.set_xticklabels(xticks, fontsize=15)
+        ax.set_xlim(-22, 1)
+
+    if (title is not None):
+        ax.set_title(title, fontsize=25, y = 1.04)
+
+    ax.set_ylabel(ylabel if ylabel is not None else '')
+    ax.set_xlabel(xlabel if xlabel is not None else '')
+
+    label_font_size = 23
+    tick_font_size = 20
+    ax.xaxis.label.set_size(label_font_size)
+    ax.yaxis.label.set_size(label_font_size)
+    ax.tick_params(axis='both', which='major', labelsize=tick_font_size)
+    ax.xaxis.labelpad = 10
+    ax.yaxis.labelpad = 10
+    ax.legend(prop={'size': 20}, edgecolor='white')
+
+    fig.tight_layout()
+    return fig
